@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ConfirmModalProvider } from './context/ConfirmModalContext';
 import { PWAProvider } from './context/PWAContext';
+import { MatchmakingProvider } from './context/MatchmakingContext';
 import App from './App';
 import './index.css';
 
@@ -27,7 +28,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <AuthProvider>
             <ToastProvider>
               <ConfirmModalProvider>
-                <App />
+                <MatchmakingProvider>
+                  <App />
+                </MatchmakingProvider>
               </ConfirmModalProvider>
             </ToastProvider>
           </AuthProvider>
