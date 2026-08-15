@@ -8,6 +8,12 @@
     --brand-bg: rgb(237, 241, 246);
     --brand-text: rgb(34, 34, 38);
     --brand-live: rgb(239, 68, 68);
+
+    /* Safe area insets for PWA on notch/punch-hole devices */
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
   }
 
   body {
@@ -15,8 +21,31 @@
     color: rgb(34, 34, 38);
     font-family: Arial Unicode MS, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    /* Apply safe area on all sides */
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
+
+/* PWA Standalone: push content below status bar */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Ensure sticky navbar accounts for safe area */
+  .sticky.top-0 {
+    top: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Bottom nav safe area */
+  .fixed.bottom-0 {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+  }
+}
+
 
 /* Base App Cards & Panels */
 .app-card {

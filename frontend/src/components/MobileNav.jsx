@@ -25,6 +25,10 @@ export default function MobileNav() {
     }
   };
 
+  // Show install button only when not standalone and not installed
+  const showInstallBtn = pwa && !pwa.isStandalone && !pwa.isInstalled &&
+    (pwa.isIOS || pwa.isChromeiOS || !!pwa.deferredPrompt);
+
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 px-2 py-2 shadow-2xl">
       <div className="flex items-center justify-around">
@@ -53,7 +57,7 @@ export default function MobileNav() {
         })}
 
         {/* PWA Install button in mobile nav (only when installable) */}
-        {pwa?.canInstall && (
+        {showInstallBtn && (
           <button
             onClick={handlePWAInstall}
             className="flex flex-col items-center justify-center gap-0.5 w-full h-full rounded-xl transition-all duration-200 text-emerald-600 hover:text-emerald-700"
