@@ -230,7 +230,7 @@ export function PWAInstallButton({ className = '' }) {
         title="Cài ứng dụng lên màn hình chính"
       >
         <Smartphone className="w-3.5 h-3.5 shrink-0" />
-        <span className="hidden sm:inline">Cài app</span>
+        <span className="inline">Tải app</span>
       </button>
     );
   }
@@ -245,7 +245,7 @@ export function PWAInstallButton({ className = '' }) {
         title="Cài FC Nhà Trẻ như ứng dụng native"
       >
         <Download className="w-3.5 h-3.5 shrink-0" />
-        <span className="hidden sm:inline">Cài app</span>
+        <span className="inline">Tải app</span>
       </button>
     );
   }
