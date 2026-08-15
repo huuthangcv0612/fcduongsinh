@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -41,6 +41,25 @@ export default function MonthlyFundGrid({ isAdmin }) {
   const [editingCell, setEditingCell] = useState(null); // { id, monthKey, monthLabel, memberName, value }
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
+  const scrollContainerRef = useRef(null);
+
+  // Auto-scroll to current month
+  useEffect(() => {
+    if (!isLoading && scrollContainerRef.current) {
+      const currentMonthIndex = new Date().getMonth();
+      const container = scrollContainerRef.current;
+      // STT (w-12 = 48px) + Thành viên (w-52 = 208px) = 256px
+      // Month column ~ 95px width
+      const scrollPosition = Math.max(0, 256 + (currentMonthIndex * 95) - (container.clientWidth / 2) + 47);
+      
+      // Delay slightly to let layout finish rendering
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, [isLoading, selectedYear]);
 
   // Query Grid data (linked directly to real MongoDB User collection)
   const { data: gridRes, isLoading } = useQuery({
@@ -212,7 +231,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
 
       {/* Spreadsheet Grid Container */}
       <div className="glass-card-white rounded-3xl border border-slate-300 bg-white overflow-hidden shadow-lg">
-        <div className="overflow-x-auto max-w-full">
+        <div ref={scrollContainerRef} className="overflow-x-auto max-w-full">
           <table className="w-full text-xs text-left border-collapse min-w-[1100px]">
             {/* Table Header */}
             <thead>
@@ -224,8 +243,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     {m.label}
                   </th>
                 ))}
-                <th className="py-3 px-4 text-right bg-emerald-950 text-amber-300">Tổng đã đóng</th>
-                {isAdmin && <th className="py-3 px-3 text-center w-12">Thao tác</th>}
+                <th className={`py-3 px-4 text-right bg-emerald-950 text-amber-300 sticky z-20 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.15)] border-l border-emerald-900 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>Tổng đã đóng</th>
+                {isAdmin && <th className="py-3 px-3 text-center w-12 sticky right-0 z-20 bg-emerald-950 border-l border-emerald-800">Thao tác</th>}
               </tr>
             </thead>
 
@@ -281,13 +300,13 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     })}
 
                     {/* Member Total */}
-                    <td className="py-2.5 px-4 text-right font-black text-emerald-800 bg-emerald-50/80">
+                    <td className={`py-2.5 px-4 text-right font-black text-emerald-800 bg-emerald-50/95 sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-emerald-200 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
                       {formatMoney(memberTotal)}
                     </td>
 
                     {/* Actions */}
                     {isAdmin && (
-                      <td className="py-2.5 px-3 text-center">
+                      <td className="py-2.5 px-3 text-center sticky right-0 z-10 bg-white/95 border-l border-slate-200 shadow-sm">
                         <button
                           onClick={() => handleDeleteMember(row._id, displayName)}
                           className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
@@ -322,10 +341,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     {formatMoney(monthlyTotals[m.key])}
                   </td>
                 ))}
-                <td className="py-3 px-4 text-right bg-emerald-300 text-emerald-950 font-black text-sm">
+                <td className={`py-3 px-4 text-right bg-emerald-300/95 text-emerald-950 font-black text-sm sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-emerald-400 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
                   {formatMoney(grandTotalCollected)}
                 </td>
-                {isAdmin && <td />}
+                {isAdmin && <td className="bg-emerald-200/95 sticky right-0 z-10 border-l border-emerald-300" />}
               </tr>
 
               {/* Row 2: CHI TIÊU THEO THÁNG */}
@@ -338,10 +357,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     {monthlyExpenses[m.key] > 0 ? `-${formatMoney(monthlyExpenses[m.key])}` : '0 đ'}
                   </td>
                 ))}
-                <td className="py-2.5 px-4 text-right bg-rose-200 text-rose-950 font-black">
+                <td className={`py-2.5 px-4 text-right bg-rose-200/95 text-rose-950 font-black sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-rose-300 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
                   -{formatMoney(Object.values(monthlyExpenses).reduce((a, b) => a + b, 0))}
                 </td>
-                {isAdmin && <td />}
+                {isAdmin && <td className="bg-rose-100/95 sticky right-0 z-10 border-l border-rose-200" />}
               </tr>
 
               {/* Row 3: TỔNG DƯ THÁNG */}
@@ -362,10 +381,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     </td>
                   );
                 })}
-                <td className="py-3 px-4 text-right bg-black text-amber-400 font-black text-sm">
+                <td className={`py-3 px-4 text-right bg-black/95 text-amber-400 font-black text-sm sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.2)] border-l border-slate-800 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
                   {formatMoney(grandTotalCollected - Object.values(monthlyExpenses).reduce((a, b) => a + b, 0))}
                 </td>
-                {isAdmin && <td />}
+                {isAdmin && <td className="bg-slate-900/95 sticky right-0 z-10 border-l border-slate-800" />}
               </tr>
             </tfoot>
           </table>
