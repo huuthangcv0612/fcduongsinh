@@ -85,7 +85,7 @@ export default function MatchmakingPage() {
   // Live Scraping Progress State (Docker & Apify Live Monitor)
   const [progress, setProgress] = useState(
     cachedState?.progress && typeof cachedState.progress === 'object'
-      ? cachedState.progress
+      ? { ...cachedState.progress, active: false } // ALWAYS FORCE FALSE ON INITIAL LOAD
       : defaultProgressState
   );
 

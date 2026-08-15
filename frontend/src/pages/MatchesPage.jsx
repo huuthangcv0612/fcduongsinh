@@ -184,8 +184,8 @@ export default function MatchesPage() {
 
       {/* Create Match Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-lg max-h-[90vh] glass-modal rounded-3xl relative bg-white border border-emerald-400 shadow-2xl overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="w-full max-w-lg max-h-[85vh] glass-modal rounded-3xl relative bg-white border border-emerald-400 shadow-2xl overflow-hidden flex flex-col">
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100"

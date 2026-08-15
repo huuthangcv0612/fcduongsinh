@@ -88,11 +88,11 @@ export default function StatsPage() {
             return (
               <div 
                 key={user._id} 
-                className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+                className="flex items-center justify-between gap-2 sm:gap-3 bg-white p-3 sm:p-4 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
               >
-                <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   {/* Rank Badge */}
-                  <div className={`w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center font-black text-lg ${
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-2xl flex items-center justify-center font-black text-sm sm:text-lg ${
                     index === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-lg shadow-amber-500/30' :
                     index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-md' :
                     index === 2 ? 'bg-gradient-to-br from-amber-700 to-amber-900 text-white shadow-md' :
@@ -104,14 +104,14 @@ export default function StatsPage() {
                   <img 
                     src={user.avatar} 
                     alt={user.name} 
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
                   />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-black text-slate-900 text-base truncate max-w-full">{user.name}</h3>
+                      <h3 className="font-black text-slate-900 text-sm sm:text-base truncate max-w-full">{user.name}</h3>
                       {user.position && (
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold whitespace-nowrap">
+                        <span className="hidden sm:inline-block px-2 py-0.5 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold whitespace-nowrap">
                           {user.position}
                         </span>
                       )}
@@ -124,11 +124,11 @@ export default function StatsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center sm:flex-col justify-between sm:justify-center gap-2 sm:gap-0 sm:items-end shrink-0 w-full sm:w-auto">
-                  <div className={`text-2xl font-black ${activeTabData.color} flex items-center gap-1`}>
+                <div className="flex flex-col items-end justify-center shrink-0 pl-2 border-l border-slate-100">
+                  <div className={`text-xl sm:text-2xl font-black ${activeTabData.color} leading-none`}>
                     {val}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+                  <div className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">
                     {activeTab === 'appearances' ? 'Trận' : 
                      activeTab === 'motm' ? 'Lần' : 
                      activeTab === 'assists' ? 'Kiến tạo' : 'Bàn'}
