@@ -135,7 +135,7 @@ export default function Navbar() {
               <NavLink to="/matches" className={({isActive}) => `flex items-center gap-1 ${isActive ? 'text-white' : 'text-white/90 hover:text-white'} font-black`}>
                 ⚽ Bóng đá
               </NavLink>
-              <NavLink to="/" className={({isActive}) => `flex items-center gap-1 ${isActive ? 'text-white' : 'text-white/90 hover:text-white'} font-black`}>
+              <NavLink to="/stats" className={({isActive}) => `flex items-center gap-1 ${isActive ? 'text-white' : 'text-white/90 hover:text-white'} font-black`}>
                 <Trophy className="w-3.5 h-3.5" /> BXH
               </NavLink>
               <Link to="/matchmaking" className="flex items-center gap-1 text-amber-300 hover:text-amber-200 font-black">
