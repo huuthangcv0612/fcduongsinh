@@ -110,7 +110,7 @@ async function googleAuth(req, res, next) {
           year: y,
           userId: user._id,
           memberName: user.name,
-          months: { m1: 200000, m2: 200000, m3: 200000, m4: 200000, m5: 200000, m6: 200000, m7: 200000, m8: 200000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 }
+          months: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0 }
         }).catch(err => console.error('Auto MonthlyFund creation warning:', err.message));
       }
     } else {
