@@ -85,7 +85,7 @@ export default function ProfilePage() {
       }
 
       toast.info('Đang tải lại phiên bản mới nhất...', 'Cập nhật ứng dụng');
-      window.location.reload();
+      window.location.replace('/');
     } catch (error) {
       console.error(error);
       toast.error('Không thể tải lại ứng dụng ngay bây giờ', 'Lỗi cập nhật');
