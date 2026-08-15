@@ -36,10 +36,10 @@ function ProtectedLayout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <ForceCheckInModal />
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 py-4 sm:px-4 sm:py-5 lg:px-8 lg:py-8 pb-24 md:pb-8">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/matches" element={<MatchesPage />} />

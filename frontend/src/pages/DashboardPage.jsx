@@ -83,7 +83,7 @@ export default function DashboardPage() {
   const recentFinances = finances.slice(0, 5);
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16 md:pb-0">
+    <div className="space-y-5 animate-fade-in pb-20 md:pb-0">
       {/* Welcome Banner */}
       <div className="glass-card p-6 sm:p-8 rounded-3xl relative overflow-hidden bg-gradient-to-br from-[#2c3ec4] via-[#374df5] to-[#1f2ca3] text-white shadow-xl">
         {/* Faint Background Image */}
@@ -121,7 +121,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Balance Stat */}
         <div className="glass-card-white p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white flex items-center justify-between shadow-md">
           <div>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Upcoming Match & Recent Finances Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left 2 Cols: Upcoming Match Card */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">

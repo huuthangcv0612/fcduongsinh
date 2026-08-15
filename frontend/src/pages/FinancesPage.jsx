@@ -105,9 +105,9 @@ export default function FinancesPage() {
   return (
     <div className="space-y-6 animate-fade-in pb-16 md:pb-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
             💰 Quản Lý Tài Chính & Quỹ Đội Bóng
           </h2>
           <p className="text-xs font-bold text-slate-600">
@@ -116,20 +116,20 @@ export default function FinancesPage() {
         </div>
 
         {isAdmin && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setShowEmailModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black text-sm shadow-md shadow-slate-800/30 transition"
+              className="flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black text-xs sm:text-sm shadow-md shadow-slate-800/30 transition"
             >
               <Mail className="w-4 h-4 text-emerald-400" />
-              <span className="hidden sm:inline">Gửi Email Báo Quỹ</span>
+              <span>Gửi Email Báo Quỹ</span>
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/30 transition"
+              className="flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/30 transition"
             >
               <Plus className="w-4 h-4" />
-              <span>Thêm Phiếu Thu/Chi</span>
+              <span>Thêm Thu/Chi</span>
             </button>
           </div>
         )}
@@ -163,29 +163,29 @@ export default function FinancesPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-300 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-300 pb-2 overflow-x-auto" style={{scrollbarWidth:'none'}}>
         <button
           onClick={() => setActiveTab('monthly_grid')}
-          className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+          className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
             activeTab === 'monthly_grid'
               ? 'bg-emerald-700 text-white shadow-md'
               : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-300'
           }`}
         >
-          <Table className="w-4 h-4" />
-          <span>📊 Bảng Quỹ Đội Theo Tháng (Google Sheets)</span>
+          <Table className="w-3.5 h-3.5" />
+          <span>📊 Bảng Quỹ Theo Tháng</span>
         </button>
 
         <button
           onClick={() => setActiveTab('transactions')}
-          className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+          className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
             activeTab === 'transactions'
               ? 'bg-emerald-700 text-white shadow-md'
               : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-300'
           }`}
         >
-          <ListFilter className="w-4 h-4" />
-          <span>📝 Lịch Sử Giao Dịch Thu/Chi ({finances.length})</span>
+          <ListFilter className="w-3.5 h-3.5" />
+          <span>📝 Lịch Sử Thu/Chi ({finances.length})</span>
         </button>
       </div>
 

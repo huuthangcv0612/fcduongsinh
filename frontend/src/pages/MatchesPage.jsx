@@ -112,57 +112,57 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16 md:pb-0">
+    <div className="space-y-5 animate-fade-in pb-20 md:pb-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-            ⚽ Quản Lý Trận Đấu (Hà Nội - Ưu tiên Thứ 3 19h-19h30)
-          </h2>
-          <p className="text-xs font-bold text-slate-600">
-            Lịch thi đấu, điểm danh 3 trạng thái (Có mặt / 50-50 / Nghỉ) & hiển thị lý do
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Tab Switcher */}
-          <div className="flex bg-slate-200/80 p-1 rounded-2xl border border-slate-300">
-            <button
-              onClick={() => setActiveTab('upcoming')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition ${
-                activeTab === 'upcoming'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              Sắp diễn ra ({matches.filter(m => m.status === 'upcoming').length})
-            </button>
-            <button
-              onClick={() => setActiveTab('past')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition ${
-                activeTab === 'past'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              Lịch sử ({matches.filter(m => m.status !== 'upcoming').length})
-            </button>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+              ⚽ Quản Lý Trận Đấu
+            </h2>
+            <p className="text-xs font-bold text-slate-600">
+              Ưu tiên Thứ 3 19h-19h30 • Điểm danh 3 trạng thái
+            </p>
           </div>
 
           {isAdmin && (
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/30 transition"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/30 transition w-full sm:w-auto justify-center"
             >
               <Plus className="w-4 h-4" />
-              <span>Tạo Trận Mới (19h15)</span>
+              <span>Tạo Trận Mới</span>
             </button>
           )}
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex bg-slate-200/80 p-1 rounded-2xl border border-slate-300 self-start">
+          <button
+            onClick={() => setActiveTab('upcoming')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition ${
+              activeTab === 'upcoming'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-900'
+            }`}
+          >
+            Sắp diễn ra ({matches.filter(m => m.status === 'upcoming').length})
+          </button>
+          <button
+            onClick={() => setActiveTab('past')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition ${
+              activeTab === 'past'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'text-slate-700 hover:text-slate-900'
+            }`}
+          >
+            Lịch sử ({matches.filter(m => m.status !== 'upcoming').length})
+          </button>
         </div>
       </div>
 
       {/* Match Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredMatches.map(match => (
           <MatchCard
             key={match._id}

@@ -73,7 +73,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-16 md:pb-0">
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-20 md:pb-0">
       {/* High-Contrast Hero Banner */}
       <div className="rounded-3xl p-6 sm:p-8 border-2 border-emerald-600 relative overflow-hidden bg-gradient-to-r from-emerald-800 via-teal-800 to-cyan-900 text-white shadow-xl">
         <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -221,11 +221,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-end">
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-stretch sm:justify-end">
             <button
               type="submit"
               disabled={updateProfileMutation.isPending || uploading}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5 disabled:opacity-50"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5 disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               <span>{updateProfileMutation.isPending ? 'Đang Lưu...' : 'Lưu Thay Đổi Hồ Sơ'}</span>
