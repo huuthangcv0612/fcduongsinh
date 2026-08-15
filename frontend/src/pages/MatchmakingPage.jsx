@@ -141,15 +141,7 @@ export default function MatchmakingPage() {
     createGroupMutation.mutate(groupFormData);
   };
 
-  const clearMatchmakingCache = () => {
-    if (typeof window === 'undefined') return;
 
-    try {
-      window.sessionStorage.removeItem(MATCHMAKING_CACHE_KEY);
-    } catch {
-      // Ignore storage failures.
-    }
-  };
 
   const handleDeleteGroup = async (id, name) => {
     const isConfirmed = await confirm({
@@ -179,16 +171,7 @@ export default function MatchmakingPage() {
     }
   };
 
-  useEffect(() => {
-    writeMatchmakingCache({
-      activeTab,
-      apifyLimit,
-      scrapedList,
-      filterDay,
-      filterTime,
-      groupFormData,
-    });
-  }, [activeTab, apifyLimit, scrapedList, filterDay, filterTime, groupFormData]);
+
 
   // Helper: Comprehensive Vietnamese Shorthand Check for Today (hnay, h.nay, tnay, cnay, snay, hom nay...)
   const isTodayPostText = (opp) => {
