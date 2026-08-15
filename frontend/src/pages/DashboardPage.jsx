@@ -89,33 +89,66 @@ export default function DashboardPage() {
         {/* Faint Background Image */}
         <img src={coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay pointer-events-none" />
         
-        <div className="relative z-10 max-w-2xl flex flex-col sm:flex-row sm:items-center gap-5 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black tracking-wider uppercase mb-3 border border-white/30 text-white">
-            <Zap className="w-3.5 h-3.5 text-amber-300" />
-            <span>FC NHÀ TRẺ MATCH CENTER</span>
+        <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)] items-center">
+          <div className="space-y-4 text-center lg:text-left max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black tracking-wider uppercase border border-white/30 text-white mx-auto lg:mx-0">
+              <Zap className="w-3.5 h-3.5 text-amber-300" />
+              <span>FC NHÀ TRẺ MATCH CENTER</span>
+            </div>
+
+            <div className="space-y-3">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
+                Xin chào, {user?.name || 'Cầu thủ'}! ⚽
+              </h1>
+              <p className="text-white/85 text-sm sm:text-base font-bold leading-relaxed max-w-xl mx-auto lg:mx-0">
+                Chào mừng bạn đến với Hệ thống Quản lý FC Nhà Trẻ. Đừng quên điểm danh trận đấu sắp tới (Có mặt / 50-50 / Nghỉ) để ban huấn luyện chốt kèo sân!
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3">
+              <Link
+                to="/matches"
+                className="w-full sm:w-auto px-5 py-3 rounded-full bg-white text-[#2c3ec4] hover:bg-slate-100 font-black text-xs shadow-lg transition transform hover:-translate-y-0.5 text-center"
+              >
+                Lịch Thi Đấu & Điểm Danh
+              </Link>
+
+              <Link
+                to="/finances"
+                className="w-full sm:w-auto px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 font-black text-xs backdrop-blur-md transition text-center"
+              >
+                Bảng Quỹ Tháng
+              </Link>
+            </div>
           </div>
 
-          <h1 className="text-xl sm:text-4xl font-black mb-2 tracking-tight leading-tight">
-            Xin chào, {user?.name || 'Cầu thủ'}! ⚽
-          </h1>
-          <p className="text-white/80 text-xs sm:text-sm font-bold leading-relaxed mb-5 max-w-md mx-auto sm:mx-0">
-            Chào mừng bạn đến với Hệ thống Quản lý FC Nhà Trẻ. Đừng quên điểm danh trận đấu sắp tới (Có mặt / 50-50 / Nghỉ) để ban huấn luyện chốt kèo sân!
-          </p>
+          <div className="hidden lg:flex justify-end">
+            <div className="relative w-full max-w-sm aspect-[4/3] rounded-[28px] overflow-hidden border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm">
+              <img
+                src={coverImage}
+                alt="FC Nhà Trẻ"
+                className="absolute inset-0 w-full h-full object-cover opacity-55"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1f2ca3]/30 via-transparent to-black/30" />
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <Link
-              to="/matches"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white text-[#2c3ec4] hover:bg-slate-100 font-black text-xs shadow-md transition transform hover:-translate-y-0.5 text-center"
-            >
-              Lịch Thi Đấu & Điểm Danh
-            </Link>
+              <div className="absolute inset-0 p-5 flex flex-col justify-between">
+                <div className="self-start inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 text-white text-[11px] font-black border border-white/20 backdrop-blur-md">
+                  <Activity className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Match Center</span>
+                </div>
 
-            <Link
-              to="/finances"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 font-black text-xs backdrop-blur-md transition text-center"
-            >
-              Bảng Quỹ Tháng
-            </Link>
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/15 text-white text-[11px] font-black border border-white/20 backdrop-blur-md">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Lịch thi đấu, quỹ, thống kê</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/15 text-white text-[11px] font-black border border-white/20 backdrop-blur-md ml-8">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Điểm danh & quản lý đội hình</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
