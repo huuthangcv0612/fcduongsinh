@@ -184,8 +184,8 @@ export default function MatchesPage() {
 
       {/* Create Match Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-lg glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="w-full max-w-lg max-h-[90vh] glass-modal rounded-3xl relative bg-white border border-emerald-400 shadow-2xl overflow-hidden flex flex-col">
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100"
@@ -193,11 +193,13 @@ export default function MatchesPage() {
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-xl font-black text-slate-900 mb-1">⚽ Tạo Trận Đấu Mới</h3>
-            <p className="text-xs text-slate-500 font-bold mb-6">Tự động tạo danh sách điểm danh. (Lưu ý: Bạn cần tự bấm nút để Gửi Email cho đội)</p>
+            <div className="px-5 sm:px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
+              <h3 className="text-xl font-black text-slate-900 mb-1">⚽ Tạo Trận Đấu Mới</h3>
+              <p className="text-xs text-slate-500 font-bold">Tự động tạo danh sách điểm danh. (Lưu ý: Bạn cần tự bấm nút để Gửi Email cho đội)</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-4 px-5 sm:px-6 py-5 overflow-y-auto flex-1 min-h-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Ngày thi đấu:</label>
                   <input
@@ -221,7 +223,7 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Sân bóng (Hà Nội):</label>
                   <input
@@ -245,7 +247,7 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Tiền sân (VNĐ):</label>
                   <input
@@ -269,7 +271,7 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Tên đội đối thủ:</label>
                   <input
@@ -295,7 +297,7 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">SĐT đối thủ:</label>
                   <input
@@ -318,18 +320,18 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-3">
+              <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 text-sm font-bold"
+                  className="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 text-sm font-bold w-full sm:w-auto"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md"
+                  className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md w-full sm:w-auto"
                 >
                   Tạo Trận Đấu
                 </button>

@@ -41,7 +41,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="sticky top-0 z-50 shadow-md">
+      <div className="fixed top-0 left-0 right-0 z-50 shadow-md w-full">
         {/* Main Indigo Header */}
         <header className="bg-[#2c3ec4] text-white px-4 lg:px-8 py-2.5">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -126,7 +126,7 @@ export default function Navbar() {
       </header>
 
         {/* Category & Sub-navigation Ticker Bar */}
-        <div className="bg-[#1f2ca3] text-white px-4 lg:px-8 py-1.5 border-t border-white/10 text-xs font-bold">
+        <div className="hidden md:block bg-[#1f2ca3] text-white px-4 lg:px-8 py-1.5 border-t border-white/10 text-xs font-bold">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-4 shrink-0">
               <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-black text-[11px] animate-pulse">
