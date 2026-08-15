@@ -209,11 +209,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3 pt-2">
-                  <div className="text-[11px] font-black text-white/85 bg-white/10 border border-white/15 rounded-full px-3 py-1 backdrop-blur-md max-w-[70%] truncate">
-                    {carouselReady ? activeHeroTitle : 'Đang tải ảnh từ Media...'}
-                  </div>
-
+                <div className="flex items-center justify-end gap-3 pt-2">
                   {carouselImages.length > 1 && (
                     <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1.5 backdrop-blur-md">
                       {carouselImages.map((_, index) => (
