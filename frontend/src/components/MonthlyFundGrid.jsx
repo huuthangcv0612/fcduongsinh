@@ -43,23 +43,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
   const [newMemberName, setNewMemberName] = useState('');
   const scrollContainerRef = useRef(null);
 
-  // Auto-scroll to current month
-  useEffect(() => {
-    if (!isLoading && scrollContainerRef.current) {
-      const currentMonthIndex = new Date().getMonth();
-      const container = scrollContainerRef.current;
-      // STT (w-12 = 48px) + Thành viên (w-52 = 208px) = 256px
-      // Month column ~ 95px width
-      const scrollPosition = Math.max(0, 256 + (currentMonthIndex * 95) - (container.clientWidth / 2) + 47);
-      
-      // Delay slightly to let layout finish rendering
-      setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-        }
-      }, 100);
-    }
-  }, [isLoading, selectedYear]);
+
 
   // Query Grid data (linked directly to real MongoDB User collection)
   const { data: gridRes, isLoading } = useQuery({
