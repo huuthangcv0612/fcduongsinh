@@ -95,6 +95,9 @@ async function scrapeOpponents(limit = 15, retriesLeft = getKeyCount()) {
         allItems.push(...items);
       } catch (gErr) {
         console.warn(`⚠️ Failed scraping Group ${i + 1} "${group.name}":`, gErr.message);
+        if (gErr.statusCode === 429 || gErr.type === 'usage-hard-limit-exceeded' || gErr.message?.toLowerCase().includes('hard limit exceeded') || gErr.message?.toLowerCase().includes('quota')) {
+          throw gErr; // Bắn lỗi ra ngoài để kích hoạt đổi Key hoặc báo lỗi UI
+        }
       }
     }
 
@@ -112,15 +115,18 @@ async function scrapeOpponents(limit = 15, retriesLeft = getKeyCount()) {
 
     return [...tuesdayPosts, ...nonTuesdayPosts];
   } catch (err) {
-    if (err.statusCode === 429 || err.type === 'usage-hard-limit-exceeded' || err.message?.includes('quota')) {
+    if (err.statusCode === 429 || err.type === 'usage-hard-limit-exceeded' || err.message?.toLowerCase().includes('hard limit exceeded') || err.message?.toLowerCase().includes('quota')) {
       console.warn(`⚠️ Apify Key rate limited. Rotated key... Retries left: ${retriesLeft - 1}`);
       if (retriesLeft > 1) {
         rotateApifyKey();
         return scrapeOpponents(limit, retriesLeft - 1);
+      } else {
+        // Hết key hoặc retries = 1, báo lỗi thẳng ra UI để user biết nạp tiền/đổi key
+        throw new Error('Đã hết hạn mức sử dụng (Monthly usage hard limit exceeded) của tất cả Apify Keys. Vui lòng cập nhật API Key mới!');
       }
     }
-    console.warn('⚠️ Apify scraping failed or offline. Falling back to mock dataset:', err.message);
-    return MOCK_FACEBOOK_POSTS;
+    console.warn('⚠️ Apify scraping failed:', err.message);
+    throw err; // Bắn lỗi thực tế ra thay vì trả về Mock data
   }
 }
 

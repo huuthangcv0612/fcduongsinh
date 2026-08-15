@@ -1,4 +1,4 @@
-const apiKeysEnv = process.env.APIFY_KEYS_ARRAY || '';
+const apiKeysEnv = process.env.APIFY_KEYS_ARRAY || process.env.APIFY_API_TOKEN || '';
 const API_KEYS = apiKeysEnv.split(',').map(k => k.trim()).filter(Boolean);
 
 let currentKeyIndex = 0;
