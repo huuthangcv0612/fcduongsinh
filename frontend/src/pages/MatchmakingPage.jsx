@@ -28,33 +28,84 @@ import {
   Zap
 } from 'lucide-react';
 
+const MATCHMAKING_CACHE_KEY = 'fcnhatre-matchmaking-cache-v1';
+
+const defaultGroupFormData = {
+  name: '',
+  url: '',
+  homeArea: 'Hà Nội',
+  description: ''
+};
+
+const defaultProgressState = {
+  active: false,
+  percent: 0,
+  stepText: '',
+  detailText: ''
+};
+
+function readMatchmakingCache() {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(MATCHMAKING_CACHE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeMatchmakingCache(nextState) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.sessionStorage.setItem(MATCHMAKING_CACHE_KEY, JSON.stringify(nextState));
+  } catch {
+    // Ignore browser storage failures.
+  }
+}
+
 export default function MatchmakingPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const confirm = useConfirm();
-  
-  const [activeTab, setActiveTab] = useState('scraped'); // 'scraped' | 'saved' | 'facebook_groups'
-  const [apifyLimit, setApifyLimit] = useState(15);
-  const [scrapedList, setScrapedList] = useState([]);
+  const cachedState = readMatchmakingCache();
+
+  const [activeTab, setActiveTab] = useState(cachedState?.activeTab || 'scraped'); // 'scraped' | 'saved' | 'facebook_groups'
+  const [apifyLimit, setApifyLimit] = useState(cachedState?.apifyLimit || 15);
+  const [scrapedList, setScrapedList] = useState(Array.isArray(cachedState?.scrapedList) ? cachedState.scrapedList : []);
 
   // Filter States: 'all' by default
-  const [filterDay, setFilterDay] = useState('all'); 
-  const [filterTime, setFilterTime] = useState('all'); 
+  const [filterDay, setFilterDay] = useState(cachedState?.filterDay || 'all'); 
+  const [filterTime, setFilterTime] = useState(cachedState?.filterTime || 'all'); 
 
   // Live Scraping Progress State (Docker & Apify Live Monitor)
-  const [progress, setProgress] = useState({
-    active: false,
-    percent: 0,
-    stepText: '',
-    detailText: ''
-  });
+  const [progress, setProgress] = useState(
+    cachedState?.progress && typeof cachedState.progress === 'object'
+      ? cachedState.progress
+      : defaultProgressState
+  );
 
-  const [groupFormData, setGroupFormData] = useState({
-    name: '',
-    url: '',
-    homeArea: 'Hà Nội',
-    description: ''
-  });
+  const [groupFormData, setGroupFormData] = useState(
+    cachedState?.groupFormData && typeof cachedState.groupFormData === 'object'
+      ? { ...defaultGroupFormData, ...cachedState.groupFormData }
+      : defaultGroupFormData
+  );
+
+  useEffect(() => {
+    writeMatchmakingCache({
+      activeTab,
+      apifyLimit,
+      scrapedList,
+      filterDay,
+      filterTime,
+      progress,
+      groupFormData,
+    });
+  }, [activeTab, apifyLimit, scrapedList, filterDay, filterTime, progress, groupFormData]);
 
   // Query saved opponents from DB safely
   const { data: savedOpponentsRes } = useQuery({
@@ -97,11 +148,22 @@ export default function MatchmakingPage() {
       setScrapedList(items);
       setActiveTab('scraped');
 
-      setProgress({
+      const finishedProgress = {
         active: true,
         percent: 100,
         stepText: `✨ Bước 4/4: Hoàn tất! Đã trích xuất ${items.length} bài đăng`,
         detailText: 'Đã phân tích tên sân & chuẩn hóa dữ liệu thành công'
+      };
+
+      setProgress(finishedProgress);
+      writeMatchmakingCache({
+        activeTab: 'scraped',
+        apifyLimit,
+        scrapedList: items,
+        filterDay,
+        filterTime,
+        progress: finishedProgress,
+        groupFormData,
       });
 
       toast.success(`Đã cào & phân tích ${items.length} bài tìm đối qua AI thành công!`, 'Quét hoàn tất');
@@ -181,7 +243,7 @@ export default function MatchmakingPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['facebook-groups'] });
       toast.success('Đã thêm Facebook Group mới vào danh sách quét!', 'Thành công');
-      setGroupFormData({ name: '', url: '', homeArea: 'Hà Nội', description: '' });
+      setGroupFormData(defaultGroupFormData);
     },
     onError: (err) => {
       toast.error(err.message || 'Không thể thêm Facebook Group này', 'Lỗi');
@@ -212,6 +274,16 @@ export default function MatchmakingPage() {
     createGroupMutation.mutate(groupFormData);
   };
 
+  const clearMatchmakingCache = () => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.sessionStorage.removeItem(MATCHMAKING_CACHE_KEY);
+    } catch {
+      // Ignore storage failures.
+    }
+  };
+
   const handleDeleteGroup = async (id, name) => {
     const isConfirmed = await confirm({
       title: 'Xóa Facebook Group',
@@ -239,6 +311,18 @@ export default function MatchmakingPage() {
       deleteSavedOpponentMutation.mutate(id);
     }
   };
+
+  useEffect(() => {
+    writeMatchmakingCache({
+      activeTab,
+      apifyLimit,
+      scrapedList,
+      filterDay,
+      filterTime,
+      progress,
+      groupFormData,
+    });
+  }, [activeTab, apifyLimit, scrapedList, filterDay, filterTime, progress, groupFormData]);
 
   // Helper: Comprehensive Vietnamese Shorthand Check for Today (hnay, h.nay, tnay, cnay, snay, hom nay...)
   const isTodayPostText = (opp) => {
