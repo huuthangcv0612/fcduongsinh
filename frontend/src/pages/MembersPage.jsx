@@ -120,11 +120,15 @@ export default function MembersPage() {
                   {member.role === 'pending' ? 'Duyệt Thành Viên' : (member.role === 'admin' ? 'Hạ xuống Member' : 'Thăng cấp Admin')}
                 </button>
                 <button
-                  onClick={() => confirm({
-                    title: 'Xóa thành viên',
-                    message: `Bạn có chắc chắn muốn xóa tài khoản ${member.name}? Dữ liệu sẽ không thể khôi phục.`,
-                    onConfirm: () => deleteUserMutation.mutate(member._id)
-                  })}
+                  onClick={async () => {
+                    const confirmed = await confirm({
+                      title: 'Xóa thành viên',
+                      message: `Bạn có chắc chắn muốn xóa tài khoản ${member.name}? Dữ liệu sẽ không thể khôi phục.`
+                    });
+                    if (confirmed) {
+                      deleteUserMutation.mutate(member._id);
+                    }
+                  }}
                   className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition"
                 >
                   <Trash2 className="w-3 h-3" />
