@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { PWAInstallButton } from '../context/PWAContext';
 import teamLogo from '../asset/logo.png';
 import { 
   Trophy, 
@@ -82,6 +83,9 @@ export default function Navbar() {
 
           {/* User Profile & Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* PWA Install Button */}
+            <PWAInstallButton />
+
             {/* User Profile Pill */}
             <Link
               to="/profile"

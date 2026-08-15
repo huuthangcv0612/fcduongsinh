@@ -1,0 +1,48 @@
+{
+  "name": "FC Nhà Trẻ - Quản Lý Đội Bóng",
+  "short_name": "FC Nhà Trẻ",
+  "description": "Hệ thống Quản Lý Đội Bóng, Điểm Danh Trận Đấu & Tìm Đối AI cho FC Nhà Trẻ",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1f2ca3",
+  "theme_color": "#1f2ca3",
+  "lang": "vi",
+  "categories": ["sports", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-72.png",  "sizes": "72x72",   "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-96.png",  "sizes": "96x96",   "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Trận Đấu",
+      "short_name": "Trận Đấu",
+      "description": "Xem lịch thi đấu",
+      "url": "/matches",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Tài Chính",
+      "short_name": "Tài Chính",
+      "description": "Quản lý quỹ đội",
+      "url": "/finances",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Tìm Đối",
+      "short_name": "Tìm Đối",
+      "description": "Tìm đối thủ AI",
+      "url": "/matchmaking",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

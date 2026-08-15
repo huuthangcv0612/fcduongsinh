@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ConfirmModalProvider } from './context/ConfirmModalContext';
+import { PWAProvider } from './context/PWAContext';
 import App from './App';
 import './index.css';
 
@@ -22,13 +23,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <ToastProvider>
-            <ConfirmModalProvider>
-              <App />
-            </ConfirmModalProvider>
-          </ToastProvider>
-        </AuthProvider>
+        <PWAProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <ConfirmModalProvider>
+                <App />
+              </ConfirmModalProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </PWAProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>
