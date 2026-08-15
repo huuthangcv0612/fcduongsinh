@@ -64,9 +64,8 @@ async function scrapeOpponents(limit = 15, retriesLeft = getKeyCount()) {
 
     const allItems = [];
 
-    // 🎯 SEQUENTIAL SCRAPING PER GROUP: Search Tuesday & Recent feeds
-    for (let i = 0; i < activeGroups.length; i++) {
-      const group = activeGroups[i];
+    // 🎯 CONCURRENT SCRAPING PER GROUP: Search Tuesday & Recent feeds in parallel
+    const scrapePromises = activeGroups.map(async (group, i) => {
       try {
         const baseUrl = group.url.replace(/\/$/, '');
         const searchUrlT3 = `${baseUrl}/search/?q=th%E1%BB%A9%203`; // Search "thứ 3"
@@ -92,14 +91,18 @@ async function scrapeOpponents(limit = 15, retriesLeft = getKeyCount()) {
         const run = await client.actor(actorId).call(groupInput);
         const { items } = await client.dataset(run.defaultDatasetId).listItems();
         console.log(`✅ Scraped ${items.length} posts from Group ${i + 1}: "${group.name}"`);
-        allItems.push(...items);
+        return items;
       } catch (gErr) {
         console.warn(`⚠️ Failed scraping Group ${i + 1} "${group.name}":`, gErr.message);
         if (gErr.statusCode === 429 || gErr.type === 'usage-hard-limit-exceeded' || gErr.message?.toLowerCase().includes('hard limit exceeded') || gErr.message?.toLowerCase().includes('quota')) {
           throw gErr; // Bắn lỗi ra ngoài để kích hoạt đổi Key hoặc báo lỗi UI
         }
+        return [];
       }
-    }
+    });
+
+    const results = await Promise.all(scrapePromises);
+    results.forEach(items => allItems.push(...items));
 
     const allMapped = allItems.map(item => ({
       rawText: item.text || item.message || item.fullText || item.postText || item.content || '',

@@ -83,11 +83,7 @@ export default function MatchmakingPage() {
   const [filterTime, setFilterTime] = useState(cachedState?.filterTime || 'all'); 
 
   // Live Scraping Progress State (Docker & Apify Live Monitor)
-  const [progress, setProgress] = useState(
-    cachedState?.progress && typeof cachedState.progress === 'object'
-      ? { ...cachedState.progress, active: false } // ALWAYS FORCE FALSE ON INITIAL LOAD
-      : defaultProgressState
-  );
+  const [progress, setProgress] = useState(defaultProgressState);
 
   const [groupFormData, setGroupFormData] = useState(
     cachedState?.groupFormData && typeof cachedState.groupFormData === 'object'
@@ -102,10 +98,9 @@ export default function MatchmakingPage() {
       scrapedList,
       filterDay,
       filterTime,
-      progress,
       groupFormData,
     });
-  }, [activeTab, apifyLimit, scrapedList, filterDay, filterTime, progress, groupFormData]);
+  }, [activeTab, apifyLimit, scrapedList, filterDay, filterTime, groupFormData]);
 
   // Query saved opponents from DB safely
   const { data: savedOpponentsRes } = useQuery({
@@ -162,7 +157,6 @@ export default function MatchmakingPage() {
         scrapedList: items,
         filterDay,
         filterTime,
-        progress: finishedProgress,
         groupFormData,
       });
 
@@ -319,10 +313,9 @@ export default function MatchmakingPage() {
       scrapedList,
       filterDay,
       filterTime,
-      progress,
       groupFormData,
     });
-  }, [activeTab, apifyLimit, scrapedList, filterDay, filterTime, progress, groupFormData]);
+  }, [activeTab, apifyLimit, scrapedList, filterDay, filterTime, groupFormData]);
 
   // Helper: Comprehensive Vietnamese Shorthand Check for Today (hnay, h.nay, tnay, cnay, snay, hom nay...)
   const isTodayPostText = (opp) => {
