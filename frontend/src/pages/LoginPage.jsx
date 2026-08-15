@@ -93,7 +93,7 @@ export default function LoginPage() {
         <img src={coverImage} alt="FC Nhà Trẻ Cover" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-700" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1f2ca3] via-[#1f2ca3]/40 to-transparent mix-blend-multiply" />
         <div className="absolute bottom-12 left-12 right-12 z-10 text-white drop-shadow-lg">
-          <h2 className="text-4xl lg:text-5xl font-black mb-4 tracking-tight">FC Nhà Trẻ<br/><span className="text-amber-400">Team Pro</span></h2>
+          <h2 className="text-4xl lg:text-5xl font-black mb-4 tracking-tight">FC Nhà Trẻ</h2>
           <p className="text-lg font-bold text-white/90 max-w-md leading-relaxed">Hệ Thống Quản Lý Đội Bóng. Quản lý tài chính, điểm danh trận đấu và kết nối giao lưu sân 7 chuyên nghiệp.</p>
         </div>
       </div>
