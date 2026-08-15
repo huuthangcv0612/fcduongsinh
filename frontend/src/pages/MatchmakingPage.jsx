@@ -480,42 +480,42 @@ export default function MatchmakingPage() {
       )}
 
       {/* Main Tab Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-300 pb-2">
-        <div className="flex items-center gap-2">
+      <div className="border-b border-slate-300 pb-2">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <button
             onClick={() => setActiveTab('scraped')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+            className={`w-full min-w-0 min-h-[3.4rem] px-2 sm:px-4 py-2.5 rounded-xl text-[11px] sm:text-sm font-black transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-center leading-tight ${
               activeTab === 'scraped'
                 ? 'bg-cyan-700 text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-300'
             }`}
           >
             <Search className="w-4 h-4" />
-            <span>Bài Mới Vừa Cào ({scrapedList.length})</span>
+            <span className="min-w-0">Bài Mới Vừa Cào ({scrapedList.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('saved')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+            className={`w-full min-w-0 min-h-[3.4rem] px-2 sm:px-4 py-2.5 rounded-xl text-[11px] sm:text-sm font-black transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-center leading-tight ${
               activeTab === 'saved'
                 ? 'bg-emerald-700 text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-300'
             }`}
           >
             <BookmarkCheck className="w-4 h-4 text-amber-300" />
-            <span>💾 Kèo Đã Lưu DB ({savedOpponents.length})</span>
+            <span className="min-w-0">💾 Kèo Đã Lưu DB ({savedOpponents.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('facebook_groups')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 ${
+            className={`w-full min-w-0 min-h-[3.4rem] px-2 sm:px-4 py-2.5 rounded-xl text-[11px] sm:text-sm font-black transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-center leading-tight ${
               activeTab === 'facebook_groups'
                 ? 'bg-cyan-700 text-white shadow-md'
                 : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-300'
             }`}
           >
             <Globe className="w-4 h-4" />
-            <span>Facebook Groups ({fbGroups.length})</span>
+            <span className="min-w-0">Facebook Groups ({fbGroups.length})</span>
           </button>
         </div>
       </div>
