@@ -140,7 +140,7 @@ export default function FinancesPage() {
         <StatCard
           title="Tổng Số Dư Quỹ"
           value={`${balanceData.balance?.toLocaleString('vi-VN')} đ`}
-          subtext="Tính tự động qua Aggregation Pipeline"
+          subtext="Tính tự động"
           icon={Wallet}
           color="emerald"
         />

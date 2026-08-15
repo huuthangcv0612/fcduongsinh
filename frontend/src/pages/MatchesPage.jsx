@@ -195,7 +195,7 @@ export default function MatchesPage() {
 
             <div className="px-5 sm:px-6 pt-5 pb-3 border-b border-slate-100 shrink-0">
               <h3 className="text-xl font-black text-slate-900 mb-1">⚽ Tạo Trận Đấu Mới</h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">Tự động tạo danh sách điểm danh. (Cần tự gửi Email cho đội)</p>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">Mở danh sách điểm danh cho toàn đội.</p>
             </div>
 
             <form id="create-match-form" onSubmit={handleSubmit} className="space-y-4 px-5 sm:px-6 py-5 overflow-y-auto flex-1 min-h-0">
@@ -320,7 +320,6 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              </div>
             </form>
 
             <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 shrink-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 rounded-b-3xl">

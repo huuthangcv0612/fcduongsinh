@@ -134,8 +134,8 @@ export default function MatchmakingPage() {
       setProgress({
         active: true,
         percent: 15,
-        stepText: '🚀 Bước 1/4: Kết nối Docker Container & Apify Scraper...',
-        detailText: 'Đang kết nối API Token & khởi động trình duyệt cào bài Facebook'
+        stepText: '🚀 Bước 1/4: Đang kết nối hệ thống tìm kiếm...',
+        detailText: 'Đang khởi động hệ thống tải bài viết'
       });
     },
     onSuccess: (res) => {
@@ -160,7 +160,7 @@ export default function MatchmakingPage() {
         groupFormData,
       });
 
-      toast.success(`Đã cào & phân tích ${items.length} bài tìm đối qua AI thành công!`, 'Quét hoàn tất');
+      toast.success(`Đã phân tích ${items.length} bài tìm đối thành công!`, 'Quét hoàn tất');
 
       setTimeout(() => {
         setProgress(prev => ({ ...prev, active: false }));
@@ -181,7 +181,7 @@ export default function MatchmakingPage() {
           ...prev,
           percent: 55,
           stepText: `🌐 Bước 2/4: Đang cào song song dữ liệu từ ${activeGroupsCount || 2} Facebook Groups...`,
-          detailText: 'Đang trích xuất bài đăng mới & lịch sử tìm đối Thứ 3 trên Facebook'
+          detailText: 'Đang tải bài đăng mới & lịch sử tìm đối Thứ 3 trên Facebook'
         } : prev);
       }, 2500);
 
@@ -189,8 +189,8 @@ export default function MatchmakingPage() {
         setProgress(prev => prev.active ? {
           ...prev,
           percent: 85,
-          stepText: '⚡ Bước 3/4: Gửi 1 Batch Request trích xuất qua Gemini AI...',
-          detailText: 'AI đang nhận diện Tên Sân, Khung Giờ & SĐT'
+          stepText: '⚡ Bước 3/4: Đang phân tích thông tin...',
+          detailText: 'Đang nhận diện Tên Sân, Khung Giờ & SĐT'
         } : prev);
       }, 6500);
     }
@@ -399,7 +399,7 @@ export default function MatchmakingPage() {
               <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> GU ĐỘI: THỨ 3 (19H - 19H30) HÀ NỘI
             </div>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-md">
-              🤖 AI Tìm Đối Thủ Đá Bóng (Hà Nội)
+              🤖 Tìm Đối Thủ Đá Bóng (Hà Nội)
             </h2>
             <p className="text-slate-100 text-xs sm:text-sm mt-2 max-w-xl font-bold leading-relaxed">
               Cào bài tìm đối từ các Facebook Groups Hà Nội ({activeGroupsCount} group đang hoạt động). Tất cả bài cào hiển thị tức thì, bấm "Lưu Kèo" bài bạn ưng ý vào DB!
@@ -432,7 +432,7 @@ export default function MatchmakingPage() {
               ) : (
                 <Search className="w-4 h-4 text-slate-950" />
               )}
-              <span>{scrapeMutation.isPending ? 'Đang Cào & Phân Tích...' : 'Quét Đối Mới (AI)'}</span>
+              <span>{scrapeMutation.isPending ? 'Đang Phân Tích...' : 'Quét Đối Mới'}</span>
             </button>
           </div>
         </div>
@@ -467,7 +467,7 @@ export default function MatchmakingPage() {
 
           <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
             <span>{progress.detailText}</span>
-            <span>Docker Status: Active Container</span>
+            <span></span>
           </div>
         </div>
       )}
@@ -769,7 +769,7 @@ export default function MatchmakingPage() {
           {filteredList.length === 0 && rawList.length === 0 && (
             <div className="col-span-full glass-card-white rounded-3xl p-12 text-center text-slate-700 font-bold bg-white">
               {activeTab === 'scraped' ? (
-                <span>Chưa có bài cào nào. Bấm nút <strong>"Quét Đối Mới (AI)"</strong> ở trên để cào bài từ Facebook Groups!</span>
+                <span>Chưa có bài cào nào. Bấm nút <strong>"Quét Đối Mới"</strong> ở trên để cào bài từ Facebook Groups!</span>
               ) : (
                 <span>Chưa có kèo nào được lưu vào Cơ sở dữ liệu DB. Bấm sang tab <strong>"Bài Mới Vừa Cào"</strong> và nhấn <strong>"💾 LƯU KÈO VÀO DB"</strong> ở các bài viết ưng ý.</span>
               )}
@@ -787,7 +787,7 @@ export default function MatchmakingPage() {
               🔗 Thêm Đường Dẫn Facebook Group Cáp Kèo (Hà Nội)
             </h3>
             <p className="text-xs text-slate-600 font-bold mb-4">
-              Dán URL Group cáp kèo bóng đá Hà Nội (VD: https://facebook.com/groups/capkeobongdahanoi) để AI tự động cào bài
+              Dán URL Group cáp kèo bóng đá Hà Nội (VD: https://facebook.com/groups/capkeobongdahanoi) để hệ thống tự động tải bài
             </p>
 
             <form onSubmit={handleAddGroupSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-3">

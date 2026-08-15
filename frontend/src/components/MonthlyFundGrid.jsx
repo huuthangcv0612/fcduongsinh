@@ -195,10 +195,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
           </div>
           <div>
             <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              📊 Quản Lý Quỹ Đội Bóng ({selectedYear}) • Dữ Liệu Thực Database
+              📊 Quản Lý Quỹ Đội Bóng ({selectedYear})
             </h3>
             <p className="text-xs text-slate-600 font-bold">
-              Bảng ma trận thu quỹ thực tế ({gridData.length} thành viên DB). Admin nhấp vào ô bất kỳ để điền số tiền.
+              Bảng theo dõi thu quỹ ({gridData.length} thành viên).
             </p>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-md transition"
             >
               <UserPlus className="w-4 h-4" />
-              <span>+ Thêm Thành Viên DB</span>
+              <span>+ Thêm Thành Viên</span>
             </button>
           )}
         </div>
@@ -236,8 +236,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
             {/* Table Header */}
             <thead>
               <tr className="bg-gradient-to-r from-emerald-800 to-teal-800 text-white font-black uppercase text-[11px] tracking-wider border-b border-emerald-900">
-                <th className="py-3 px-3 w-12 text-center border-r border-emerald-700/50">STT</th>
-                <th className="py-3 px-4 w-52 sticky left-0 z-20 bg-emerald-900 border-r border-emerald-700 shadow-md">Thành viên (DB)</th>
+                <th className="py-3 px-3 w-12 sticky left-0 z-20 bg-emerald-950 text-center border-r border-emerald-700/50 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">STT</th>
+                <th className="py-3 px-4 w-52 sticky left-[48px] z-20 bg-emerald-900 border-r border-emerald-700 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">Thành viên</th>
                 {MONTH_KEYS.map((m) => (
                   <th key={m.key} className="py-3 px-3 text-center border-r border-emerald-700/50 min-w-[95px]">
                     {m.label}
@@ -258,12 +258,12 @@ export default function MonthlyFundGrid({ isAdmin }) {
 
                 return (
                   <tr key={row._id} className="hover:bg-cyan-50/60 transition group">
-                    <td className="py-2.5 px-3 text-center text-slate-500 font-extrabold border-r border-slate-200">
+                    <td className="py-2.5 px-3 sticky left-0 z-10 bg-slate-50 group-hover:bg-cyan-50/60 text-center text-slate-500 font-extrabold border-r border-slate-200 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.05)]">
                       {idx + 1}
                     </td>
 
                     {/* Real DB User Profile Link */}
-                    <td className="py-2.5 px-4 sticky left-0 z-10 bg-white group-hover:bg-cyan-50 font-black text-slate-900 border-r border-slate-200 shadow-sm">
+                    <td className="py-2.5 px-4 sticky left-[48px] z-10 bg-white group-hover:bg-cyan-50 font-black text-slate-900 border-r border-slate-200 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.05)]">
                       <div className="flex items-center gap-2.5">
                         <img
                           src={avatar}
@@ -323,7 +323,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {gridData.length === 0 && !isLoading && (
                 <tr>
                   <td colSpan={15} className="py-8 text-center text-slate-500 font-bold">
-                    Chưa có thành viên nào trong Bảng Quỹ {selectedYear}. Bấm "+ Thêm Thành Viên DB" ở trên để khởi tạo.
+                    Chưa có thành viên nào trong Bảng Quỹ {selectedYear}. Bấm "+ Thêm Thành Viên" ở trên để khởi tạo.
                   </td>
                 </tr>
               )}

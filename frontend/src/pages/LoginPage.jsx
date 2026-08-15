@@ -94,7 +94,7 @@ export default function LoginPage() {
             FC NHÀ TRẺ
           </h1>
           <p className="text-slate-600 text-xs font-bold mb-8">
-            Hệ Thống Quản Lý Đội Bóng, Điểm Danh Trận Đấu & Tìm Đối AI
+            Hệ Thống Quản Lý Đội Bóng, Điểm Danh & Tìm Đối Tác
           </p>
 
           {error && (
