@@ -43,6 +43,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
   const [newMemberName, setNewMemberName] = useState('');
   const scrollContainerRef = useRef(null);
 
+  const currentMonthIndex = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const currentMonthKey = `month${currentMonthIndex + 1}`;
+
 
 
   // Query Grid data (linked directly to real MongoDB User collection)
@@ -222,13 +226,23 @@ export default function MonthlyFundGrid({ isAdmin }) {
               <tr className="bg-gradient-to-r from-emerald-800 to-teal-800 text-white font-black uppercase text-[11px] tracking-wider border-b border-emerald-900">
                 <th className="py-3 px-3 w-12 sticky left-0 z-20 bg-emerald-950 text-center border-r border-emerald-700/50 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">STT</th>
                 <th className="py-3 px-4 w-52 sticky left-[48px] z-20 bg-emerald-900 border-r border-emerald-700 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">Thành viên</th>
-                {MONTH_KEYS.map((m) => (
-                  <th key={m.key} className="py-3 px-3 text-center border-r border-emerald-700/50 min-w-[95px]">
-                    {m.label}
-                  </th>
-                ))}
-                <th className={`py-3 px-4 text-right bg-emerald-950 text-amber-300 sticky z-20 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.15)] border-l border-emerald-900 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>Tổng đã đóng</th>
-                {isAdmin && <th className="py-3 px-3 text-center w-12 sticky right-0 z-20 bg-emerald-950 border-l border-emerald-800">Thao tác</th>}
+                {MONTH_KEYS.map((m) => {
+                  const isCurrentMonth = selectedYear === currentYear && m.key === currentMonthKey;
+                  return (
+                    <th 
+                      key={m.key} 
+                      className={`py-3 px-3 text-center border-r min-w-[95px] ${
+                        isCurrentMonth 
+                          ? 'bg-amber-400 text-amber-950 border-amber-500 shadow-inner' 
+                          : 'border-emerald-700/50'
+                      }`}
+                    >
+                      {m.label}
+                    </th>
+                  );
+                })}
+                <th className={`py-3 px-4 text-right bg-emerald-950 text-amber-300 md:sticky z-20 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.15)] border-l border-emerald-900 ${isAdmin ? 'md:right-[48px]' : 'md:right-0'}`}>Tổng đã đóng</th>
+                {isAdmin && <th className="py-3 px-3 text-center w-12 md:sticky md:right-0 z-20 bg-emerald-950 border-l border-emerald-800">Thao tác</th>}
               </tr>
             </thead>
 
@@ -268,14 +282,20 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     {/* 12 Months Cells */}
                     {MONTH_KEYS.map((m) => {
                       const amount = row.months?.[m.key] ?? 0;
+                      const isCurrentMonth = selectedYear === currentYear && m.key === currentMonthKey;
+                      
+                      let baseBg = isCurrentMonth ? 'bg-amber-50/60' : '';
+                      let textStyle = amount > 0 ? 'text-emerald-700 font-black' : 'text-slate-300 font-normal';
+                      
+                      if (amount > 0) {
+                        baseBg = isCurrentMonth ? 'bg-amber-100' : 'bg-emerald-50';
+                      }
 
                       return (
                         <td
                           key={m.key}
                           onClick={() => handleCellClick(row, m.key)}
-                          className={`py-2.5 px-2 text-center border-r border-slate-200 cursor-pointer transition select-none ${
-                            amount > 0 ? 'bg-emerald-50 text-emerald-950 font-black' : 'text-slate-300 font-normal'
-                          } ${isAdmin ? 'hover:bg-amber-100 hover:ring-2 hover:ring-amber-400' : ''}`}
+                          className={`py-2.5 px-2 text-center border-r border-slate-200 cursor-pointer transition select-none ${baseBg} ${textStyle} ${isAdmin ? 'hover:bg-amber-200 hover:ring-2 hover:ring-amber-500' : ''}`}
                           title={isAdmin ? `Nhấp để điền số tiền nộp quỹ cho ${displayName} (${m.label})` : ''}
                         >
                           <span>{formatMoney(amount)}</span>
@@ -284,13 +304,13 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     })}
 
                     {/* Member Total */}
-                    <td className={`py-2.5 px-4 text-right font-black text-emerald-800 bg-emerald-50/95 sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-emerald-200 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
+                    <td className={`py-2.5 px-4 text-right font-black text-emerald-800 bg-emerald-50/95 md:sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-emerald-200 ${isAdmin ? 'md:right-[48px]' : 'md:right-0'}`}>
                       {formatMoney(memberTotal)}
                     </td>
 
                     {/* Actions */}
                     {isAdmin && (
-                      <td className="py-2.5 px-3 text-center sticky right-0 z-10 bg-white/95 border-l border-slate-200 shadow-sm">
+                      <td className="py-2.5 px-3 text-center md:sticky md:right-0 z-10 bg-white/95 border-l border-slate-200 shadow-sm">
                         <button
                           onClick={() => handleDeleteMember(row._id, displayName)}
                           className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
@@ -325,10 +345,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     {formatMoney(monthlyTotals[m.key])}
                   </td>
                 ))}
-                <td className={`py-3 px-4 text-right bg-emerald-300/95 text-emerald-950 font-black text-sm sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-emerald-400 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
+                <td className={`py-3 px-4 text-right bg-emerald-300/95 text-emerald-950 font-black text-sm md:sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-emerald-400 ${isAdmin ? 'md:right-[48px]' : 'md:right-0'}`}>
                   {formatMoney(grandTotalCollected)}
                 </td>
-                {isAdmin && <td className="bg-emerald-200/95 sticky right-0 z-10 border-l border-emerald-300" />}
+                {isAdmin && <td className="bg-emerald-200/95 md:sticky md:right-0 z-10 border-l border-emerald-300" />}
               </tr>
 
               {/* Row 2: CHI TIÊU THEO THÁNG */}
@@ -341,10 +361,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     {monthlyExpenses[m.key] > 0 ? `-${formatMoney(monthlyExpenses[m.key])}` : '0 đ'}
                   </td>
                 ))}
-                <td className={`py-2.5 px-4 text-right bg-rose-200/95 text-rose-950 font-black sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-rose-300 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
+                <td className={`py-2.5 px-4 text-right bg-rose-200/95 text-rose-950 font-black md:sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.05)] border-l border-rose-300 ${isAdmin ? 'md:right-[48px]' : 'md:right-0'}`}>
                   -{formatMoney(Object.values(monthlyExpenses).reduce((a, b) => a + b, 0))}
                 </td>
-                {isAdmin && <td className="bg-rose-100/95 sticky right-0 z-10 border-l border-rose-200" />}
+                {isAdmin && <td className="bg-rose-100/95 md:sticky md:right-0 z-10 border-l border-rose-200" />}
               </tr>
 
               {/* Row 3: TỔNG DƯ THÁNG */}
@@ -365,10 +385,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
                     </td>
                   );
                 })}
-                <td className={`py-3 px-4 text-right bg-black/95 text-amber-400 font-black text-sm sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.2)] border-l border-slate-800 ${isAdmin ? 'right-[48px]' : 'right-0'}`}>
+                <td className={`py-3 px-4 text-right bg-black/95 text-amber-400 font-black text-sm md:sticky z-10 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.2)] border-l border-slate-800 ${isAdmin ? 'md:right-[48px]' : 'md:right-0'}`}>
                   {formatMoney(grandTotalCollected - Object.values(monthlyExpenses).reduce((a, b) => a + b, 0))}
                 </td>
-                {isAdmin && <td className="bg-slate-900/95 sticky right-0 z-10 border-l border-slate-800" />}
+                {isAdmin && <td className="bg-slate-900/95 md:sticky md:right-0 z-10 border-l border-slate-800" />}
               </tr>
             </tfoot>
           </table>
