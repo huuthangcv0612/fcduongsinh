@@ -31,7 +31,7 @@ export function ToastProvider({ children }) {
       {children}
 
       {/* Floating Toast Notification Pop-Up Container */}
-      <div className="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+      <div className="fixed left-1/2 bottom-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] z-[60] flex w-[calc(100vw-1rem)] max-w-sm -translate-x-1/2 flex-col gap-2 px-0 pointer-events-none sm:top-5 sm:right-5 sm:bottom-auto sm:left-auto sm:w-full sm:translate-x-0 sm:gap-3 sm:max-w-sm">
         {toasts.map((item) => {
           const isSuccess = item.type === 'success';
           const isError = item.type === 'error';
@@ -40,7 +40,7 @@ export function ToastProvider({ children }) {
           return (
             <div
               key={item.id}
-              className={`pointer-events-auto rounded-2xl p-4 border shadow-2xl transition-all duration-300 transform translate-y-0 animate-fade-in flex items-start gap-3 bg-white ${
+              className={`pointer-events-auto rounded-2xl p-3.5 sm:p-4 border shadow-2xl transition-all duration-300 transform translate-y-0 animate-fade-in flex items-start gap-3 bg-white ${
                 isSuccess
                   ? 'border-emerald-500 text-slate-900 shadow-emerald-500/20'
                   : isError
@@ -59,22 +59,22 @@ export function ToastProvider({ children }) {
                   ? 'bg-amber-100 text-amber-700'
                   : 'bg-cyan-100 text-cyan-700'
               }`}>
-                {isSuccess && <CheckCircle2 className="w-5 h-5" />}
-                {isError && <AlertCircle className="w-5 h-5" />}
-                {isWarning && <AlertTriangle className="w-5 h-5" />}
-                {!isSuccess && !isError && !isWarning && <Info className="w-5 h-5" />}
+                {isSuccess && <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />}
+                {isError && <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
+                {isWarning && <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />}
+                {!isSuccess && !isError && !isWarning && <Info className="w-4 h-4 sm:w-5 sm:h-5" />}
               </div>
 
-              <div className="flex-1 min-w-0 pr-2">
-                <h4 className="font-black text-sm text-slate-900 leading-snug">{item.title}</h4>
-                <p className="text-xs font-bold text-slate-700 mt-0.5 leading-relaxed">{item.message}</p>
+              <div className="flex-1 min-w-0 pr-1 sm:pr-2">
+                <h4 className="font-black text-[13px] sm:text-sm text-slate-900 leading-snug">{item.title}</h4>
+                <p className="text-[11px] sm:text-xs font-bold text-slate-700 mt-0.5 leading-relaxed">{item.message}</p>
               </div>
 
               <button
                 onClick={() => removeToast(item.id)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition shrink-0"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition shrink-0 mt-0.5"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           );
