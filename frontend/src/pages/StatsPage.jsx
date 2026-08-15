@@ -33,7 +33,7 @@ export default function StatsPage() {
   if (isLoading) return <div className="text-center p-8 text-slate-500 font-bold animate-pulse">Đang tải bảng vàng...</div>;
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16 md:pb-0">
+    <div className="space-y-6 animate-fade-in pb-28 md:pb-0">
       <div className="glass-card p-6 rounded-3xl relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white shadow-xl">
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black tracking-wider uppercase mb-3 border border-white/30 text-white">
@@ -49,7 +49,7 @@ export default function StatsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pb-1">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -57,14 +57,14 @@ export default function StatsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 border-2 font-black text-sm shadow-sm flex-shrink-0 ${
+              className={`min-w-0 flex items-center justify-center gap-2 px-3 py-3 rounded-2xl transition-all duration-300 border-2 font-black text-[11px] sm:text-sm shadow-sm text-center leading-tight ${
                 isActive 
                   ? `${tab.bg} ${tab.color} ${tab.border} ring-2 ring-offset-2`
                   : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
               }`}
             >
               <Icon className={`w-4 h-4 ${isActive ? tab.color : 'text-slate-400'}`} />
-              {tab.label}
+              <span className="min-w-0">{tab.label}</span>
             </button>
           );
         })}
