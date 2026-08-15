@@ -21,13 +21,8 @@ import {
 } from 'lucide-react';
 
 export default function Navbar() {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const navItems = [
     { path: '/', label: 'TỔNG QUAN', icon: Trophy },
@@ -112,15 +107,6 @@ export default function Navbar() {
                 </div>
               </div>
             </Link>
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              title="Đăng xuất"
-              className="p-2 rounded-full bg-white/10 hover:bg-rose-600 text-white border border-white/20 transition"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </header>

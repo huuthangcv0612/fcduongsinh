@@ -47,7 +47,32 @@ export default function MonthlyFundGrid({ isAdmin }) {
   const currentYear = new Date().getFullYear();
   const currentMonthKey = `month${currentMonthIndex + 1}`;
 
-
+  // Auto-scroll to current month
+  useEffect(() => {
+    if (!isLoading && scrollContainerRef.current) {
+      const currentMonthIndex = new Date().getMonth();
+      const container = scrollContainerRef.current;
+      
+      // STT (48px) + Thành viên (208px) = 256px sticky width on the left.
+      const stickyWidth = 256;
+      // The visible scrollable area width
+      const visibleWidth = container.clientWidth - stickyWidth;
+      
+      // We want the center of the month column (width ~ 95px) to align with the center of the visible area.
+      // Month start position = currentMonthIndex * 95
+      // Month center position = (currentMonthIndex * 95) + 47.5
+      // Desired scroll position = Month center - (visible width / 2)
+      
+      const scrollPosition = Math.max(0, (currentMonthIndex * 95) + 47 - (visibleWidth / 2));
+      
+      // Delay slightly to let layout finish rendering
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, [isLoading, selectedYear]);
 
   // Query Grid data (linked directly to real MongoDB User collection)
   const { data: gridRes, isLoading } = useQuery({

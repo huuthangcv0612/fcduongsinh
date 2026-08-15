@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { User, Phone, Save, CheckCircle2, Sparkles, Upload, RefreshCw } from 'lucide-react';
+import { User, Phone, Save, CheckCircle2, Sparkles, Upload, RefreshCw, LogOut } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useToast();
   
@@ -90,6 +92,11 @@ export default function ProfilePage() {
       console.error(error);
       toast.error('Không thể tải lại ứng dụng ngay bây giờ', 'Lỗi cập nhật');
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -243,6 +250,15 @@ export default function ProfilePage() {
 
           <div className="pt-4 border-t border-slate-200 flex items-center justify-stretch sm:justify-end">
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Đăng xuất</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleReloadLatest}
