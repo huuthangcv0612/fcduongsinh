@@ -41,7 +41,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-50 shadow-md w-full">
+      <div className="fixed top-0 left-0 right-0 z-50 w-full bg-[#2c3ec4] pt-[env(safe-area-inset-top,0px)] shadow-md">
         {/* Main Indigo Header */}
         <header className="bg-[#2c3ec4] text-white px-4 lg:px-8 py-2.5">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
