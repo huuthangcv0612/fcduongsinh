@@ -72,6 +72,26 @@ export default function ProfilePage() {
     updateProfileMutation.mutate(formData);
   };
 
+  const handleReloadLatest = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
+
+      if ('caches' in window) {
+        const cacheKeys = await caches.keys();
+        await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
+      }
+
+      toast.info('Đang tải lại phiên bản mới nhất...', 'Cập nhật ứng dụng');
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      toast.error('Không thể tải lại ứng dụng ngay bây giờ', 'Lỗi cập nhật');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-20 md:pb-0">
       {/* High-Contrast Hero Banner */}
@@ -222,14 +242,25 @@ export default function ProfilePage() {
           </div>
 
           <div className="pt-4 border-t border-slate-200 flex items-center justify-stretch sm:justify-end">
-            <button
-              type="submit"
-              disabled={updateProfileMutation.isPending || uploading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5 disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" />
-              <span>{updateProfileMutation.isPending ? 'Đang Lưu...' : 'Lưu Thay Đổi Hồ Sơ'}</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={handleReloadLatest}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Tải bản mới nhất</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={updateProfileMutation.isPending || uploading}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                <span>{updateProfileMutation.isPending ? 'Đang Lưu...' : 'Lưu Thay Đổi Hồ Sơ'}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
