@@ -85,34 +85,34 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5 animate-fade-in pb-20 md:pb-0">
       {/* Welcome Banner */}
-      <div className="glass-card p-6 sm:p-8 rounded-3xl relative overflow-hidden bg-gradient-to-br from-[#2c3ec4] via-[#374df5] to-[#1f2ca3] text-white shadow-xl">
+      <div className="glass-card p-5 sm:p-8 rounded-3xl relative overflow-hidden bg-gradient-to-br from-[#2c3ec4] via-[#374df5] to-[#1f2ca3] text-white shadow-xl">
         {/* Faint Background Image */}
         <img src={coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay pointer-events-none" />
         
-        <div className="relative z-10 max-w-2xl">
+        <div className="relative z-10 max-w-2xl flex flex-col sm:flex-row sm:items-center gap-5 text-center sm:text-left">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black tracking-wider uppercase mb-3 border border-white/30 text-white">
             <Zap className="w-3.5 h-3.5 text-amber-300" />
             <span>FC NHÀ TRẺ MATCH CENTER</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-black mb-2 tracking-tight">
+          <h1 className="text-xl sm:text-4xl font-black mb-2 tracking-tight leading-tight">
             Xin chào, {user?.name || 'Cầu thủ'}! ⚽
           </h1>
-          <p className="text-white/80 text-xs sm:text-sm font-bold leading-relaxed mb-6">
+          <p className="text-white/80 text-xs sm:text-sm font-bold leading-relaxed mb-5 max-w-md mx-auto sm:mx-0">
             Chào mừng bạn đến với Hệ thống Quản lý FC Nhà Trẻ. Đừng quên điểm danh trận đấu sắp tới (Có mặt / 50-50 / Nghỉ) để ban huấn luyện chốt kèo sân!
           </p>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Link
               to="/matches"
-              className="px-5 py-2.5 rounded-full bg-white text-[#2c3ec4] hover:bg-slate-100 font-black text-xs shadow-md transition transform hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white text-[#2c3ec4] hover:bg-slate-100 font-black text-xs shadow-md transition transform hover:-translate-y-0.5 text-center"
             >
               Lịch Thi Đấu & Điểm Danh
             </Link>
 
             <Link
               to="/finances"
-              className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 font-black text-xs backdrop-blur-md transition"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 font-black text-xs backdrop-blur-md transition text-center"
             >
               Bảng Quỹ Tháng
             </Link>

@@ -1,11 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Trophy, Calendar, Wallet, Search, Users, Award, Image as ImageIcon, Download, Smartphone } from 'lucide-react';
-import { usePWA } from '../context/PWAContext';
+import { Trophy, Calendar, Wallet, Search, Users, Award, Image as ImageIcon } from 'lucide-react';
 
 export default function MobileNav() {
-  const pwa = usePWA();
-
   const navItems = [
     { path: '/', label: 'Tổng quan', icon: Trophy },
     { path: '/matches', label: 'Trận đấu', icon: Calendar },
@@ -16,22 +13,9 @@ export default function MobileNav() {
     { path: '/members', label: 'Thành viên', icon: Users },
   ];
 
-  const handlePWAInstall = async () => {
-    if (!pwa) return;
-    if (pwa.isIOS || pwa.isChromeiOS) {
-      pwa.setShowIOSGuide(true);
-    } else if (pwa.deferredPrompt) {
-      pwa.handleInstall();
-    }
-  };
-
-  // Show install button only when not standalone and not installed
-  const showInstallBtn = pwa && !pwa.isStandalone && !pwa.isInstalled &&
-    (pwa.isIOS || pwa.isChromeiOS || !!pwa.deferredPrompt);
-
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 px-2 py-2 shadow-2xl">
-      <div className="flex items-center justify-around">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 px-1.5 py-2 shadow-2xl">
+      <div className="grid grid-cols-7 items-stretch gap-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -39,7 +23,7 @@ export default function MobileNav() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-0.5 w-full h-full rounded-xl transition-all duration-200 ${
+                `flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 transition-all duration-200 ${
                   isActive
                     ? 'text-[#2c3ec4] scale-105'
                     : 'text-slate-500 hover:text-slate-900'
@@ -48,28 +32,13 @@ export default function MobileNav() {
             >
               {({ isActive }) => (
                 <>
-                  <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
-                  <span className="text-[9px] font-black tracking-wide whitespace-nowrap">{item.label}</span>
+                  <Icon className="w-4 h-4" strokeWidth={isActive ? 2.5 : 2} />
+                  <span className="text-[8px] leading-tight font-black tracking-wide text-center whitespace-normal break-words max-w-[3.6rem]">{item.label}</span>
                 </>
               )}
             </NavLink>
           );
         })}
-
-        {/* PWA Install button in mobile nav (only when installable) */}
-        {showInstallBtn && (
-          <button
-            onClick={handlePWAInstall}
-            className="flex flex-col items-center justify-center gap-0.5 w-full h-full rounded-xl transition-all duration-200 text-emerald-600 hover:text-emerald-700"
-            title="Cài ứng dụng"
-          >
-            {pwa.isIOS || pwa.isChromeiOS
-              ? <Smartphone className="w-5 h-5" strokeWidth={2} />
-              : <Download className="w-5 h-5" strokeWidth={2} />
-            }
-            <span className="text-[9px] font-black tracking-wide whitespace-nowrap">Cài app</span>
-          </button>
-        )}
       </div>
     </div>
   );
