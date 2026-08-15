@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,8 @@ import coverImage from '../asset/IMG_0922.JPG';
 export default function DashboardPage() {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const [carouselReady, setCarouselReady] = useState(false);
 
   // Balance query
   const { data: balanceRes } = useQuery({
@@ -33,6 +35,12 @@ export default function DashboardPage() {
   const { data: usersRes } = useQuery({
     queryKey: ['users'],
     queryFn: () => api.get('/users')
+  });
+
+  // Media query for dashboard carousel
+  const { data: mediaRes } = useQuery({
+    queryKey: ['media'],
+    queryFn: () => api.get('/media')
   });
 
   // Check-in mutation
@@ -78,6 +86,58 @@ export default function DashboardPage() {
   const matches = matchesRes?.data || [];
   const finances = financesRes?.data || [];
   const users = usersRes?.data || [];
+  const mediaItems = Array.isArray(mediaRes?.data) ? mediaRes.data : [];
+  const carouselImages = mediaItems
+    .filter(item => item?.type === 'image' && typeof item.url === 'string')
+    .map(item => ({
+      url: item.url,
+      title: item.title || 'FC Nhà Trẻ'
+    }));
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const imageSources = carouselImages.map(item => item.url);
+
+    if (!imageSources.length) {
+      setHeroImageIndex(0);
+      setCarouselReady(false);
+      return undefined;
+    }
+
+    setCarouselReady(false);
+    setHeroImageIndex(0);
+
+    const preloadImages = imageSources.map((src) => new Promise((resolve) => {
+      const image = new Image();
+      image.onload = resolve;
+      image.onerror = resolve;
+      image.src = src;
+    }));
+
+    Promise.all(preloadImages).then(() => {
+      if (isMounted) {
+        setCarouselReady(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [carouselImages.length]);
+
+  useEffect(() => {
+    if (!carouselReady || carouselImages.length <= 1) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1) % carouselImages.length);
+    }, 3000);
+
+    return () => window.clearInterval(intervalId);
+  }, [carouselReady, carouselImages.length]);
+
+  const activeHeroImage = carouselImages[heroImageIndex]?.url || coverImage;
+  const activeHeroTitle = carouselImages[heroImageIndex]?.title || 'FC Nhà Trẻ';
 
   const upcomingMatches = matches.filter(m => m.status === 'upcoming');
   const recentFinances = finances.slice(0, 5);
@@ -125,11 +185,12 @@ export default function DashboardPage() {
           <div className="hidden lg:flex justify-end">
             <div className="relative w-full max-w-sm aspect-[4/3] rounded-[28px] overflow-hidden border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm">
               <img
-                src={coverImage}
-                alt="FC Nhà Trẻ"
-                className="absolute inset-0 w-full h-full object-cover opacity-55"
+                src={activeHeroImage}
+                alt={activeHeroTitle}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${carouselReady ? 'opacity-60' : 'opacity-55'}`}
               />
               <div className="absolute inset-0 bg-gradient-to-br from-[#1f2ca3]/30 via-transparent to-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
 
               <div className="absolute inset-0 p-5 flex flex-col justify-between">
                 <div className="self-start inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 text-white text-[11px] font-black border border-white/20 backdrop-blur-md">
@@ -146,6 +207,25 @@ export default function DashboardPage() {
                     <Users className="w-3.5 h-3.5" />
                     <span>Điểm danh & quản lý đội hình</span>
                   </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <div className="text-[11px] font-black text-white/85 bg-white/10 border border-white/15 rounded-full px-3 py-1 backdrop-blur-md max-w-[70%] truncate">
+                    {carouselReady ? activeHeroTitle : 'Đang tải ảnh từ Media...'}
+                  </div>
+
+                  {carouselImages.length > 1 && (
+                    <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1.5 backdrop-blur-md">
+                      {carouselImages.map((_, index) => (
+                        <span
+                          key={index}
+                          className={`block h-1.5 rounded-full transition-all duration-300 ${
+                            index === heroImageIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/45'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
