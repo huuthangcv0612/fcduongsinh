@@ -226,7 +226,7 @@ export function PWAInstallButton({ className = '' }) {
       <button
         id="pwa-install-btn"
         onClick={() => setShowIOSGuide(true)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-black transition ${className}`}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-white border border-amber-300/50 shadow-[0_0_15px_rgba(245,158,11,0.5)] text-xs font-black transition transform hover:-translate-y-0.5 ${className}`}
         title="Cài ứng dụng lên màn hình chính"
       >
         <Smartphone className="w-3.5 h-3.5 shrink-0" />
@@ -241,7 +241,7 @@ export function PWAInstallButton({ className = '' }) {
       <button
         id="pwa-install-btn"
         onClick={handleInstall}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-black transition ${className}`}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-white border border-amber-300/50 shadow-[0_0_15px_rgba(245,158,11,0.5)] text-xs font-black transition transform hover:-translate-y-0.5 ${className}`}
         title="Cài FC Nhà Trẻ như ứng dụng native"
       >
         <Download className="w-3.5 h-3.5 shrink-0" />
