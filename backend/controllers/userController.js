@@ -77,8 +77,12 @@ async function deleteUser(req, res, next) {
 
     await User.findByIdAndDelete(id);
 
-    // Also delete user's finances if needed (optional, keeping it simple for now)
-    
+    // Also delete user's finances and monthly funds
+    const MonthlyFund = require('../models/MonthlyFund');
+    await MonthlyFund.deleteMany({ userId: id });
+    const Finance = require('../models/Finance');
+    // If we want to delete their created transactions we can, but let's keep it to monthly funds for the grid
+    // await Finance.deleteMany({ createdBy: id });
     res.json({
       success: true,
       message: 'Đã xóa tài khoản thành công'

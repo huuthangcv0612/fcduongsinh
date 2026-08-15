@@ -62,6 +62,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
     mutationFn: ({ id, monthKey, amount }) => api.put('/finances/monthly-grid/cell', { id, monthKey, amount }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['monthlyGrid', selectedYear] });
+      queryClient.invalidateQueries({ queryKey: ['balance'] });
+      queryClient.invalidateQueries({ queryKey: ['finances'] });
       toast.success('Đã lưu số tiền đóng quỹ thành công!', 'Cập Nhật Quỹ');
       setEditingCell(null);
     },
@@ -90,6 +92,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
     mutationFn: (id) => api.delete(`/finances/monthly-grid/member/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['monthlyGrid', selectedYear] });
+      queryClient.invalidateQueries({ queryKey: ['balance'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Đã xóa thành viên khỏi bảng quỹ!', 'Đã xóa');
     },
     onError: (err) => {

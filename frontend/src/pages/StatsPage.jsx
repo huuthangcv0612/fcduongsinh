@@ -49,7 +49,7 @@ export default function StatsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-2">
+      <div className="flex overflow-x-auto gap-2 pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -57,7 +57,7 @@ export default function StatsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 border-2 font-black text-sm shadow-sm ${
+              className={`flex items-center gap-2 px-4 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 border-2 font-black text-sm shadow-sm flex-shrink-0 ${
                 isActive 
                   ? `${tab.bg} ${tab.color} ${tab.border} ring-2 ring-offset-2`
                   : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
