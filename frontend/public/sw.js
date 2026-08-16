@@ -124,24 +124,28 @@ self.addEventListener('push', function(event) {
     }
   }
 
-  const title = data.title || 'FC Nhatre Notification';
+  const title = data.title || 'FC Nhà Trẻ';
   const options = {
     body: data.body || 'Bạn có một thông báo mới.',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    requireInteraction: true,
+    vibrate: [200, 100, 200],
     data: {
       url: data.url || '/'
     }
   };
 
-  const notificationPromise = self.registration.showNotification(title, options);
+  const notificationPromise = self.registration.showNotification(title, options)
+    .catch(err => console.error('[SW] Lỗi showNotification:', err));
 
-  // Send message to open clients so they can update UI in real-time
-  const messagePromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-    clients.forEach(client => {
-      client.postMessage({ type: 'NEW_NOTIFICATION', data });
-    });
-  });
+  const messagePromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    .then(clients => {
+      clients.forEach(client => {
+        try {
+          client.postMessage({ type: 'NEW_NOTIFICATION', data });
+        } catch(e) {}
+      });
+    })
+    .catch(err => console.error('[SW] Lỗi postMessage:', err));
 
   event.waitUntil(Promise.all([notificationPromise, messagePromise]));
 });
