@@ -116,6 +116,36 @@ export default function MatchesPage() {
   const matches = matchesRes?.data || [];
   const filteredMatches = matches.filter(m => activeTab === 'upcoming' ? m.status === 'upcoming' : m.status !== 'upcoming');
 
+  const uniqueOpponents = React.useMemo(() => {
+    if (!matches) return [];
+    const opps = {};
+    matches.forEach(m => {
+      if (m.opponent && m.opponent.teamName && !opps[m.opponent.teamName]) {
+        opps[m.opponent.teamName] = {
+          teamName: m.opponent.teamName,
+          phone: m.opponent.phone || '',
+          fbLink: m.opponent.fbLink || '',
+        };
+      }
+    });
+    return Object.values(opps);
+  }, [matches]);
+
+  const handleSelectOldOpponent = (e) => {
+    const selectedTeam = e.target.value;
+    if (!selectedTeam) return;
+    
+    const opp = uniqueOpponents.find(o => o.teamName === selectedTeam);
+    if (opp) {
+      setFormData(prev => ({
+        ...prev,
+        opponentTeamName: opp.teamName,
+        opponentPhone: opp.phone,
+        opponentFbLink: opp.fbLink
+      }));
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     createMutation.mutate(formData);
@@ -283,6 +313,19 @@ export default function MatchesPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">🔥 Chọn nhanh đối thủ cũ (Tự điền thông tin):</label>
+                  <select
+                    onChange={handleSelectOldOpponent}
+                    className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-sm text-blue-900 font-bold focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">-- Chọn đối thủ đã từng giao hữu --</option>
+                    {uniqueOpponents.map((opp, idx) => (
+                      <option key={idx} value={opp.teamName}>{opp.teamName}</option>
+                    ))}
+                  </select>
+                </div>
+                
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Tên đội đối thủ:</label>
                   <input
