@@ -11,14 +11,39 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
+
+    // Auto refresh notifications every 30 seconds
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000);
+
+    // Listen for new push notifications from Service Worker
+    const handleMessage = (event) => {
+      if (event.data && event.data.type === 'NEW_NOTIFICATION') {
+        fetchNotifications();
+      }
+    };
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+    }
+
     // Close dropdown on outside click
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('mousedown', handleClickOutside);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleMessage);
+      }
+    };
   }, []);
 
   const fetchNotifications = async () => {

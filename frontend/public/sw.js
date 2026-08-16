@@ -134,7 +134,16 @@ self.addEventListener('push', function(event) {
     }
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  const notificationPromise = self.registration.showNotification(title, options);
+
+  // Send message to open clients so they can update UI in real-time
+  const messagePromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+    clients.forEach(client => {
+      client.postMessage({ type: 'NEW_NOTIFICATION', data });
+    });
+  });
+
+  event.waitUntil(Promise.all([notificationPromise, messagePromise]));
 });
 
 self.addEventListener('notificationclick', function(event) {
