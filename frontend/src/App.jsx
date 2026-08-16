@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import MobileNav from './components/MobileNav';
 import ForceCheckInModal from './components/ForceCheckInModal';
+import PushNotificationPrompt from './components/PushNotificationPrompt';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -76,6 +77,7 @@ function ProtectedLayout() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <ForceCheckInModal />
+      <PushNotificationPrompt />
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 pt-32 pb-36 sm:px-4 sm:pt-28 sm:pb-8 lg:px-8 lg:pt-32 lg:pb-8">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
