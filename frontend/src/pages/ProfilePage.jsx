@@ -63,9 +63,20 @@ export default function ProfilePage() {
   const handleDebugPush = async () => {
     try {
       toast.info('Đang chẩn đoán kết nối...', 'Chờ chút');
+      
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert("Lỗi: Trình duyệt của bạn KHÔNG HỖ TRỢ Web Push hoặc bạn đang dùng mạng nội bộ không có HTTPS.");
+        return;
+      }
+      
       let log = "1. Trình duyệt cho phép: " + Notification.permission + "\n";
       
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        alert("Lỗi: Không tìm thấy Service Worker! Vui lòng F5 (tải lại trang) để hệ thống tự động cài đặt lại Service Worker.");
+        return;
+      }
+      
       let subscription = await registration.pushManager.getSubscription();
       log += "2. Có sẵn Subscription: " + (subscription ? "CÓ" : "KHÔNG") + "\n";
       
