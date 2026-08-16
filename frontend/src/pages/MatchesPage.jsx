@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +11,8 @@ export default function MatchesPage() {
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const toast = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
   
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -27,6 +30,24 @@ export default function MatchesPage() {
     opponentFbLink: '',
     notes: ''
   });
+
+  useEffect(() => {
+    if (location.state?.createMatchFromOpponent) {
+      const opp = location.state.createMatchFromOpponent;
+      setFormData(prev => ({
+        ...prev,
+        opponentTeamName: opp.teamName || '',
+        opponentPhone: opp.contactPhone || '',
+        opponentFbLink: opp.sourceUrl || '',
+        stadium: opp.stadiumName || '',
+        time: opp.matchTime || '19:15',
+      }));
+      setShowModal(true);
+      
+      // Clear state so it doesn't reopen if user refreshes the page
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const { data: matchesRes } = useQuery({
     queryKey: ['matches'],

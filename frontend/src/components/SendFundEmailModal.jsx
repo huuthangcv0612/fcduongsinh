@@ -8,6 +8,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
   const [message, setMessage] = useState('');
   const [qrImage, setQrImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [sendEmail, setSendEmail] = useState(true);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,10 +45,11 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
       await api.post('/finances/send-notification', {
         month,
         message,
-        qrImage
+        qrImage,
+        sendEmail
       });
       
-      setSuccess('Đã gửi email thông báo thành công đến tất cả thành viên!');
+      setSuccess(sendEmail ? 'Đã gửi Email và Push thông báo thành công!' : 'Đã gửi Push thông báo thành công!');
       setTimeout(() => {
         onClose();
         setSuccess('');
@@ -55,6 +57,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
         setMessage('');
         setQrImage(null);
         setPreviewUrl(null);
+        setSendEmail(true);
       }, 2500);
       
     } catch (err) {
@@ -176,6 +179,20 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
               accept="image/png, image/jpeg, image/jpg"
               onChange={handleFileChange}
             />
+          </div>
+
+          <div className="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <input 
+              type="checkbox" 
+              id="sendEmail" 
+              checked={sendEmail}
+              onChange={(e) => setSendEmail(e.target.checked)}
+              className="w-5 h-5 text-emerald-500 rounded border-slate-300 focus:ring-emerald-500 mt-0.5 cursor-pointer"
+            />
+            <label htmlFor="sendEmail" className="text-sm font-bold text-slate-700 cursor-pointer select-none leading-tight">
+              Đồng thời gửi Email đến toàn đội <br/>
+              <span className="text-xs text-slate-500 font-medium">(Nếu tắt, sẽ chỉ gửi thông báo Push Notification)</span>
+            </label>
           </div>
 
         </div>

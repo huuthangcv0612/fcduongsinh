@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmModalContext';
 import { useMatchmaking } from '../context/MatchmakingContext';
@@ -26,13 +28,16 @@ import {
   Eye,
   Activity,
   Cpu,
-  Zap
+  Zap,
+  Plus
 } from 'lucide-react';
 
 export default function MatchmakingPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const confirm = useConfirm();
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   const {
     activeTab, setActiveTab,
@@ -615,6 +620,16 @@ export default function MatchmakingPage() {
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>Xóa Kèo Khỏi DB</span>
+                    </button>
+                  )}
+
+                  {isAdmin && (
+                    <button
+                      onClick={() => navigate('/matches', { state: { createMatchFromOpponent: opp } })}
+                      className="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition mt-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>⚽ TẠO TRẬN ĐẤU NHANH</span>
                     </button>
                   )}
                 </div>

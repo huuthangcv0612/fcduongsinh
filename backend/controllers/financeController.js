@@ -282,7 +282,7 @@ async function deleteMonthlyMember(req, res, next) {
 
 async function sendFundEmail(req, res, next) {
   try {
-    const { month, message, qrImage } = req.body;
+    const { month, message, qrImage, sendEmail = true } = req.body;
     
     if (!month) {
       throw new AppError('VALIDATION_ERROR', 'Vui lòng chọn tháng đóng quỹ', 400);
@@ -296,9 +296,11 @@ async function sendFundEmail(req, res, next) {
     const users = await User.find({});
     
     // Fire and forget email
-    sendFundNotification(users, month, message, qrUrl).catch(err => {
-      console.error('Non-blocking mail error:', err.message);
-    });
+    if (sendEmail) {
+      sendFundNotification(users, month, message, qrUrl).catch(err => {
+        console.error('Non-blocking mail error:', err.message);
+      });
+    }
 
     // Create in-app notification
     const title = `Thông báo quỹ tháng ${month}`;

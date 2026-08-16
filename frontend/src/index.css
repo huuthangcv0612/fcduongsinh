@@ -27,6 +27,10 @@
     padding-right: env(safe-area-inset-right, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  input, textarea, select {
+    @apply text-slate-900;
+  }
 }
 
 /* PWA Standalone: push content below status bar */

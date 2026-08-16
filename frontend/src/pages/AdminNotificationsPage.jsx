@@ -93,7 +93,7 @@ export default function AdminNotificationsPage() {
           <input
             type="text"
             required
-            className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition"
+            className="w-full px-4 py-2 bg-white text-slate-900 font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition"
             placeholder="Ví dụ: Họp team cuối năm..."
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -107,7 +107,7 @@ export default function AdminNotificationsPage() {
           <textarea
             required
             rows="4"
-            className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition"
+            className="w-full px-4 py-2 bg-white text-slate-900 font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition"
             placeholder="Nội dung chi tiết..."
             value={message}
             onChange={e => setMessage(e.target.value)}
@@ -120,7 +120,7 @@ export default function AdminNotificationsPage() {
           </label>
           <input
             type="text"
-            className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition text-sm"
+            className="w-full px-4 py-2 bg-white text-slate-900 font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition text-sm"
             placeholder="Ví dụ: /matches (hoặc để trống)"
             value={link}
             onChange={e => setLink(e.target.value)}
