@@ -86,8 +86,8 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.warning('Vui lòng chọn file ảnh dung lượng dưới 5MB', 'Ảnh quá lớn');
+    if (file.size > 10 * 1024 * 1024) {
+      toast.warning('Vui lòng chọn file ảnh dung lượng dưới 10MB', 'Ảnh quá lớn');
       return;
     }
 
