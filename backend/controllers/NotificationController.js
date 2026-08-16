@@ -51,11 +51,11 @@ exports.subscribePush = async (req, res) => {
     }
     
     // Check if subscription already exists for this user and endpoint
-    let existingSub = await PushSubscription.findOne({ 
-      userId, 
-      'subscription.endpoint': subscription.endpoint 
+    let existingSub = await PushSubscription.findOne({
+      userId,
+      'subscription.endpoint': subscription.endpoint
     });
-    
+
     if (existingSub) {
       // Update existing
       existingSub.subscription = subscription;
