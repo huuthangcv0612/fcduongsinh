@@ -82,38 +82,87 @@ export default function ProfilePage() {
     }
   });
 
+  // Tự động resize ảnh xuống dưới 2MB trước khi upload
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB target
+      const MAX_DIMENSION = 1200; // Max width/height px
+
+      // Nếu ảnh đã nhỏ hơn 2MB thì không cần compress
+      if (file.size <= MAX_SIZE_BYTES) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        return;
+      }
+
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.src = url;
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+
+        // Scale down nếu kích thước quá lớn
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIMENSION) / width);
+            width = MAX_DIMENSION;
+          } else {
+            width = Math.round((width * MAX_DIMENSION) / height);
+            height = MAX_DIMENSION;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Thử compress với quality giảm dần cho đến khi đạt mục tiêu
+        let quality = 0.85;
+        let base64 = canvas.toDataURL('image/jpeg', quality);
+        while (base64.length > MAX_SIZE_BYTES * 1.37 && quality > 0.3) {
+          quality -= 0.1;
+          base64 = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        resolve(base64);
+      };
+    });
+  };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.warning('Vui lòng chọn file ảnh dung lượng dưới 10MB', 'Ảnh quá lớn');
+    if (file.size > 20 * 1024 * 1024) {
+      toast.warning('Vui lòng chọn file ảnh dung lượng dưới 20MB', 'Ảnh quá lớn');
       return;
     }
 
     setUploading(true);
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      try {
-        const base64Str = reader.result;
-        const res = await api.post('/upload/avatar', { image: base64Str });
-        if (res.success && res.data?.url) {
-          setFormData(prev => ({ ...prev, avatar: res.data.url }));
-          if (res.data.user) {
-            localStorage.setItem('user', JSON.stringify(res.data.user));
-          }
-          queryClient.invalidateQueries({ queryKey: ['users'] });
-          toast.success('Đã tải ảnh đại diện lên Cloudinary thành công!', 'Upload hoàn tất');
+    try {
+      toast.info('Đang xử lý và nén ảnh...', 'Chờ chút');
+      const base64Str = await compressImage(file);
+      const res = await api.post('/upload/avatar', { image: base64Str });
+      if (res.success && res.data?.url) {
+        setFormData(prev => ({ ...prev, avatar: res.data.url }));
+        if (res.data.user) {
+          localStorage.setItem('user', JSON.stringify(res.data.user));
         }
-      } catch (err) {
-        console.error(err);
-        toast.error(err.message || 'Upload ảnh lên Cloudinary thất bại', 'Lỗi Upload');
-      } finally {
-        setUploading(false);
+        queryClient.invalidateQueries({ queryKey: ['users'] });
+        toast.success('Đã tải ảnh đại diện lên Cloudinary thành công!', 'Upload hoàn tất');
       }
-    };
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Upload ảnh lên Cloudinary thất bại', 'Lỗi Upload');
+    } finally {
+      setUploading(false);
+    }
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
