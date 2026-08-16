@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, Clock, MapPin, DollarSign, Users, Copy, CheckCircle2, XCircle, HelpCircle, Edit3, Trophy, Plus, Minus, Trash2, X, Zap, Send, Shirt } from 'lucide-react';
+import { Calendar, Clock, MapPin, DollarSign, Users, Copy, CheckCircle2, XCircle, HelpCircle, Edit3, Trophy, Plus, Minus, Trash2, X, Zap, Send, Shirt, Bell } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import teamLogo from '../asset/logo.png';
 import { useToast } from '../context/ToastContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, isAdmin }) {
+export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush, isAdmin }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -259,7 +259,7 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                     setShowNotifyModal(true);
                   }}
                   disabled={match.isNotified}
-                  title={match.isNotified ? 'Đã gửi thông báo' : 'Gửi Email thông báo'}
+                  title={match.isNotified ? 'Đã gửi Email' : 'Gửi Email thông báo'}
                   className={`p-1 rounded-lg transition ${
                     match.isNotified
                       ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -267,6 +267,14 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                   }`}
                 >
                   <Send className="w-3.5 h-3.5" />
+                </button>
+                
+                <button
+                  onClick={() => onNotifyPush(match._id)}
+                  title="Gửi Push Notification & App Popup (Có thể gửi nhiều lần)"
+                  className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition ml-1"
+                >
+                  <Bell className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}

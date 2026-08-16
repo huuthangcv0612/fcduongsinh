@@ -10,6 +10,8 @@ const connectDB = require('./config/db');
 const apiRoutes = require('./routes/api');
 const errorHandler = require('./middlewares/errorHandler');
 const { ensureAdminUser } = require('./controllers/authController');
+const startCronJobs = require('./cron');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -54,6 +56,7 @@ app.use(errorHandler);
 async function startServer() {
   await connectDB();
   await ensureAdminUser();
+  startCronJobs();
 
   app.listen(PORT, () => {
     console.log(`🚀 Football Team Backend API Server running on http://localhost:${PORT}`);

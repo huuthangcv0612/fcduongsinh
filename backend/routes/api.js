@@ -12,9 +12,11 @@ const facebookGroupController = require('../controllers/facebookGroupController'
 const userController = require('../controllers/userController');
 const mediaController = require('../controllers/mediaController');
 const uploadController = require('../controllers/uploadController');
+const notificationController = require('../controllers/NotificationController');
 
 // --- Auth & Upload Routes ---
 router.post('/auth/google', authController.googleAuth);
+router.post('/auth/dev-bypass', authController.devBypass);
 router.get('/auth/me', authMiddleware, authController.getMe);
 router.put('/auth/profile', authMiddleware, authController.updateProfile);
 router.post('/upload/avatar', authMiddleware, uploadController.uploadAvatar);
@@ -29,6 +31,7 @@ router.put('/matches/:id/result', authMiddleware, adminMiddleware, matchControll
 router.delete('/matches/:id', authMiddleware, adminMiddleware, matchController.deleteMatch);
 router.post('/matches/:id/clone', authMiddleware, adminMiddleware, matchController.cloneMatch);
 router.post('/matches/:id/notify', authMiddleware, adminMiddleware, matchController.notifyMatch);
+router.post('/matches/:id/notify-push', authMiddleware, adminMiddleware, matchController.notifyMatchPush);
 
 // --- Finance Routes ---
 router.get('/finances', authMiddleware, financeController.getFinances);
@@ -66,5 +69,11 @@ router.get('/media', authMiddleware, mediaController.getMedia);
 router.post('/media/upload', authMiddleware, mediaController.uploadFile);
 router.post('/media/link', authMiddleware, mediaController.addLink);
 router.delete('/media/:id', authMiddleware, mediaController.deleteMedia);
+
+// --- Notification Routes ---
+router.get('/notifications', authMiddleware, notificationController.getNotifications);
+router.put('/notifications/:id/read', authMiddleware, notificationController.markAsRead);
+router.post('/notifications/subscribe', authMiddleware, notificationController.subscribePush);
+router.post('/notifications/admin-send', authMiddleware, adminMiddleware, notificationController.sendAdminNotification);
 
 module.exports = router;

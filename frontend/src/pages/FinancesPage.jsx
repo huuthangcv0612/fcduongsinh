@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +20,22 @@ export default function FinancesPage() {
   const [activeTab, setActiveTab] = useState('monthly_grid'); // 'monthly_grid' | 'transactions'
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showQRModal, setShowQRModal] = useState(false);
+  const qrUrlFromParam = searchParams.get('qrUrl');
+
+  useEffect(() => {
+    if (qrUrlFromParam) {
+      setShowQRModal(true);
+    }
+  }, [qrUrlFromParam]);
+
+  const handleCloseQR = () => {
+    setShowQRModal(false);
+    searchParams.delete('qrUrl');
+    setSearchParams(searchParams);
+  };
 
   const [formData, setFormData] = useState({
     type: 'OUT',
@@ -307,6 +324,32 @@ export default function FinancesPage() {
         isOpen={showEmailModal} 
         onClose={() => setShowEmailModal(false)} 
       />
+
+      {/* QR Code Viewer Modal */}
+      {showQRModal && qrUrlFromParam && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400 shadow-2xl text-center">
+            <button
+              onClick={handleCloseQR}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100 transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <h3 className="text-lg font-black text-slate-900 mb-4">📲 Quét Mã Đóng Quỹ</h3>
+            <img 
+              src={qrUrlFromParam} 
+              alt="QR Code" 
+              className="w-full h-auto rounded-2xl border-2 border-slate-200 shadow-md"
+            />
+            <button
+              onClick={handleCloseQR}
+              className="mt-6 w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-md transition"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -76,7 +76,7 @@ async function sendFundNotification(users, month, message, qrUrl) {
         ${qrUrl ? `
         <div style="text-align: center; margin-top: 30px;">
           <p style="font-weight: bold; color: #f8fafc; font-size: 18px;">📲 QUÉT MÃ QR ĐỂ THANH TOÁN</p>
-          <img src="${qrUrl}" alt="QR Ngân Hàng" style="max-width: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #10b981;" />
+          <img src="${qrUrl}" alt="QR Ngân Hàng" width="300" style="width: 100%; max-width: 300px; height: auto; object-fit: contain; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #10b981; display: inline-block;" />
         </div>
         ` : ''}
 

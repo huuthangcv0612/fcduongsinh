@@ -146,6 +146,42 @@ async function googleAuth(req, res, next) {
   }
 }
 
+async function devBypass(req, res, next) {
+  try {
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const adminEmail = (process.env.GMAIL_USER || 'tranduchoangh20@gmail.com').toLowerCase().trim();
+    let user = await User.findOne({ email: adminEmail });
+
+    if (!user) {
+       await ensureAdminUser();
+       user = await User.findOne({ email: adminEmail });
+    }
+
+    const token = generateToken(user);
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          position: user.position,
+          phone: user.phone
+        }
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getMe(req, res, next) {
   try {
     res.json({
@@ -191,5 +227,6 @@ module.exports = {
   googleAuth,
   getMe,
   updateProfile,
-  ensureAdminUser
+  ensureAdminUser,
+  devBypass
 };

@@ -48,49 +48,49 @@ export default function MembersPage() {
       </div>
 
       {/* Members Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {users.map((member) => (
           <div
             key={member._id}
-            className="glass-panel rounded-3xl p-5 border border-slate-200 hover:border-emerald-400 transition shadow-md flex flex-col justify-between bg-white"
+            className="rounded-2xl p-4 sm:p-5 border border-slate-200 hover:border-emerald-400 transition shadow-sm bg-white flex flex-col justify-between"
           >
             <div>
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <img
                   src={member.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}
                   alt={member.name}
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-500 shadow-md"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl object-cover border border-emerald-500 shadow-sm shrink-0"
                 />
-                <div>
-                  <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
-                    {member.name}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-black text-sm sm:text-base text-slate-900 flex flex-wrap items-center gap-1.5 leading-tight">
+                    <span className="truncate">{member.name}</span>
                     {member.role === 'admin' && (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[10px] uppercase font-mono font-bold">
+                      <span className="px-1.5 py-0.5 rounded border border-amber-300 bg-amber-100 text-amber-800 text-[9px] uppercase font-bold shrink-0">
                         Admin
                       </span>
                     )}
                     {member.role === 'pending' && (
-                      <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300 text-[10px] uppercase font-mono font-bold flex items-center gap-1">
-                        <ShieldAlert className="w-3 h-3" /> Chờ Duyệt
+                      <span className="px-1.5 py-0.5 rounded border border-rose-300 bg-rose-100 text-rose-800 text-[9px] uppercase font-bold flex items-center gap-0.5 shrink-0">
+                        <ShieldAlert className="w-2.5 h-2.5" /> Chờ Duyệt
                       </span>
                     )}
                   </h3>
-                  <div className="text-xs font-bold text-slate-500">{member.email}</div>
-                  <div className="text-xs font-black text-emerald-700 mt-1">
+                  <div className="text-[11px] sm:text-xs font-bold text-slate-500 truncate mt-0.5">{member.email}</div>
+                  <div className="text-[11px] sm:text-xs font-black text-emerald-700 mt-1">
                     Vị trí: {member.position || 'Tự do'}
                   </div>
                 </div>
               </div>
 
               {/* Fund Status Badge */}
-              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 mb-4 flex items-center justify-between text-xs font-bold">
+              <div className="bg-slate-50 p-2.5 sm:p-3 rounded-xl border border-slate-200 mb-3 flex flex-wrap items-center justify-between text-[11px] sm:text-xs font-bold gap-2">
                 <span className="text-slate-600">Quỹ tháng này:</span>
                 {member.isFundPaidThisMonth ? (
-                  <span className="flex items-center gap-1 font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-xl border border-emerald-300">
+                  <span className="flex items-center gap-1 font-black text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg border border-emerald-300 shrink-0">
                     <CheckCircle2 className="w-3.5 h-3.5" /> ĐÃ NỘP ({member.fundPaidThisMonth >= 1000 ? `${member.fundPaidThisMonth / 1000}k` : `${member.fundPaidThisMonth}đ`})
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-xl border border-amber-300">
+                  <span className="flex items-center gap-1 font-black text-amber-800 bg-amber-100 px-2 py-1 rounded-lg border border-amber-300 shrink-0">
                     <XCircle className="w-3.5 h-3.5" /> CHƯA NỘP
                   </span>
                 )}

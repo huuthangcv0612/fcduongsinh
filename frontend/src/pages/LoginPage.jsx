@@ -6,7 +6,7 @@ import coverImage from '../asset/IMG_0922.JPG';
 import teamLogo from '../asset/logo.png';
 
 export default function LoginPage() {
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle, devBypassLogin } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,6 +65,20 @@ export default function LoginPage() {
     }
   };
 
+  const handleDevBypass = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await devBypassLogin();
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Bypass đăng nhập thất bại');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
       {/* Cover Image Section (Desktop Only) */}
@@ -108,6 +122,18 @@ export default function LoginPage() {
           <div className="flex flex-col items-center justify-center mb-6">
             <div id="googleSignInBtn" className="min-h-[50px] flex items-center justify-center" />
           </div>
+
+          {import.meta.env.MODE === 'development' && (
+            <div className="mb-6">
+              <button
+                onClick={handleDevBypass}
+                disabled={loading}
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-full transition disabled:opacity-50"
+              >
+                {loading ? 'Đang xử lý...' : '🛠️ Bypass Login (Dev Mode)'}
+              </button>
+            </div>
+          )}
 
           <div className="text-xs text-slate-500 font-semibold border-t border-slate-200 pt-6">
             Chỉ các tài khoản Google đã được phân quyền mới có thể truy cập hệ thống quản trị.

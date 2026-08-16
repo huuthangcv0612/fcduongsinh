@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { PWAInstallButton } from '../context/PWAContext';
+import NotificationBell from './NotificationBell';
 import teamLogo from '../asset/logo.png';
 import { 
   Trophy, 
@@ -78,6 +79,7 @@ export default function Navbar() {
 
           {/* User Profile & Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <NotificationBell />
             {/* PWA Install Button */}
             <PWAInstallButton />
 

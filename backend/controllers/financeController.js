@@ -5,6 +5,9 @@ const { AppError } = require('../middlewares/authMiddleware');
 const { CreateFinanceSchema, BulkUpdateFinanceSchema } = require('../validators/schemas');
 const { sendFundNotification } = require('../services/mailerService');
 const { uploadImage } = require('../services/cloudinaryService');
+const Notification = require('../models/Notification');
+const PushSubscription = require('../models/PushSubscription');
+const { sendNotification } = require('../utils/webPush');
 
 const ZERO_MONTHS = {
   m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0,
@@ -292,7 +295,36 @@ async function sendFundEmail(req, res, next) {
 
     const users = await User.find({});
     
-    await sendFundNotification(users, month, message, qrUrl);
+    // Fire and forget email
+    sendFundNotification(users, month, message, qrUrl).catch(err => {
+      console.error('Non-blocking mail error:', err.message);
+    });
+
+    // Create in-app notification
+    const title = `Thông báo quỹ tháng ${month}`;
+    const link = `/finances${qrUrl ? `?qrUrl=${encodeURIComponent(qrUrl)}` : ''}`;
+    
+    await Notification.create({
+      recipient: null, // all users
+      title,
+      message,
+      type: 'fund',
+      link
+    });
+
+    // Send Push Notification
+    const subscriptions = await PushSubscription.find();
+    const pushPayload = { title, body: message, url: link, type: 'fund' };
+    
+    subscriptions.forEach(async (sub) => {
+      try {
+        await sendNotification(sub.subscription, pushPayload);
+      } catch (error) {
+        if (error.message === 'SubscriptionExpired') {
+          await PushSubscription.findByIdAndDelete(sub._id);
+        }
+      }
+    });
 
     res.json({
       success: true,

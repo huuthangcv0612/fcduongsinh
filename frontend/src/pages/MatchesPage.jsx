@@ -4,7 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import MatchCard from '../components/MatchCard';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Bell } from 'lucide-react';
 
 export default function MatchesPage() {
   const { isAdmin } = useAuth();
@@ -103,6 +103,16 @@ export default function MatchesPage() {
     }
   });
 
+  const notifyPushMutation = useMutation({
+    mutationFn: (id) => api.post(`/matches/${id}/notify-push`),
+    onSuccess: () => {
+      toast.success('Đã gửi push notification thành công!', 'Gửi Push thành công');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Gửi push thất bại', 'Lỗi');
+    }
+  });
+
   const matches = matchesRes?.data || [];
   const filteredMatches = matches.filter(m => activeTab === 'upcoming' ? m.status === 'upcoming' : m.status !== 'upcoming');
 
@@ -171,6 +181,7 @@ export default function MatchesPage() {
             onClone={(id) => cloneMutation.mutate(id)}
             onDelete={(id) => deleteMutation.mutate(id)}
             onNotify={(id) => notifyMutation.mutate(id)}
+            onNotifyPush={(id) => notifyPushMutation.mutate(id)}
             isAdmin={isAdmin}
           />
         ))}

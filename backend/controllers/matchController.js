@@ -3,7 +3,9 @@ const User = require('../models/User');
 const { AppError } = require('../middlewares/authMiddleware');
 const { CreateMatchSchema, CheckInSchema } = require('../validators/schemas');
 const { sendMatchNotification } = require('../services/mailerService');
-
+const Notification = require('../models/Notification');
+const PushSubscription = require('../models/PushSubscription');
+const { sendNotification } = require('../utils/webPush');
 async function recalculateUserStats() {
   const users = await User.find({ isActive: true });
   const matches = await Match.find({ status: 'completed' });
@@ -356,9 +358,36 @@ async function notifyMatch(req, res, next) {
 
     const activeUsers = await User.find({ isActive: true });
     
-    // Fire and forget
+    // Fire and forget email
     sendMatchNotification(activeUsers, match).catch(err => {
       console.error('Non-blocking mail error:', err.message);
+    });
+
+    // Create in-app notification
+    const title = 'Trận bóng mới sắp diễn ra!';
+    const message = `Trận đấu với ${match.opponent?.name || 'Đối thủ'} vào lúc ${match.time} ngày ${match.date} tại ${match.stadium}. Hãy vào điểm danh nhé!`;
+    const link = `/matches`;
+    
+    await Notification.create({
+      recipient: null, // all users
+      title,
+      message,
+      type: 'match',
+      link
+    });
+
+    // Send Push Notification
+    const subscriptions = await PushSubscription.find();
+    const pushPayload = { title, body: message, url: link, type: 'match' };
+    
+    subscriptions.forEach(async (sub) => {
+      try {
+        await sendNotification(sub.subscription, pushPayload);
+      } catch (error) {
+        if (error.message === 'SubscriptionExpired') {
+          await PushSubscription.findByIdAndDelete(sub._id);
+        }
+      }
     });
 
     match.isNotified = true;
@@ -367,6 +396,51 @@ async function notifyMatch(req, res, next) {
     res.json({
       success: true,
       data: match
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function notifyMatchPush(req, res, next) {
+  try {
+    const { id } = req.params;
+    const match = await Match.findById(id);
+
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    // Create in-app notification
+    const title = 'Nhắc nhở: Trận bóng sắp diễn ra!';
+    const message = `Trận đấu với ${match.opponent?.teamName || 'Đối thủ'} vào lúc ${match.time} ngày ${match.date} tại ${match.stadium}. Hãy nhanh tay vào điểm danh nhé!`;
+    const link = `/matches`;
+    
+    await Notification.create({
+      recipient: null, // all users
+      title,
+      message,
+      type: 'match',
+      link
+    });
+
+    // Send Push Notification
+    const subscriptions = await PushSubscription.find();
+    const pushPayload = { title, body: message, url: link, type: 'match' };
+    
+    subscriptions.forEach(async (sub) => {
+      try {
+        await sendNotification(sub.subscription, pushPayload);
+      } catch (error) {
+        if (error.message === 'SubscriptionExpired') {
+          await PushSubscription.findByIdAndDelete(sub._id);
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Đã gửi push notification thành công.'
     });
   } catch (err) {
     next(err);
@@ -382,5 +456,6 @@ module.exports = {
   updateMatchResult,
   deleteMatch,
   cloneMatch,
-  notifyMatch
+  notifyMatch,
+  notifyMatchPush
 };

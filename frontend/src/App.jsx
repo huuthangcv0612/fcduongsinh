@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import api from './services/api';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import MobileNav from './components/MobileNav';
@@ -15,6 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
 import StatsPage from './pages/StatsPage';
 import MediaPage from './pages/MediaPage';
+import AdminNotificationsPage from './pages/AdminNotificationsPage';
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -23,6 +25,37 @@ function ProtectedLayout() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (user && user.role !== 'pending' && 'serviceWorker' in navigator && 'PushManager' in window) {
+      const subscribePush = async () => {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') return;
+
+          const registration = await navigator.serviceWorker.ready;
+          let subscription = await registration.pushManager.getSubscription();
+          
+          if (!subscription) {
+            const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+            const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+            
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: convertedVapidKey
+            });
+          }
+
+          // Send subscription to backend
+          await api.post('/notifications/subscribe', { subscription });
+        } catch (error) {
+          console.error('Push subscription failed:', error);
+        }
+      };
+      
+      subscribePush();
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -54,6 +87,7 @@ function ProtectedLayout() {
           <Route path="/media" element={<MediaPage />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -71,4 +105,20 @@ export default function App() {
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
   );
+}
+
+// Helper to convert VAPID key
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }

@@ -250,6 +250,16 @@ export default function ProfilePage() {
 
           <div className="pt-4 border-t border-slate-200 flex items-center justify-stretch sm:justify-end">
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin/notifications')}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Gửi Thông Báo (Admin)</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleLogout}
