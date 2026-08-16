@@ -67,11 +67,34 @@ export default function ProfilePage() {
       
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
-      log += "2. Browser Subscription: " + (subscription ? "CÓ" : "KHÔNG") + "\n";
+      log += "2. Có sẵn Subscription: " + (subscription ? "CÓ" : "KHÔNG") + "\n";
       
       if (!subscription) {
         const vapid = import.meta.env.VITE_VAPID_PUBLIC_KEY;
         log += "-> VITE_VAPID_PUBLIC_KEY: " + (vapid ? "ĐÃ CẤU HÌNH" : "THIẾU!") + "\n";
+        
+        try {
+          log += "-> Đang thử Subscribe lại...\n";
+          const urlBase64ToUint8Array = (base64String) => {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+              outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+          };
+          
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapid)
+          });
+          log += "-> KẾT QUẢ: Thành công tạo Subscription!\n";
+          await api.post('/notifications/subscribe', { subscription });
+        } catch (subErr) {
+          log += "-> LỖI KHI SUBSCRIBE: " + subErr.name + " - " + subErr.message + "\n";
+        }
       }
 
       const res = await api.post('/notifications/debug-push');
@@ -79,7 +102,7 @@ export default function ProfilePage() {
       
       alert(log);
     } catch (err) {
-      alert("Lỗi chẩn đoán: " + err.message);
+      alert("Lỗi chẩn đoán hệ thống: " + err.message);
     }
   };
 
