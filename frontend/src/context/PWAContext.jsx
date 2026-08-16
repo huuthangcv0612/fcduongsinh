@@ -279,15 +279,8 @@ export function PWAProvider({ children }) {
   const [platform] = useState(() => detectPlatform());
   const promptRef = useRef(null);
 
-  // Register Service Worker immediately
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((reg) => console.log('[PWA] SW registered:', reg.scope))
-        .catch((err) => console.warn('[PWA] SW failed:', err));
-    }
-  }, []);
+  // Service Worker registration is handled automatically by vite-plugin-pwa
+  // (registerType: 'autoUpdate' injects its own registration script).
 
   // Capture beforeinstallprompt as early as possible (global)
   useEffect(() => {
