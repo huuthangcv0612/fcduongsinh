@@ -29,7 +29,6 @@ self.addEventListener('activate', (event) => {
 // ============================================================
 
 self.addEventListener('push', function(event) {
-  console.log('[SW] PUSH EVENT RECEIVED!');
   let data = {};
   if (event.data) {
     try {
@@ -49,21 +48,18 @@ self.addEventListener('push', function(event) {
     }
   };
 
-  console.log('[SW] Calling showNotification with title:', title);
   const notificationPromise = self.registration.showNotification(title, options)
-    .then(() => console.log('[SW] showNotification SUCCESS!'))
-    .catch(err => console.error('[SW] Lỗi showNotification:', err));
+    .catch(err => console.error('[SW] showNotification error:', err));
 
   const messagePromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true })
     .then(clients => {
-      console.log('[SW] Sending message to', clients.length, 'clients');
       clients.forEach(client => {
         try {
           client.postMessage({ type: 'NEW_NOTIFICATION', data });
         } catch(e) {}
       });
     })
-    .catch(err => console.error('[SW] Lỗi postMessage:', err));
+    .catch(err => console.error('[SW] postMessage error:', err));
 
   event.waitUntil(Promise.all([notificationPromise, messagePromise]));
 });

@@ -148,39 +148,3 @@ exports.sendAdminNotification = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-
-// Admin: Debug push notification
-exports.debugPush = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const subs = await PushSubscription.find({ userId });
-    
-    if (subs.length === 0) {
-      return res.json({ success: false, message: '0 Subscriptions found for this user in DB' });
-    }
-
-    let results = [];
-    for (let sub of subs) {
-      try {
-        await sendNotification(sub.subscription, { 
-          title: 'TEST PUSH KẾT NỐI', 
-          body: 'Nếu bạn thấy thông báo này, kết nối đã thành công!', 
-          url: '/' 
-        });
-        results.push({ endpoint: sub.subscription.endpoint.substring(0, 30) + '...', status: 'OK' });
-      } catch (err) {
-        results.push({ 
-          endpoint: sub.subscription.endpoint.substring(0, 30) + '...', 
-          status: 'ERROR', 
-          error: err.message,
-          code: err.statusCode
-        });
-      }
-    }
-    
-    res.json({ success: true, message: 'Debug completed', results, totalSubs: subs.length });
-  } catch (error) {
-    console.error('Error debugging push:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};

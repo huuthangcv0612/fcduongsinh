@@ -60,64 +60,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleDebugPush = async () => {
-    try {
-      toast.info('Đang chẩn đoán kết nối...', 'Chờ chút');
-      
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        alert("Lỗi: Trình duyệt của bạn KHÔNG HỖ TRỢ Web Push hoặc bạn đang dùng mạng nội bộ không có HTTPS.");
-        return;
-      }
-      
-      let log = "1. Trình duyệt cho phép: " + Notification.permission + "\n";
-      
-      let registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) {
-        log += "-> Cảnh báo: Không tìm thấy Service Worker, đang ép cài đặt lại...\n";
-        registration = await navigator.serviceWorker.register('/sw.js');
-        await navigator.serviceWorker.ready;
-        log += "-> Đã cài đặt lại SW xong!\n";
-      }
-      
-      let subscription = await registration.pushManager.getSubscription();
-      log += "2. Có sẵn Subscription: " + (subscription ? "CÓ" : "KHÔNG") + "\n";
-      
-      if (!subscription) {
-        const vapid = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-        log += "-> VITE_VAPID_PUBLIC_KEY: " + (vapid ? "ĐÃ CẤU HÌNH" : "THIẾU!") + "\n";
-        
-        try {
-          log += "-> Đang thử Subscribe lại...\n";
-          const urlBase64ToUint8Array = (base64String) => {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) {
-              outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
-          };
-          
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(vapid)
-          });
-          log += "-> KẾT QUẢ: Thành công tạo Subscription!\n";
-          await api.post('/notifications/subscribe', { subscription });
-        } catch (subErr) {
-          log += "-> LỖI KHI SUBSCRIBE: " + subErr.name + " - " + subErr.message + "\n";
-        }
-      }
-
-      const res = await api.post('/notifications/debug-push');
-      log += "\n3. Database (MongoDB):\n" + JSON.stringify(res, null, 2);
-      
-      alert(log);
-    } catch (err) {
-      alert("Lỗi chẩn đoán hệ thống: " + err.message);
-    }
-  };
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -382,16 +324,7 @@ export default function ProfilePage() {
 
           <div className="pt-4 border-t border-slate-200 flex items-center justify-stretch sm:justify-end">
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={handleDebugPush}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
-                >
-                  <BellRing className="w-4 h-4" />
-                  <span>Test Lỗi Push</span>
-                </button>
-              )}
+
               {isAdmin && (
                 <button
                   type="button"

@@ -75,6 +75,5 @@ router.get('/notifications', authMiddleware, notificationController.getNotificat
 router.put('/notifications/:id/read', authMiddleware, notificationController.markAsRead);
 router.post('/notifications/subscribe', authMiddleware, notificationController.subscribePush);
 router.post('/notifications/admin-send', authMiddleware, adminMiddleware, notificationController.sendAdminNotification);
-router.post('/notifications/debug-push', authMiddleware, adminMiddleware, notificationController.debugPush);
 
 module.exports = router;
