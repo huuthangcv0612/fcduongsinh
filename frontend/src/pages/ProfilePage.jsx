@@ -71,10 +71,12 @@ export default function ProfilePage() {
       
       let log = "1. Trình duyệt cho phép: " + Notification.permission + "\n";
       
-      const registration = await navigator.serviceWorker.getRegistration();
+      let registration = await navigator.serviceWorker.getRegistration();
       if (!registration) {
-        alert("Lỗi: Không tìm thấy Service Worker! Vui lòng F5 (tải lại trang) để hệ thống tự động cài đặt lại Service Worker.");
-        return;
+        log += "-> Cảnh báo: Không tìm thấy Service Worker, đang ép cài đặt lại...\n";
+        registration = await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
+        log += "-> Đã cài đặt lại SW xong!\n";
       }
       
       let subscription = await registration.pushManager.getSubscription();
