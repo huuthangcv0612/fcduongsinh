@@ -3,12 +3,10 @@
 // Strategy: Network First for API, Cache First for static assets
 // ============================================================
 
-const CACHE_NAME = 'fcnhatre-cache-v1';
+const CACHE_NAME = 'fcnhatre-cache-v4';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
 ];
 
 // API routes - always skip cache, go to network
