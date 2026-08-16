@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { User, Phone, Save, CheckCircle2, Sparkles, Upload, RefreshCw, LogOut } from 'lucide-react';
+import { User, Phone, Save, CheckCircle2, Sparkles, Upload, RefreshCw, LogOut, Bell, BellRing, BellOff } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, isAdmin, logout } = useAuth();
@@ -14,6 +14,51 @@ export default function ProfilePage() {
   
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [pushStatus, setPushStatus] = useState(Notification.permission);
+
+  const handleSubscribePush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast.error('Trình duyệt của bạn không hỗ trợ thông báo Push.', 'Không hỗ trợ');
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setPushStatus(permission);
+      if (permission !== 'granted') {
+        toast.warning('Bạn đã từ chối nhận thông báo. Vui lòng mở cài đặt trình duyệt để cấp quyền lại.', 'Chưa cấp quyền');
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      
+      if (!subscription) {
+        const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        const urlBase64ToUint8Array = (base64String) => {
+          const padding = '='.repeat((4 - base64String.length % 4) % 4);
+          const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+          const rawData = window.atob(base64);
+          const outputArray = new Uint8Array(rawData.length);
+          for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+          }
+          return outputArray;
+        };
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+        
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        });
+      }
+
+      await api.post('/notifications/subscribe', { subscription });
+      toast.success('Đã bật thông báo thiết bị thành công!', 'Thành công');
+    } catch (error) {
+      console.error('Push subscription failed:', error);
+      toast.error('Bật thông báo thất bại: ' + error.message, 'Lỗi');
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -244,6 +289,34 @@ export default function ProfilePage() {
                     className="hidden"
                   />
                 </label>
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>Nhận Thông Báo Thiết Bị:</span>
+              </label>
+              <div className="flex items-center gap-3">
+                {pushStatus === 'granted' ? (
+                  <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200 w-full shadow-sm">
+                    <BellRing className="w-5 h-5" />
+                    Đã bật thông báo thiết bị (Sẽ nhận được thông báo như App)
+                  </div>
+                ) : pushStatus === 'denied' ? (
+                  <div className="flex items-center gap-2 text-rose-700 font-bold bg-rose-50 px-4 py-3 rounded-xl border border-rose-200 w-full shadow-sm">
+                    <BellOff className="w-5 h-5" />
+                    Bạn đã chặn thông báo (Vui lòng mở cài đặt trình duyệt hoặc biểu tượng ổ khóa để bật lại)
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSubscribePush}
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 rounded-xl px-4 py-3 text-sm font-black flex items-center justify-center gap-2 shadow-sm transition"
+                  >
+                    <Bell className="w-5 h-5" />
+                    Bật Thông Báo Cho Thiết Bị Này
+                  </button>
+                )}
               </div>
             </div>
           </div>

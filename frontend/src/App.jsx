@@ -30,8 +30,7 @@ function ProtectedLayout() {
     if (user && user.role !== 'pending' && 'serviceWorker' in navigator && 'PushManager' in window) {
       const subscribePush = async () => {
         try {
-          const permission = await Notification.requestPermission();
-          if (permission !== 'granted') return;
+          if (Notification.permission !== 'granted') return;
 
           const registration = await navigator.serviceWorker.ready;
           let subscription = await registration.pushManager.getSubscription();
