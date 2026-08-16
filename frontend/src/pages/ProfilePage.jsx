@@ -60,6 +60,29 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDebugPush = async () => {
+    try {
+      toast.info('Đang chẩn đoán kết nối...', 'Chờ chút');
+      let log = "1. Trình duyệt cho phép: " + Notification.permission + "\n";
+      
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      log += "2. Browser Subscription: " + (subscription ? "CÓ" : "KHÔNG") + "\n";
+      
+      if (!subscription) {
+        const vapid = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        log += "-> VITE_VAPID_PUBLIC_KEY: " + (vapid ? "ĐÃ CẤU HÌNH" : "THIẾU!") + "\n";
+      }
+
+      const res = await api.post('/notifications/debug-push');
+      log += "\n3. Database (MongoDB):\n" + JSON.stringify(res, null, 2);
+      
+      alert(log);
+    } catch (err) {
+      alert("Lỗi chẩn đoán: " + err.message);
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -323,6 +346,16 @@ export default function ProfilePage() {
 
           <div className="pt-4 border-t border-slate-200 flex items-center justify-stretch sm:justify-end">
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={handleDebugPush}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
+                >
+                  <BellRing className="w-4 h-4" />
+                  <span>Test Lỗi Push</span>
+                </button>
+              )}
               {isAdmin && (
                 <button
                   type="button"
