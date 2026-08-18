@@ -74,7 +74,7 @@ async function createMatch(req, res, next) {
 async function getMatches(req, res, next) {
   try {
     const { status } = req.query;
-    const filter = {};
+    const filter = { status: { $ne: 'deleted' } };
     if (status) filter.status = status;
 
     const matches = await Match.find(filter)
@@ -286,10 +286,13 @@ async function updateMatchResult(req, res, next) {
 async function deleteMatch(req, res, next) {
   try {
     const { id } = req.params;
-    const match = await Match.findByIdAndDelete(id);
+    const match = await Match.findById(id);
     if (!match) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu để xóa', 404);
     }
+
+    match.status = 'deleted';
+    await match.save();
 
     // Recalculate stats since a match was removed
     await recalculateUserStats();

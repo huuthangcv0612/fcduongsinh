@@ -88,7 +88,7 @@ const MatchSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['upcoming', 'live', 'completed', 'cancelled'],
+    enum: ['upcoming', 'live', 'completed', 'cancelled', 'deleted'],
     default: 'upcoming'
   },
   score: {
