@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmModalContext';
+import { useTranslation } from 'react-i18next';
 import { 
   UserPlus, 
   Trash2, 
@@ -33,6 +34,7 @@ const MONTH_KEYS = [
 ];
 
 export default function MonthlyFundGrid({ isAdmin }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const toast = useToast();
   const confirm = useConfirm();
@@ -96,11 +98,11 @@ export default function MonthlyFundGrid({ isAdmin }) {
       queryClient.invalidateQueries({ queryKey: ['monthlyGrid', selectedYear] });
       queryClient.invalidateQueries({ queryKey: ['balance'] });
       queryClient.invalidateQueries({ queryKey: ['finances'] });
-      toast.success('Đã lưu số tiền đóng quỹ thành công!', 'Cập Nhật Quỹ');
+      toast.success(t('finances.save_fund_success'), t('finances.update_fund_title'));
       setEditingCell(null);
     },
     onError: (err) => {
-      toast.error(err.message || 'Lỗi khi cập nhật ô số tiền', 'Lỗi');
+      toast.error(err.message || t('finances.update_fund_error'), t('finances.error_title'));
     }
   });
 
@@ -110,12 +112,12 @@ export default function MonthlyFundGrid({ isAdmin }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['monthlyGrid', selectedYear] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Đã tạo thành viên mới trong DB và thêm vào Bảng Quỹ!', 'Thêm Thành Viên DB');
+      toast.success(t('finances.add_member_success'), t('finances.add_member_title'));
       setNewMemberName('');
       setShowAddMemberModal(false);
     },
     onError: (err) => {
-      toast.error(err.message || 'Lỗi khi thêm thành viên', 'Lỗi');
+      toast.error(err.message || t('finances.add_member_error'), t('finances.error_title'));
     }
   });
 
@@ -126,10 +128,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
       queryClient.invalidateQueries({ queryKey: ['monthlyGrid', selectedYear] });
       queryClient.invalidateQueries({ queryKey: ['balance'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Đã xóa thành viên khỏi bảng quỹ!', 'Đã xóa');
+      toast.success(t('finances.delete_member_success'), t('finances.delete_member_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Lỗi khi xóa thành viên', 'Lỗi');
+      toast.error(err.message || t('finances.delete_member_error'), t('finances.error_title'));
     }
   });
 
@@ -141,7 +143,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
     setEditingCell({
       id: record._id,
       monthKey,
-      monthLabel: monthObj ? monthObj.label : monthKey,
+      monthLabel: monthObj ? `${t('finances.month_prefix')} ${monthKey.replace('m', '')}` : monthKey,
       memberName: displayName,
       value: val
     });
@@ -159,10 +161,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
 
   const handleDeleteMember = async (id, name) => {
     const isConfirmed = await confirm({
-      title: 'Xóa Thành Viên Khỏi Bảng Quỹ',
-      message: `Bạn có chắc chắn muốn xóa "${name}" khỏi Bảng Quỹ Năm ${selectedYear}?`,
-      confirmText: 'Xóa Ngay',
-      cancelText: 'Hủy',
+      title: t('finances.delete_member_confirm_title'),
+      message: t('finances.delete_member_confirm_msg', { name, year: selectedYear }),
+      confirmText: t('finances.delete_member_confirm_btn'),
+      cancelText: t('finances.cancel'),
       type: 'danger'
     });
 
@@ -208,10 +210,10 @@ export default function MonthlyFundGrid({ isAdmin }) {
           </div>
           <div>
             <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              📊 Quản Lý Quỹ Đội Bóng ({selectedYear})
+              📊 {t('finances.grid_title')} ({selectedYear})
             </h3>
             <p className="text-xs text-slate-600 font-bold">
-              Bảng theo dõi thu quỹ ({gridData.length} thành viên).
+              {t('finances.grid_subtitle', { count: gridData.length })}
             </p>
           </div>
         </div>
@@ -219,14 +221,14 @@ export default function MonthlyFundGrid({ isAdmin }) {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-300 text-xs font-bold">
             <Calendar className="w-4 h-4 text-emerald-700 pl-1" />
-            <span className="text-slate-700">Năm:</span>
+            <span className="text-slate-700">{t('finances.year')}</span>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
               className="bg-white text-slate-900 font-black px-3 py-1.5 rounded-xl border border-slate-300 focus:outline-none cursor-pointer"
             >
-              <option value={2025}>Năm 2025</option>
-              <option value={2026}>Năm 2026</option>
+              <option value={2025}>{t('finances.year_val', { year: 2025 })}</option>
+              <option value={2026}>{t('finances.year_val', { year: 2026 })}</option>
             </select>
           </div>
 
@@ -236,7 +238,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-md transition"
             >
               <UserPlus className="w-4 h-4" />
-              <span>+ Thêm Thành Viên</span>
+              <span>{t('finances.add_member_btn')}</span>
             </button>
           )}
         </div>
@@ -249,8 +251,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
             {/* Table Header */}
             <thead>
               <tr className="bg-gradient-to-r from-emerald-800 to-teal-800 text-white font-black uppercase text-[11px] tracking-wider border-b border-emerald-900">
-                <th className="py-3 px-3 w-12 sticky left-0 z-20 bg-emerald-950 text-center border-r border-emerald-700/50 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">STT</th>
-                <th className="py-3 px-4 w-52 sticky left-[48px] z-20 bg-emerald-900 border-r border-emerald-700 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">Thành viên</th>
+                <th className="py-3 px-3 w-12 sticky left-0 z-20 bg-emerald-950 text-center border-r border-emerald-700/50 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">{t('finances.stt')}</th>
+                <th className="py-3 px-4 w-52 sticky left-[48px] z-20 bg-emerald-900 border-r border-emerald-700 shadow-[4px_0_10px_-3px_rgba(0,0,0,0.1)]">{t('finances.member_col')}</th>
                 {MONTH_KEYS.map((m) => {
                   const isCurrentMonth = selectedYear === currentYear && m.key === currentMonthKey;
                   return (
@@ -262,12 +264,12 @@ export default function MonthlyFundGrid({ isAdmin }) {
                           : 'border-emerald-700/50'
                       }`}
                     >
-                      {m.label}
+                      {`${t('finances.month_prefix')} ${m.key.replace('m', '')}`}
                     </th>
                   );
                 })}
-                <th className={`py-3 px-4 text-right bg-emerald-950 text-amber-300 md:sticky z-20 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.15)] border-l border-emerald-900 ${isAdmin ? 'md:right-[48px]' : 'md:right-0'}`}>Tổng đã đóng</th>
-                {isAdmin && <th className="py-3 px-3 text-center w-12 md:sticky md:right-0 z-20 bg-emerald-950 border-l border-emerald-800">Thao tác</th>}
+                <th className={`py-3 px-4 text-right bg-emerald-950 text-amber-300 md:sticky z-20 shadow-[-4px_0_10px_-3px_rgba(0,0,0,0.15)] border-l border-emerald-900 ${isAdmin ? 'md:right-[48px]' : 'md:right-0'}`}>{t('finances.total_paid_col')}</th>
+                {isAdmin && <th className="py-3 px-3 text-center w-12 md:sticky md:right-0 z-20 bg-emerald-950 border-l border-emerald-800">{t('finances.action_col')}</th>}
               </tr>
             </thead>
 
@@ -321,7 +323,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
                           key={m.key}
                           onClick={() => handleCellClick(row, m.key)}
                           className={`py-2.5 px-2 text-center border-r border-slate-200 cursor-pointer transition select-none ${baseBg} ${textStyle} ${isAdmin ? 'hover:bg-amber-200 hover:ring-2 hover:ring-amber-500' : ''}`}
-                          title={isAdmin ? `Nhấp để điền số tiền nộp quỹ cho ${displayName} (${m.label})` : ''}
+                          title={isAdmin ? `Nhấp để điền số tiền nộp quỹ cho ${displayName} (${`${t('finances.month_prefix')} ${m.key.replace('m', '')}`})` : ''}
                         >
                           <span>{formatMoney(amount)}</span>
                         </td>
@@ -352,7 +354,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {gridData.length === 0 && !isLoading && (
                 <tr>
                   <td colSpan={15} className="py-8 text-center text-slate-500 font-bold">
-                    Chưa có thành viên nào trong Bảng Quỹ {selectedYear}. Bấm "+ Thêm Thành Viên" ở trên để khởi tạo.
+                    {t('finances.no_members', { year: selectedYear })}
                   </td>
                 </tr>
               )}
@@ -363,7 +365,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {/* Row 1: TỔNG THU THEO THÁNG */}
               <tr className="bg-emerald-100 text-emerald-950">
                 <td colSpan={2} className="py-3 px-4 sticky left-0 z-10 bg-emerald-200 border-r border-emerald-300 font-black uppercase tracking-wider text-xs shadow-sm">
-                  🟢 TỔNG THU THEO THÁNG
+                  🟢 {t('finances.total_in_month')}
                 </td>
                 {MONTH_KEYS.map((m) => (
                   <td key={m.key} className="py-3 px-3 text-center border-r border-emerald-200 font-black text-xs">
@@ -379,7 +381,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {/* Row 2: CHI TIÊU THEO THÁNG */}
               <tr className="bg-rose-50 text-rose-950">
                 <td colSpan={2} className="py-2.5 px-4 sticky left-0 z-10 bg-rose-100 border-r border-rose-200 font-black uppercase text-[11px] shadow-sm">
-                  🔴 CHI TIÊU THEO THÁNG
+                  🔴 {t('finances.total_out_month')}
                 </td>
                 {MONTH_KEYS.map((m) => (
                   <td key={m.key} className="py-2.5 px-3 text-center border-r border-rose-200 font-extrabold text-xs text-rose-700">
@@ -395,7 +397,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {/* Row 3: TỔNG DƯ THÁNG */}
               <tr className="bg-slate-900 text-white">
                 <td colSpan={2} className="py-3 px-4 sticky left-0 z-10 bg-slate-950 border-r border-slate-800 font-black uppercase text-xs tracking-wider text-amber-300 shadow-md">
-                  💎 TỔNG DƯ THÁNG
+                  💎 {t('finances.total_net_month')}
                 </td>
                 {MONTH_KEYS.map((m) => {
                   const net = (monthlyTotals[m.key] || 0) - (monthlyExpenses[m.key] || 0);
@@ -432,16 +434,16 @@ export default function MonthlyFundGrid({ isAdmin }) {
             </button>
 
             <h3 className="text-xl font-black text-slate-900 mb-1 flex items-center gap-2">
-              ✏️ Điền Quỹ {editingCell.monthLabel}
+              ✏️ {t('finances.edit_fund_title')} {editingCell.monthLabel}
             </h3>
             <p className="text-xs font-bold text-slate-500 mb-4">
-              Cầu thủ: <strong className="text-[#374df5] font-black">{editingCell.memberName}</strong> (Năm {selectedYear})
+              Cầu thủ: <strong className="text-[#374df5] font-black">{editingCell.memberName}</strong> ({t('finances.year_val', { year: selectedYear })})
             </p>
 
             <form onSubmit={handleSaveCell} className="space-y-4">
               {/* Quick Amount Presets */}
               <div>
-                <label className="block text-xs font-black text-slate-700 mb-2">Chọn nhanh số tiền nộp quỹ:</label>
+                <label className="block text-xs font-black text-slate-700 mb-2">{t('finances.quick_amount')}</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[200000, 150000, 300000, 500000].map((preset) => (
                     <button
@@ -462,7 +464,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
 
               {/* Custom Amount Input */}
               <div>
-                <label className="block text-xs font-black text-slate-700 mb-1">Số tiền tùy chỉnh (VNĐ):</label>
+                <label className="block text-xs font-black text-slate-700 mb-1">{t('finances.custom_amount')}</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -516,9 +518,9 @@ export default function MonthlyFundGrid({ isAdmin }) {
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-xl font-black text-slate-900 mb-1">👤 Thêm Thành Viên Mới Vào DB & Bảng Quỹ</h3>
+            <h3 className="text-xl font-black text-slate-900 mb-1">👤 {t('finances.add_db_member_title')}</h3>
             <p className="text-xs text-slate-500 font-bold mb-4">
-              Tạo thành viên chính thức trong MongoDB. Mặc định các tháng sẽ khởi tạo với số tiền <strong>0 đ/tháng</strong> (Nhấp vào từng ô để điền).
+              {t('finances.add_db_member_sub')}
             </p>
 
             <form
@@ -529,11 +531,11 @@ export default function MonthlyFundGrid({ isAdmin }) {
               className="space-y-4"
             >
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Họ và tên thành viên:</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">{t('finances.fullname_label')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="Nhập tên thành viên..."
+                  placeholder={t('finances.fullname_placeholder')}
                   value={newMemberName}
                   onChange={(e) => setNewMemberName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
@@ -554,7 +556,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
                   disabled={addMemberMutation.isPending}
                   className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md"
                 >
-                  + Thêm Vào Database
+                  {t('finances.add_to_db_btn')}
                 </button>
               </div>
             </form>

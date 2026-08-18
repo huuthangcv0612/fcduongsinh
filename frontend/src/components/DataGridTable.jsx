@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Trash2, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
+  const { t } = useTranslation();
   const [rows, setRows] = useState([]);
   const [dirtyRowIds, setDirtyRowIds] = useState(new Set());
   const [isSaving, setIsSaving] = useState(false);
@@ -57,15 +59,15 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
           <h3 className="font-black text-xl text-slate-900 flex items-center gap-2">
-            📊 Dữ Liệu Thu Chi Quỹ
+            {t('finances.data_grid_title')}
             {dirtyRowIds.size > 0 && (
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-mono font-black">
-                {dirtyRowIds.size} dòng đã sửa
+                {t('finances.data_grid_dirty', { count: dirtyRowIds.size })}
               </span>
             )}
           </h3>
           <p className="text-xs font-bold text-slate-600">
-            {isAdmin ? 'Chỉnh sửa trực tiếp và nhấn "Lưu tất cả" để cập nhật hàng loạt' : 'Chế độ xem chỉ dành cho thành viên'}
+            {isAdmin ? t('finances.data_grid_admin_hint') : t('finances.data_grid_member_hint')}
           </p>
         </div>
 
@@ -84,7 +86,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            <span>Lưu tất cả ({dirtyRowIds.size})</span>
+            <span>{t('finances.save_all')} ({dirtyRowIds.size})</span>
           </button>
         )}
       </div>
@@ -94,14 +96,14 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
         <table className="w-full text-left border-collapse data-grid-table">
           <thead>
             <tr>
-              <th className="w-12 text-slate-900">STT</th>
-              <th className="w-32 text-slate-900">Loại</th>
-              <th className="w-40 text-slate-900">Hạng mục</th>
-              <th className="w-40 text-slate-900">Số tiền (VNĐ)</th>
-              <th className="text-slate-900">Mô tả / Ghi chú</th>
-              <th className="w-32 text-slate-900">Tháng quỹ</th>
-              <th className="w-32 text-slate-900">Người tạo</th>
-              {isAdmin && <th className="w-16 text-center text-slate-900">Xóa</th>}
+              <th className="w-12 text-slate-900">{t("finances.stt")}</th>
+              <th className="w-32 text-slate-900">{t("finances.type_col")}</th>
+              <th className="w-40 text-slate-900">{t("finances.category")}</th>
+              <th className="w-40 text-slate-900">{t("finances.amount_col")}</th>
+              <th className="text-slate-900">{t("finances.desc_col")}</th>
+              <th className="w-32 text-slate-900">{t("finances.month_col")}</th>
+              <th className="w-32 text-slate-900">{t("finances.creator_col")}</th>
+              {isAdmin && <th className="w-16 text-center text-slate-900">{t("finances.delete_col")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -125,14 +127,14 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
                           row.type === 'IN' ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'
                         }`}
                       >
-                        <option value="IN" className="bg-white text-emerald-700 font-black">+ THU (Cộng tiền)</option>
-                        <option value="OUT" className="bg-white text-rose-700 font-black">- CHI (Trừ tiền)</option>
+                        <option value="IN" className="bg-white text-emerald-700 font-black">{t("finances.type_in")}</option>
+                        <option value="OUT" className="bg-white text-rose-700 font-black">{t("finances.type_out")}</option>
                       </select>
                     ) : (
                       <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-black ${
                         row.type === 'IN' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'
                       }`}>
-                        {row.type === 'IN' ? '+ THU' : '- CHI'}
+                        {row.type === 'IN' ? '+ IN' : '- OUT'}
                       </span>
                     )}
                   </td>
@@ -144,12 +146,12 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
                         onChange={(e) => handleCellChange(row._id, 'category', e.target.value)}
                         className="data-grid-input text-xs font-bold text-slate-900 bg-white"
                       >
-                        <option value="quy_thang" className="bg-white text-slate-900">Quỹ tháng</option>
-                        <option value="tien_san" className="bg-white text-slate-900">Tiền sân</option>
-                        <option value="nuoc_uong" className="bg-white text-slate-900">Nước uống</option>
-                        <option value="dong_phuc" className="bg-white text-slate-900">Đồng phục</option>
-                        <option value="phat" className="bg-white text-slate-900">Phạt trễ/vắng</option>
-                        <option value="khac" className="bg-white text-slate-900">Khác</option>
+                        <option value="quy_thang" className="bg-white text-slate-900">{t("finances.cat_monthly")}</option>
+                        <option value="tien_san" className="bg-white text-slate-900">{t("finances.cat_pitch")}</option>
+                        <option value="nuoc_uong" className="bg-white text-slate-900">{t("finances.cat_water")}</option>
+                        <option value="dong_phuc" className="bg-white text-slate-900">{t("finances.cat_kit")}</option>
+                        <option value="phat" className="bg-white text-slate-900">{t("finances.cat_fine")}</option>
+                        <option value="khac" className="bg-white text-slate-900">{t("finances.cat_other")}</option>
                       </select>
                     ) : (
                       <span className="text-xs font-bold text-slate-800 capitalize">
@@ -222,7 +224,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
             {rows.length === 0 && (
               <tr>
                 <td colSpan={isAdmin ? 8 : 7} className="py-8 text-center text-slate-500 text-sm font-bold">
-                  Chưa có phiếu thu/chi nào được ghi nhận.
+                  {t("finances.no_records")}
                 </td>
               </tr>
             )}
@@ -252,14 +254,14 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
                       row.type === 'IN' ? 'text-emerald-700 border-emerald-300' : 'text-rose-700 border-rose-300'
                     }`}
                   >
-                    <option value="IN" className="bg-white text-emerald-700 font-bold">+ THU</option>
-                    <option value="OUT" className="bg-white text-rose-700 font-bold">- CHI</option>
+                    <option value="IN" className="bg-white text-emerald-700 font-bold">{t("finances.type_in")}</option>
+                    <option value="OUT" className="bg-white text-rose-700 font-bold">{t("finances.type_out")}</option>
                   </select>
                 ) : (
                   <span className={`px-2.5 py-0.5 rounded-md text-xs font-black ${
                     row.type === 'IN' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                   }`}>
-                    {row.type === 'IN' ? '+ THU' : '- CHI'}
+                    {row.type === 'IN' ? '+ IN' : '- OUT'}
                   </span>
                 )}
 
@@ -276,7 +278,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
               {/* Mobile Inputs */}
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] text-slate-500 font-extrabold uppercase mb-0.5">Mô tả / Ghi chú:</label>
+                  <label className="block text-[10px] text-slate-500 font-extrabold uppercase mb-0.5">{t("finances.desc_col")}:</label>
                   {isAdmin ? (
                     <input
                       type="text"
@@ -291,7 +293,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] text-slate-500 font-extrabold uppercase mb-0.5">Số tiền (VNĐ):</label>
+                    <label className="block text-[10px] text-slate-500 font-extrabold uppercase mb-0.5">{t("finances.amount_col")}:</label>
                     {isAdmin ? (
                       <input
                         type="number"
@@ -307,7 +309,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-slate-500 font-extrabold uppercase mb-0.5">Hạng mục:</label>
+                    <label className="block text-[10px] text-slate-500 font-extrabold uppercase mb-0.5">{t("finances.category")}:</label>
                     {isAdmin ? (
                       <select
                         value={row.category || 'khac'}
@@ -333,7 +335,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
 
         {rows.length === 0 && (
           <div className="py-6 text-center text-xs text-slate-500 font-bold">
-            Chưa có phiếu thu/chi nào.
+            {t("finances.no_records")}
           </div>
         )}
       </div>

@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { Mail, Upload, X, Check, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 export default function SendFundEmailModal({ isOpen, onClose }) {
+  const { t } = useTranslation();
   const currentMonth = new Date().getMonth() + 1;
-  const [month, setMonth] = useState(`Tháng ${currentMonth}`);
+  const [month, setMonth] = useState(`${t('finances.month_prefix')} ${currentMonth}`);
   const [message, setMessage] = useState('');
   const [qrImage, setQrImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -49,11 +51,11 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
         sendEmail
       });
       
-      setSuccess(sendEmail ? 'Đã gửi Email và Push thông báo thành công!' : 'Đã gửi Push thông báo thành công!');
+      setSuccess(sendEmail ? t('finances.send_success_both') : t('finances.send_success_push'));
       setTimeout(() => {
         onClose();
         setSuccess('');
-        setMonth(`Tháng ${currentMonth}`);
+        setMonth(`${t('finances.month_prefix')} ${currentMonth}`);
         setMessage('');
         setQrImage(null);
         setPreviewUrl(null);
@@ -62,7 +64,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
       
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Lỗi khi gửi email. Vui lòng thử lại sau.');
+      setError(err.message || t('finances.send_error'));
     } finally {
       setLoading(false);
     }
@@ -77,10 +79,10 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
               <Mail className="w-6 h-6" />
-              Gửi Thông Báo Đóng Quỹ
+              {t('finances.send_email_title')}
             </h2>
             <p className="text-emerald-50 text-sm mt-1 opacity-90">
-              Hệ thống sẽ gửi email đồng loạt đến tất cả các thành viên.
+              {t('finances.send_email_sub')}
             </p>
           </div>
           <button 
@@ -107,7 +109,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
 
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">
-              Tháng thu quỹ
+              {t('finances.fund_month_label')}
             </label>
             <select
               value={month}
@@ -115,26 +117,26 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-semibold text-slate-700"
             >
               {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                <option key={m} value={`Tháng ${m}`}>Tháng {m}</option>
+                <option key={m} value={`Tháng ${m}`}>{t('finances.month_prefix')} {m}</option>
               ))}
             </select>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">
-              Lời nhắn (Tùy chọn)
+              {t('finances.message_label')}
             </label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Nhập lời nhắn đến đội..."
+              placeholder={t('finances.message_placeholder')}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium text-slate-900 h-24 resize-none"
             />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">
-              Ảnh QR Ngân hàng
+              {t('finances.qr_image_label')}
             </label>
             
             {!previewUrl ? (
@@ -146,9 +148,9 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
                   <Upload className="w-6 h-6 text-slate-400 group-hover:text-emerald-500" />
                 </div>
                 <p className="text-sm font-semibold text-slate-600 group-hover:text-emerald-600">
-                  Nhấn để tải lên mã QR
+                  {t('finances.click_upload_qr')}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">PNG, JPG tối đa 5MB</p>
+                <p className="text-xs text-slate-400 mt-1">{t('finances.qr_hint')}</p>
               </div>
             ) : (
               <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 group">
@@ -166,7 +168,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
                     }}
                     className="bg-white text-slate-800 font-semibold px-4 py-2 rounded-full text-sm shadow-lg hover:scale-105 transition-transform"
                   >
-                    Đổi ảnh khác
+                    {t('finances.change_image')}
                   </button>
                 </div>
               </div>
@@ -190,8 +192,8 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
               className="w-5 h-5 text-emerald-500 rounded border-slate-300 focus:ring-emerald-500 mt-0.5 cursor-pointer"
             />
             <label htmlFor="sendEmail" className="text-sm font-bold text-slate-700 cursor-pointer select-none leading-tight">
-              Đồng thời gửi Email đến toàn đội <br/>
-              <span className="text-xs text-slate-500 font-medium">(Nếu tắt, sẽ chỉ gửi thông báo Push Notification)</span>
+              {t('finances.also_send_email')} <br/>
+              <span className="text-xs text-slate-500 font-medium">{t('finances.also_send_email_hint')}</span>
             </label>
           </div>
 
@@ -212,7 +214,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
             className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 active:scale-95"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-            {loading ? 'Đang gửi...' : 'Gửi Thông Báo'}
+            {loading ? t('finances.sending') : t('finances.send_notification_btn')}
           </button>
         </div>
       </div>

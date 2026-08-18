@@ -2,15 +2,18 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Trophy, Calendar, Wallet, Search, Users, Award, Image as ImageIcon } from 'lucide-react';
 
+import { useTranslation } from 'react-i18next';
+
 export default function MobileNav() {
+  const { t } = useTranslation();
   const navItems = [
-    { path: '/', label: 'Tổng quan', icon: Trophy },
-    { path: '/matches', label: 'Trận đấu', icon: Calendar },
-    { path: '/media', label: 'Media', icon: ImageIcon },
-    { path: '/stats', label: 'Thống kê', icon: Award },
-    { path: '/finances', label: 'Tài chính', icon: Wallet },
-    { path: '/matchmaking', label: 'Tìm đối', icon: Search },
-    { path: '/members', label: 'Thành viên', icon: Users },
+    { path: '/', label: t('navbar.overview'), icon: Trophy },
+    { path: '/matches', label: t('navbar.matches'), icon: Calendar },
+    { path: '/media', label: t('navbar.media'), icon: ImageIcon },
+    { path: '/stats', label: t('navbar.stats'), icon: Award },
+    { path: '/finances', label: t('navbar.finances'), icon: Wallet },
+    { path: '/matchmaking', label: t('navbar.matchmaking'), icon: Search },
+    { path: '/members', label: t('navbar.members'), icon: Users },
   ];
 
   return (
