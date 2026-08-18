@@ -6,10 +6,12 @@ import MatchCard from '../components/MatchCard';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Users, ArrowRight, Activity, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import coverImage from '../asset/IMG_0922.JPG';
+import { useTranslation } from 'react-i18next';
 
 export default function DashboardPage() {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [carouselReady, setCarouselReady] = useState(false);
 
@@ -56,7 +58,7 @@ export default function DashboardPage() {
     mutationFn: (id) => api.post(`/matches/${id}/clone`, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Sao chép trận đấu thành công', 'Thành công');
+      toast.success(t('dashboard.clone_success'), t('profile.success_title'));
     }
   });
 
@@ -64,10 +66,10 @@ export default function DashboardPage() {
     mutationFn: (id) => api.delete(`/matches/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã xóa trận đấu thành công!', 'Xóa trận');
+      toast.success(t('dashboard.delete_success'), t('profile.success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Xóa trận đấu thất bại', 'Lỗi');
+      toast.error(err.message || t('dashboard.delete_fail'), t('profile.error_title'));
     }
   });
 
@@ -75,10 +77,10 @@ export default function DashboardPage() {
     mutationFn: (id) => api.post(`/matches/${id}/notify`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã gửi email thông báo trận đấu cho toàn đội!', 'Gửi thông báo thành công');
+      toast.success(t('dashboard.notify_success'), t('profile.success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Gửi thông báo thất bại', 'Lỗi');
+      toast.error(err.message || t('dashboard.notify_fail'), t('profile.error_title'));
     }
   });
 
@@ -158,10 +160,10 @@ export default function DashboardPage() {
 
             <div className="space-y-3">
               <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
-                Xin chào, {user?.name || 'Cầu thủ'}! ⚽
+                {t('dashboard.hello')}, {user?.name || t('dashboard.player')}! ⚽
               </h1>
               <p className="text-white/85 text-sm sm:text-base font-bold leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Chào mừng bạn đến với Hệ thống Quản lý FC Nhà Trẻ. Đừng quên điểm danh trận đấu sắp tới (Có mặt / 50-50 / Nghỉ) để ban huấn luyện chốt kèo sân!
+                {t('dashboard.welcome_msg')}
               </p>
             </div>
 
@@ -170,14 +172,14 @@ export default function DashboardPage() {
                 to="/matches"
                 className="w-full sm:w-auto px-5 py-3 rounded-full bg-white text-[#2c3ec4] hover:bg-slate-100 font-black text-xs shadow-lg transition transform hover:-translate-y-0.5 text-center"
               >
-                Lịch Thi Đấu & Điểm Danh
+                {t('dashboard.schedule_attendance')}
               </Link>
 
               <Link
                 to="/finances"
                 className="w-full sm:w-auto px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 font-black text-xs backdrop-blur-md transition text-center"
               >
-                Bảng Quỹ Tháng
+                {t('dashboard.fund_table')}
               </Link>
             </div>
           </div>
@@ -195,17 +197,17 @@ export default function DashboardPage() {
               <div className="absolute inset-0 p-5 flex flex-col justify-between">
                 <div className="self-start inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 text-white text-[11px] font-black border border-white/20 backdrop-blur-md">
                   <Activity className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>Match Center</span>
+                  <span>{t('dashboard.match_center')}</span>
                 </div>
 
                 <div className="space-y-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/15 text-white text-[11px] font-black border border-white/20 backdrop-blur-md">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>Lịch thi đấu, quỹ, thống kê</span>
+                    <span>{t('dashboard.schedule_fund_stats')}</span>
                   </div>
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/15 text-white text-[11px] font-black border border-white/20 backdrop-blur-md ml-8">
                     <Users className="w-3.5 h-3.5" />
-                    <span>Điểm danh & quản lý đội hình</span>
+                    <span>{t('dashboard.attendance_squad')}</span>
                   </div>
                 </div>
 
@@ -234,7 +236,7 @@ export default function DashboardPage() {
         {/* Balance Stat */}
         <div className="glass-card-white p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white flex items-center justify-between shadow-md">
           <div>
-            <span className="text-xs font-bold text-slate-500 block mb-1">Quỹ Đội Hiện Tại</span>
+            <span className="text-xs font-bold text-slate-500 block mb-1">{t('dashboard.current_fund')}</span>
             <span className={`text-xl font-black ${balanceData.balance >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
               {balanceData.balance?.toLocaleString('vi-VN')} đ
             </span>
@@ -247,7 +249,7 @@ export default function DashboardPage() {
         {/* Total In */}
         <div className="glass-card-white p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white flex items-center justify-between shadow-md">
           <div>
-            <span className="text-xs font-bold text-slate-500 block mb-1">Tổng Thu Quỹ</span>
+            <span className="text-xs font-bold text-slate-500 block mb-1">{t('dashboard.total_in')}</span>
             <span className="text-xl font-black text-emerald-700">
               +{balanceData.totalIn?.toLocaleString('vi-VN')} đ
             </span>
@@ -260,7 +262,7 @@ export default function DashboardPage() {
         {/* Total Out */}
         <div className="glass-card-white p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white flex items-center justify-between shadow-md">
           <div>
-            <span className="text-xs font-bold text-slate-500 block mb-1">Tổng Chi Trận & Sân</span>
+            <span className="text-xs font-bold text-slate-500 block mb-1">{t('dashboard.total_out')}</span>
             <span className="text-xl font-black text-rose-700">
               -{balanceData.totalOut?.toLocaleString('vi-VN')} đ
             </span>
@@ -273,9 +275,9 @@ export default function DashboardPage() {
         {/* Team Members Count */}
         <div className="glass-card-white p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white flex items-center justify-between shadow-md">
           <div>
-            <span className="text-xs font-bold text-slate-500 block mb-1">Thành Viên Đội</span>
+            <span className="text-xs font-bold text-slate-500 block mb-1">{t('dashboard.team_members')}</span>
             <span className="text-xl font-black text-slate-900">
-              {users.length} Cầu thủ
+              {users.length} {t('dashboard.players_count')}
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-cyan-50 text-cyan-700 border border-cyan-200">
@@ -291,10 +293,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
               <Calendar className="w-5 h-5 text-[#374df5]" />
-              <span>Trận Đấu Sắp Tới</span>
+              <span>{t('dashboard.upcoming_matches')}</span>
             </h3>
             <Link to="/matches" className="text-xs font-black text-[#374df5] hover:underline flex items-center gap-1">
-              <span>Xem tất cả ({matches.length})</span>
+              <span>{t('dashboard.view_all')} ({matches.length})</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -315,7 +317,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="glass-card-white p-8 rounded-3xl text-center text-slate-600 font-bold bg-white border border-slate-200">
-              Chưa có trận đấu mới nào được lên lịch. Admin vui lòng bấm "Tạo Trận Mới".
+              {t('dashboard.no_upcoming_matches')}
             </div>
           )}
         </div>
@@ -325,10 +327,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
               <Activity className="w-5 h-5 text-emerald-700" />
-              <span>Giao Dịch Thu Chi Mới</span>
+              <span>{t('dashboard.recent_transactions')}</span>
             </h3>
             <Link to="/finances" className="text-xs font-black text-[#374df5] hover:underline flex items-center gap-1">
-              <span>Chi tiết</span>
+              <span>{t('dashboard.details')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -350,7 +352,7 @@ export default function DashboardPage() {
 
             {recentFinances.length === 0 && (
               <div className="text-center text-xs font-bold text-slate-600 py-6">
-                Chưa có phiếu thu chi nào gần đây.
+                {t('dashboard.no_recent_transactions')}
               </div>
             )}
           </div>

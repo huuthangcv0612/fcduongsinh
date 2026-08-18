@@ -10,12 +10,14 @@ import DataGridTable from '../components/DataGridTable';
 import MonthlyFundGrid from '../components/MonthlyFundGrid';
 import SendFundEmailModal from '../components/SendFundEmailModal';
 import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function FinancesPage() {
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const toast = useToast();
   const confirm = useConfirm();
+  const { t } = useTranslation();
   
   const [activeTab, setActiveTab] = useState('monthly_grid'); // 'monthly_grid' | 'transactions'
   const [showAddModal, setShowAddModal] = useState(false);
@@ -65,11 +67,11 @@ export default function FinancesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finances'] });
       queryClient.invalidateQueries({ queryKey: ['balance'] });
-      toast.success('Đã thêm phiếu thu/chi thành công vào Quỹ Đội!', 'Ghi nhận thu chi');
+      toast.success(t('finances.create_success_msg'), t('finances.create_success_title'));
       setShowAddModal(false);
     },
     onError: (err) => {
-      toast.error(err.message || 'Tạo giao dịch thất bại', 'Lỗi');
+      toast.error(err.message || t('finances.create_fail'), t('profile.error_title'));
     }
   });
 
@@ -78,10 +80,10 @@ export default function FinancesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finances'] });
       queryClient.invalidateQueries({ queryKey: ['balance'] });
-      toast.success('Đã cập nhật hàng loạt dữ liệu Data Grid thành công!', 'Lưu hàng loạt');
+      toast.success(t('finances.bulk_success_msg'), t('finances.bulk_success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Cập nhật Data Grid thất bại', 'Lỗi');
+      toast.error(err.message || t('finances.bulk_fail'), t('profile.error_title'));
     }
   });
 
@@ -90,19 +92,19 @@ export default function FinancesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finances'] });
       queryClient.invalidateQueries({ queryKey: ['balance'] });
-      toast.success('Đã xóa phiếu thu/chi thành công!', 'Đã xóa');
+      toast.success(t('finances.delete_success_msg'), t('finances.delete_success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Xóa giao dịch thất bại', 'Lỗi');
+      toast.error(err.message || t('finances.delete_fail'), t('profile.error_title'));
     }
   });
 
   const handleDeleteFinance = async (id) => {
     const isConfirmed = await confirm({
-      title: 'Xóa Giao Dịch Thu/Chi',
-      message: 'Bạn có chắc chắn muốn xóa phiếu thu/chi này khỏi hệ thống Quỹ Đội?',
-      confirmText: 'Xóa Ngay',
-      cancelText: 'Hủy Bỏ',
+      title: t('finances.delete_confirm_title'),
+      message: t('finances.delete_confirm_msg'),
+      confirmText: t('finances.delete_confirm_btn'),
+      cancelText: t('finances.cancel_btn'),
       type: 'danger'
     });
 
@@ -125,10 +127,10 @@ export default function FinancesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-            💰 Quản Lý Tài Chính & Quỹ Đội Bóng
+            💰 {t('finances.title')}
           </h2>
           <p className="text-xs font-bold text-slate-600">
-            Bảng ma trận quản lý quỹ theo chuẩn Google Sheets & Data Grid thu chi trực quan
+            {t('finances.subtitle')}
           </p>
         </div>
 
@@ -139,14 +141,14 @@ export default function FinancesPage() {
               className="flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black text-xs sm:text-sm shadow-md shadow-slate-800/30 transition"
             >
               <Mail className="w-4 h-4 text-emerald-400" />
-              <span>Gửi Email Báo Quỹ</span>
+              <span>{t('finances.send_email_btn')}</span>
             </button>
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/30 transition"
             >
               <Plus className="w-4 h-4" />
-              <span>Thêm Thu/Chi</span>
+              <span>{t('finances.add_transaction_btn')}</span>
             </button>
           </div>
         )}
@@ -155,25 +157,25 @@ export default function FinancesPage() {
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          title="Tổng Số Dư Quỹ"
+          title={t('finances.total_balance')}
           value={`${balanceData.balance?.toLocaleString('vi-VN')} đ`}
-          subtext="Tính tự động"
+          subtext={t('finances.total_balance_sub')}
           icon={Wallet}
           color="emerald"
         />
 
         <StatCard
-          title="Tổng Khoản Thu (+)"
+          title={t('finances.total_in')}
           value={`${balanceData.totalIn?.toLocaleString('vi-VN')} đ`}
-          subtext="Tiền nộp quỹ tháng, tài trợ, phạt"
+          subtext={t('finances.total_in_sub')}
           icon={ArrowUpRight}
           color="cyan"
         />
 
         <StatCard
-          title="Tổng Khoản Chi (-)"
+          title={t('finances.total_out')}
           value={`${balanceData.totalOut?.toLocaleString('vi-VN')} đ`}
-          subtext="Tiền sân, nước uống, trang phục"
+          subtext={t('finances.total_out_sub')}
           icon={ArrowDownRight}
           color="rose"
         />
@@ -190,7 +192,7 @@ export default function FinancesPage() {
           }`}
         >
           <Table className="w-3.5 h-3.5" />
-          <span>📊 Bảng Quỹ Theo Tháng</span>
+          <span>📊 {t('finances.tab_monthly_grid')}</span>
         </button>
 
         <button
@@ -202,7 +204,7 @@ export default function FinancesPage() {
           }`}
         >
           <ListFilter className="w-3.5 h-3.5" />
-          <span>📝 Lịch Sử Thu/Chi ({finances.length})</span>
+          <span>📝 {t('finances.tab_transactions')} ({finances.length})</span>
         </button>
       </div>
 
@@ -229,42 +231,42 @@ export default function FinancesPage() {
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-xl font-black text-slate-900 mb-1">➕ Thêm Phiếu Thu/Chi Mới</h3>
-            <p className="text-xs text-slate-500 font-bold mb-6">Ghi nhận giao dịch tài chính vào Quỹ Đội</p>
+            <h3 className="text-xl font-black text-slate-900 mb-1">➕ {t('finances.add_modal_title')}</h3>
+            <p className="text-xs text-slate-500 font-bold mb-6">{t('finances.add_modal_sub')}</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Loại giao dịch:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('finances.trans_type')}</label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="IN">+ THU (Cộng tiền)</option>
-                    <option value="OUT">- CHI (Trừ tiền)</option>
+                    <option value="IN">{t('finances.type_in')}</option>
+                    <option value="OUT">{t('finances.type_out')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Hạng mục:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('finances.category')}</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="quy_thang">Quỹ tháng</option>
-                    <option value="tien_san">Tiền sân</option>
-                    <option value="nuoc_uong">Nước uống</option>
-                    <option value="dong_phuc">Đồng phục</option>
-                    <option value="phat">Phạt trễ/vắng</option>
-                    <option value="khac">Khác</option>
+                    <option value="quy_thang">{t('finances.cat_monthly')}</option>
+                    <option value="tien_san">{t('finances.cat_pitch')}</option>
+                    <option value="nuoc_uong">{t('finances.cat_water')}</option>
+                    <option value="dong_phuc">{t('finances.cat_kit')}</option>
+                    <option value="phat">{t('finances.cat_fine')}</option>
+                    <option value="khac">{t('finances.cat_other')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Số tiền (VNĐ):</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">{t('finances.amount')}</label>
                 <input
                   type="number"
                   required
@@ -276,11 +278,11 @@ export default function FinancesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Mô tả chi tiết:</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">{t('finances.desc')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="Mô tả lý do thu chi..."
+                  placeholder={t('finances.desc_placeholder')}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
@@ -288,10 +290,10 @@ export default function FinancesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Tháng quỹ (nếu có):</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">{t('finances.fund_month')}</label>
                 <input
                   type="text"
-                  placeholder="YYYY-MM (VD: 2025-03)"
+                  placeholder={t('finances.fund_month_placeholder')}
                   value={formData.fundMonth}
                   onChange={(e) => setFormData({ ...formData, fundMonth: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
@@ -304,14 +306,14 @@ export default function FinancesPage() {
                   onClick={() => setShowAddModal(false)}
                   className="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 text-sm font-bold"
                 >
-                  Hủy
+                  {t('finances.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
                   className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md"
                 >
-                  Tạo Giao Dịch
+                  {t('finances.submit')}
                 </button>
               </div>
             </form>
@@ -335,7 +337,7 @@ export default function FinancesPage() {
             >
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-lg font-black text-slate-900 mb-4">📲 Quét Mã Đóng Quỹ</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-4">📲 {t('finances.qr_title')}</h3>
             <img 
               src={qrUrlFromParam} 
               alt="QR Code" 
@@ -345,7 +347,7 @@ export default function FinancesPage() {
               onClick={handleCloseQR}
               className="mt-6 w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-md transition"
             >
-              Đóng
+              {t('finances.close')}
             </button>
           </div>
         </div>

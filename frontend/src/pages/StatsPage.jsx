@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import { Trophy, Flame, Star, Activity, Award } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function StatsPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('goals'); // goals, assists, motm, appearances
 
   const { data: usersRes, isLoading } = useQuery({
@@ -24,13 +26,13 @@ export default function StatsPage() {
   const sortedUsers = getSortedUsers();
 
   const tabs = [
-    { id: 'goals', label: 'Vua phá lưới', icon: Trophy, color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
-    { id: 'assists', label: 'Kiến tạo', icon: Flame, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
-    { id: 'motm', label: 'MOTM', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-100', border: 'border-yellow-200' },
-    { id: 'appearances', label: 'Ra sân', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' }
+    { id: 'goals', label: t('stats.goals'), icon: Trophy, color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
+    { id: 'assists', label: t('stats.assists'), icon: Flame, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+    { id: 'motm', label: t('stats.motm'), icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-100', border: 'border-yellow-200' },
+    { id: 'appearances', label: t('stats.appearances'), icon: Activity, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' }
   ];
 
-  if (isLoading) return <div className="text-center p-8 text-slate-500 font-bold animate-pulse">Đang tải bảng vàng...</div>;
+  if (isLoading) return <div className="text-center p-8 text-slate-500 font-bold animate-pulse">{t('stats.loading')}</div>;
 
   return (
     <div className="space-y-6 animate-fade-in pb-28 md:pb-0">
@@ -38,11 +40,11 @@ export default function StatsPage() {
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black tracking-wider uppercase mb-3 border border-white/30 text-white">
             <Award className="w-3.5 h-3.5 text-amber-400" />
-            <span>BẢNG PHONG THẦN</span>
+            <span>{t('stats.hall_of_fame')}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black mb-2 tracking-tight">Trung Tâm Thống Kê 🏆</h1>
+          <h1 className="text-2xl sm:text-3xl font-black mb-2 tracking-tight">{t('stats.title')}</h1>
           <p className="text-white/80 text-xs sm:text-sm font-bold max-w-lg">
-            Nơi vinh danh những cá nhân xuất sắc nhất của FC Nhà Trẻ qua từng trận đấu.
+            {t('stats.subtitle')}
           </p>
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
@@ -77,7 +79,7 @@ export default function StatsPage() {
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Award className="w-8 h-8 text-slate-400" />
             </div>
-            <p className="text-sm font-bold text-slate-500">Chưa có dữ liệu cho hạng mục này.</p>
+            <p className="text-sm font-bold text-slate-500">{t('stats.no_data')}</p>
           </div>
         ) : (
           sortedUsers.map((user, index) => {
@@ -118,7 +120,7 @@ export default function StatsPage() {
                     </div>
                     {index === 0 && (
                       <div className="text-[9px] sm:text-[10px] font-black text-amber-500 mt-0.5 uppercase tracking-wider">
-                        Đang dẫn đầu 🔥
+                        {t('stats.leading')}
                       </div>
                     )}
                   </div>
@@ -129,9 +131,9 @@ export default function StatsPage() {
                     {val}
                   </div>
                   <div className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 whitespace-nowrap">
-                    {activeTab === 'appearances' ? 'Trận' : 
-                     activeTab === 'motm' ? 'Lần' : 
-                     activeTab === 'assists' ? 'Kiến tạo' : 'Bàn'}
+                    {activeTab === 'appearances' ? t('stats.unit_match') : 
+                     activeTab === 'motm' ? t('stats.unit_times') : 
+                     activeTab === 'assists' ? t('stats.unit_assists') : t('stats.unit_goals')}
                   </div>
                 </div>
 

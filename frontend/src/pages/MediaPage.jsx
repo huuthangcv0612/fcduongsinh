@@ -4,12 +4,14 @@ import api from '../services/api';
 import { Image as ImageIcon, Video, Link as LinkIcon, Plus, Trash2, UploadCloud, Download, X, Maximize2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function MediaPage() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef(null);
+  const { t } = useTranslation();
 
   const [uploading, setUploading] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -27,10 +29,10 @@ export default function MediaPage() {
     mutationFn: (data) => api.post('/media/upload', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['media'] });
-      toast.success('Đã tải ảnh lên thành công!', 'Thư Viện Media');
+      toast.success(t('media.upload_success'), t('media.title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Lỗi khi tải ảnh lên');
+      toast.error(err.message || t('media.upload_error'));
     },
     onSettled: () => setUploading(false)
   });
@@ -39,12 +41,12 @@ export default function MediaPage() {
     mutationFn: (data) => api.post('/media/link', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['media'] });
-      toast.success('Đã thêm liên kết thành công!', 'Thư Viện Media');
+      toast.success(t('media.link_success'), t('media.title'));
       setShowLinkModal(false);
       setLinkForm({ title: '', url: '' });
     },
     onError: (err) => {
-      toast.error(err.message || 'Lỗi khi thêm liên kết');
+      toast.error(err.message || t('media.link_error'));
     }
   });
 
@@ -52,10 +54,10 @@ export default function MediaPage() {
     mutationFn: (id) => api.delete(`/media/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['media'] });
-      toast.success('Đã xóa thành công', 'Thư Viện Media');
+      toast.success(t('media.delete_success'), t('media.title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Lỗi khi xóa');
+      toast.error(err.message || t('media.delete_error'));
     }
   });
 
@@ -65,7 +67,7 @@ export default function MediaPage() {
 
     // Check size < 10MB
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Kích thước file vượt quá 10MB', 'Lỗi tải ảnh');
+      toast.error(t('media.file_too_large'), t('profile.error_title'));
       return;
     }
 
@@ -91,7 +93,7 @@ export default function MediaPage() {
 
   const handleDelete = (media, e) => {
     if (e) e.stopPropagation();
-    if (window.confirm('Bạn có chắc chắn muốn xóa tệp này?')) {
+    if (window.confirm(t('media.delete_confirm'))) {
       deleteMutation.mutate(media._id);
       if (selectedMedia && selectedMedia._id === media._id) {
         setSelectedMedia(null);
@@ -102,7 +104,7 @@ export default function MediaPage() {
   const handleDownload = async (media, e) => {
     if (e) e.stopPropagation();
     try {
-      toast.success('Đang bắt đầu tải xuống...');
+      toast.success(t('media.download_start'));
       const response = await fetch(media.url);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -118,7 +120,7 @@ export default function MediaPage() {
       window.URL.revokeObjectURL(url);
       a.remove();
     } catch (error) {
-      toast.error('Không thể tải file, có thể do lỗi mạng', 'Lỗi');
+      toast.error(t('media.download_error'), t('profile.error_title'));
     }
   };
 
@@ -132,14 +134,14 @@ export default function MediaPage() {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  if (isLoading) return <div className="text-center p-8 text-slate-500 font-bold animate-pulse">Đang tải thư viện...</div>;
+  if (isLoading) return <div className="text-center p-8 text-slate-500 font-bold animate-pulse">{t('media.loading')}</div>;
 
   return (
     <div className="space-y-6 animate-fade-in pb-16 md:pb-0">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Thư Viện Media 📸</h1>
-          <p className="text-slate-500 font-bold text-sm">Kho lưu trữ hình ảnh & Highlight của Đội</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t('media.title')}</h1>
+          <p className="text-slate-500 font-bold text-sm">{t('media.subtitle')}</p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -156,7 +158,7 @@ export default function MediaPage() {
             className="px-4 py-2 bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white rounded-xl font-black text-sm shadow-md transition flex items-center gap-2 disabled:opacity-50"
           >
             {uploading ? <span className="animate-spin text-lg">⏳</span> : <UploadCloud className="w-4 h-4" />}
-            {uploading ? 'Đang tải lên...' : 'Tải ảnh lên'}
+            {uploading ? t('media.uploading') : t('media.upload')}
           </button>
           
           <button 
@@ -164,7 +166,7 @@ export default function MediaPage() {
             className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-black text-sm shadow-sm transition flex items-center gap-2"
           >
             <LinkIcon className="w-4 h-4" />
-            Thêm Link
+            {t('media.add_link')}
           </button>
         </div>
       </div>
@@ -174,8 +176,8 @@ export default function MediaPage() {
           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <ImageIcon className="w-8 h-8 text-slate-400" />
           </div>
-          <h3 className="font-black text-slate-900 text-lg mb-1">Thư viện trống</h3>
-          <p className="text-sm font-bold text-slate-500">Hãy tải lên những bức ảnh đẹp nhất của Đội nhé!</p>
+          <h3 className="font-black text-slate-900 text-lg mb-1">{t('media.empty')}</h3>
+          <p className="text-sm font-bold text-slate-500">{t('media.empty_sub')}</p>
         </div>
       ) : (
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
@@ -247,21 +249,21 @@ export default function MediaPage() {
       {showLinkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-slate-200">
-            <h3 className="text-lg font-black text-slate-900 mb-4">Gắn link ngoài</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-4">{t('media.add_link_modal')}</h3>
             <form onSubmit={handleAddLink}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Mô tả (Không bắt buộc):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('media.desc_label')}</label>
                   <input
                     type="text"
-                    placeholder="VD: Highlight trận..."
+                    placeholder=""
                     value={linkForm.title}
                     onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-950 font-bold focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Link (Youtube, Google Drive...):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('media.link_label')}</label>
                   <input
                     type="url"
                     required
@@ -273,9 +275,9 @@ export default function MediaPage() {
                 </div>
               </div>
               <div className="mt-6 flex items-center justify-end gap-3">
-                <button type="button" onClick={() => setShowLinkModal(false)} className="px-4 py-2 text-sm font-bold text-slate-600">Hủy</button>
+                <button type="button" onClick={() => setShowLinkModal(false)} className="px-4 py-2 text-sm font-bold text-slate-600">{t('media.cancel')}</button>
                 <button type="submit" disabled={addLinkMutation.isPending} className="px-5 py-2.5 bg-[#2c3ec4] text-white rounded-xl font-black text-sm shadow-md disabled:opacity-50">
-                  Lưu liên kết
+                  {t('media.save')}
                 </button>
               </div>
             </form>
@@ -300,13 +302,13 @@ export default function MediaPage() {
             
             <div className="mt-6 flex items-center gap-4 bg-white/10 px-6 py-3 rounded-full backdrop-blur-md">
               <button onClick={() => handleDownload(selectedMedia)} className="flex items-center gap-2 text-white font-bold text-sm hover:text-blue-300 transition">
-                <Download className="w-5 h-5" /> Tải về máy
+                <Download className="w-5 h-5" /> {t('media.download')}
               </button>
               {(isAdmin || user._id === selectedMedia.uploadedBy?._id) && (
                 <>
                   <div className="w-px h-6 bg-white/20"></div>
                   <button onClick={() => handleDelete(selectedMedia)} className="flex items-center gap-2 text-rose-400 font-bold text-sm hover:text-rose-300 transition">
-                    <Trash2 className="w-5 h-5" /> Xóa
+                    <Trash2 className="w-5 h-5" /> {t('media.delete')}
                   </button>
                 </>
               )}

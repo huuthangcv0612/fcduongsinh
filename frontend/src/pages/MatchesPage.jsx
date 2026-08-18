@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import MatchCard from '../components/MatchCard';
 import { Plus, X, Bell } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function MatchesPage() {
   const { isAdmin } = useAuth();
@@ -13,6 +14,7 @@ export default function MatchesPage() {
   const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -72,11 +74,11 @@ export default function MatchesPage() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã tạo trận đấu mới (Khung 19h15). Nhớ gửi thông báo sau khi tạo xong!', 'Tạo trận thành công');
+      toast.success(t('matches.create_success_msg'), t('matches.create_success_title'));
       setShowModal(false);
     },
     onError: (err) => {
-      toast.error(err.message || 'Tạo trận đấu thất bại', 'Lỗi');
+      toast.error(err.message || t('matches.create_fail'), t('profile.error_title'));
     }
   });
 
@@ -84,10 +86,10 @@ export default function MatchesPage() {
     mutationFn: (id) => api.post(`/matches/${id}/clone`, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã nhân bản tạo trận đấu mới thành công!', 'Nhân bản trận');
+      toast.success(t('matches.clone_success_msg'), t('matches.clone_success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Nhân bản trận đấu thất bại', 'Lỗi');
+      toast.error(err.message || t('matches.clone_fail'), t('profile.error_title'));
     }
   });
 
@@ -95,10 +97,10 @@ export default function MatchesPage() {
     mutationFn: ({ matchId, status, reason }) => api.put(`/matches/${matchId}/checkin`, { status, reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã cập nhật trạng thái điểm danh trận đấu!', 'Điểm Danh Thành Công');
+      toast.success(t('matches.checkin_success_msg'), t('matches.checkin_success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Lỗi khi điểm danh', 'Lỗi');
+      toast.error(err.message || t('matches.checkin_fail'), t('profile.error_title'));
     }
   });
 
@@ -106,10 +108,10 @@ export default function MatchesPage() {
     mutationFn: (id) => api.delete(`/matches/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã xóa trận đấu thành công!', 'Xóa trận');
+      toast.success(t('dashboard.delete_success'), t('profile.success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Xóa trận đấu thất bại', 'Lỗi');
+      toast.error(err.message || t('dashboard.delete_fail'), t('profile.error_title'));
     }
   });
 
@@ -117,20 +119,20 @@ export default function MatchesPage() {
     mutationFn: (id) => api.post(`/matches/${id}/notify`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã gửi email thông báo trận đấu cho toàn đội!', 'Gửi thông báo thành công');
+      toast.success(t('dashboard.notify_success'), t('profile.success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Gửi thông báo thất bại', 'Lỗi');
+      toast.error(err.message || t('dashboard.notify_fail'), t('profile.error_title'));
     }
   });
 
   const notifyPushMutation = useMutation({
     mutationFn: (id) => api.post(`/matches/${id}/notify-push`),
     onSuccess: () => {
-      toast.success('Đã gửi push notification thành công!', 'Gửi Push thành công');
+      toast.success(t('matches.push_success_msg'), t('matches.push_success_title'));
     },
     onError: (err) => {
-      toast.error(err.message || 'Gửi push thất bại', 'Lỗi');
+      toast.error(err.message || t('matches.push_fail'), t('profile.error_title'));
     }
   });
 
@@ -179,10 +181,10 @@ export default function MatchesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-              ⚽ Quản Lý Trận Đấu
+              ⚽ {t('matches.title')}
             </h2>
             <p className="text-xs font-bold text-slate-600">
-              Ưu tiên Thứ 3 19h-19h30 • Điểm danh 3 trạng thái
+              {t('matches.subtitle')}
             </p>
           </div>
 
@@ -192,7 +194,7 @@ export default function MatchesPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/30 transition w-full sm:w-auto justify-center"
             >
               <Plus className="w-4 h-4" />
-              <span>Tạo Trận Mới</span>
+              <span>{t('matches.create_new')}</span>
             </button>
           )}
         </div>
@@ -207,7 +209,7 @@ export default function MatchesPage() {
                 : 'text-slate-700 hover:text-slate-900'
             }`}
           >
-            Sắp diễn ra ({matches.filter(m => m.status === 'upcoming').length})
+            {t('matches.upcoming')} ({matches.filter(m => m.status === 'upcoming').length})
           </button>
           <button
             onClick={() => setActiveTab('past')}
@@ -217,7 +219,7 @@ export default function MatchesPage() {
                 : 'text-slate-700 hover:text-slate-900'
             }`}
           >
-            Lịch sử ({matches.filter(m => m.status !== 'upcoming').length})
+            {t('matches.past')} ({matches.filter(m => m.status !== 'upcoming').length})
           </button>
         </div>
       </div>
@@ -239,7 +241,7 @@ export default function MatchesPage() {
 
         {filteredMatches.length === 0 && (
           <div className="col-span-full glass-card-white rounded-3xl p-12 text-center text-slate-600 font-bold bg-white">
-            Không có trận đấu nào trong danh mục này.
+            {t('matches.no_matches')}
           </div>
         )}
       </div>
@@ -256,14 +258,14 @@ export default function MatchesPage() {
             </button>
 
             <div className="px-5 sm:px-6 pt-5 pb-3 border-b border-slate-100 shrink-0">
-              <h3 className="text-xl font-black text-slate-900 mb-1">⚽ Tạo Trận Đấu Mới</h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">Mở danh sách điểm danh cho toàn đội.</p>
+              <h3 className="text-xl font-black text-slate-900 mb-1">⚽ {t('matches.create_title')}</h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">{t('matches.create_subtitle')}</p>
             </div>
 
             <form id="create-match-form" onSubmit={handleSubmit} className="space-y-4 px-5 sm:px-6 py-5 overflow-y-auto flex-1 min-h-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Ngày thi đấu:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.match_date')}</label>
                   <input
                     type="date"
                     required
@@ -273,7 +275,7 @@ export default function MatchesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Giờ thi đấu (Khung 19h - 19h30):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.match_time')}</label>
                   <input
                     type="text"
                     required
@@ -287,18 +289,18 @@ export default function MatchesPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Sân bóng (Hà Nội):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.stadium')}</label>
                   <input
                     type="text"
                     required
-                    placeholder="Sân Thượng Đình, Q. Thanh Xuân..."
+                    placeholder={t('matches.stadium_placeholder')}
                     value={formData.stadium}
                     onChange={(e) => setFormData({ ...formData, stadium: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Link Google Maps:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.maps_link')}</label>
                   <input
                     type="text"
                     placeholder="https://maps.app.goo.gl/..."
@@ -311,7 +313,7 @@ export default function MatchesPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tiền sân (VNĐ):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.pitch_cost')}</label>
                   <input
                     type="number"
                     required
@@ -322,7 +324,7 @@ export default function MatchesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Keo sân (Deal):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.deal')}</label>
                   <input
                     type="text"
                     placeholder="5-5 / 6-4"
@@ -335,12 +337,12 @@ export default function MatchesPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">🔥 Chọn nhanh đối thủ cũ (Tự điền thông tin):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.select_old_opponent')}</label>
                   <select
                     onChange={handleSelectOldOpponent}
                     className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-sm text-blue-900 font-bold focus:outline-none focus:border-blue-500"
                   >
-                    <option value="">-- Chọn đối thủ đã từng giao hữu --</option>
+                    <option value="">{t('matches.select_old_opponent_placeholder')}</option>
                     {uniqueOpponents.map((opp, idx) => (
                       <option key={idx} value={opp.teamName}>{opp.teamName}</option>
                     ))}
@@ -348,7 +350,7 @@ export default function MatchesPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tên đội đối thủ:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_name')}</label>
                   <input
                     type="text"
                     placeholder="FC Thăng Long"
@@ -358,23 +360,23 @@ export default function MatchesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Màu áo thi đấu:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.kit_color')}</label>
                   <select
                     value={formData.kitColor}
                     onChange={(e) => setFormData({ ...formData, kitColor: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="">-- Chưa chốt / Tự chọn --</option>
-                    <option value="xanh dương">Xanh dương</option>
-                    <option value="đỏ">Đỏ</option>
-                    <option value="đen">Đen</option>
+                    <option value="">{t('matches.kit_unselected')}</option>
+                    <option value="xanh dương">{t('matches.kit_blue')}</option>
+                    <option value="đỏ">{t('matches.kit_red')}</option>
+                    <option value="đen">{t('matches.kit_black')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">SĐT đối thủ:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_phone')}</label>
                   <input
                     type="text"
                     placeholder="098..."
@@ -384,7 +386,7 @@ export default function MatchesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Link Facebook Đội bạn:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_fb')}</label>
                   <input
                     type="text"
                     placeholder="https://facebook.com/..."
@@ -403,7 +405,7 @@ export default function MatchesPage() {
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 text-sm font-bold w-full sm:w-auto transition"
               >
-                Hủy Bỏ
+                {t('matches.cancel')}
               </button>
               <button
                 type="submit"
@@ -411,7 +413,7 @@ export default function MatchesPage() {
                 disabled={createMutation.isPending}
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md w-full sm:w-auto transition"
               >
-                Tạo Trận Đấu
+                {t('matches.submit')}
               </button>
             </div>
           </div>

@@ -5,11 +5,13 @@ import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmModalContext';
 import { CheckCircle2, XCircle, Edit2, Trash2, ShieldAlert } from 'lucide-react';
 import EditMemberModal from '../components/EditMemberModal';
+import { useTranslation } from 'react-i18next';
 
 export default function MembersPage() {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const { t } = useTranslation();
   const [editingMember, setEditingMember] = useState(null);
 
   const { data: usersRes } = useQuery({
@@ -39,10 +41,10 @@ export default function MembersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-            👥 Danh Sách Thành Viên ({users.length})
+            👥 {t('members.title')} ({users.length})
           </h2>
           <p className="text-xs font-bold text-slate-600">
-            Theo dõi danh sách đội bóng, vị trí thi đấu & trạng thái đóng quỹ tháng
+            {t('members.subtitle')}
           </p>
         </div>
       </div>
@@ -66,32 +68,32 @@ export default function MembersPage() {
                     <span className="truncate">{member.name}</span>
                     {member.role === 'admin' && (
                       <span className="px-1.5 py-0.5 rounded border border-amber-300 bg-amber-100 text-amber-800 text-[9px] uppercase font-bold shrink-0">
-                        Admin
+                        {t('members.admin')}
                       </span>
                     )}
                     {member.role === 'pending' && (
                       <span className="px-1.5 py-0.5 rounded border border-rose-300 bg-rose-100 text-rose-800 text-[9px] uppercase font-bold flex items-center gap-0.5 shrink-0">
-                        <ShieldAlert className="w-2.5 h-2.5" /> Chờ Duyệt
+                        <ShieldAlert className="w-2.5 h-2.5" /> {t('members.pending')}
                       </span>
                     )}
                   </h3>
                   <div className="text-[11px] sm:text-xs font-bold text-slate-500 truncate mt-0.5">{member.email}</div>
                   <div className="text-[11px] sm:text-xs font-black text-emerald-700 mt-1">
-                    Vị trí: {member.position || 'Tự do'}
+                    {t('members.position')}: {member.position || t('members.free_agent')}
                   </div>
                 </div>
               </div>
 
               {/* Fund Status Badge */}
               <div className="bg-slate-50 p-2.5 sm:p-3 rounded-xl border border-slate-200 mb-3 flex flex-wrap items-center justify-between text-[11px] sm:text-xs font-bold gap-2">
-                <span className="text-slate-600">Quỹ tháng này:</span>
+                <span className="text-slate-600">{t('members.fund_this_month')}</span>
                 {member.isFundPaidThisMonth ? (
                   <span className="flex items-center gap-1 font-black text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg border border-emerald-300 shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> ĐÃ NỘP ({member.fundPaidThisMonth >= 1000 ? `${member.fundPaidThisMonth / 1000}k` : `${member.fundPaidThisMonth}đ`})
+                    <CheckCircle2 className="w-3.5 h-3.5" /> {t('members.paid')} ({member.fundPaidThisMonth >= 1000 ? `${member.fundPaidThisMonth / 1000}k` : `${member.fundPaidThisMonth}đ`})
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 font-black text-amber-800 bg-amber-100 px-2 py-1 rounded-lg border border-amber-300 shrink-0">
-                    <XCircle className="w-3.5 h-3.5" /> CHƯA NỘP
+                    <XCircle className="w-3.5 h-3.5" /> {t('members.unpaid')}
                   </span>
                 )}
               </div>
@@ -117,13 +119,13 @@ export default function MembersPage() {
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
                   }`}
                 >
-                  {member.role === 'pending' ? 'Duyệt Thành Viên' : (member.role === 'admin' ? 'Hạ xuống Member' : 'Thăng cấp Admin')}
+                  {member.role === 'pending' ? t('members.approve') : (member.role === 'admin' ? t('members.demote') : t('members.promote'))}
                 </button>
                 <button
                   onClick={async () => {
                     const confirmed = await confirm({
-                      title: 'Xóa thành viên',
-                      message: `Bạn có chắc chắn muốn xóa tài khoản ${member.name}? Dữ liệu sẽ không thể khôi phục.`
+                      title: t('members.delete_title'),
+                      message: t('members.delete_confirm')
                     });
                     if (confirmed) {
                       deleteUserMutation.mutate(member._id);

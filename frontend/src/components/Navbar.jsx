@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { PWAInstallButton } from '../context/PWAContext';
 import NotificationBell from './NotificationBell';
 import teamLogo from '../asset/logo.png';
+import { useTranslation } from 'react-i18next';
 import { 
   Trophy, 
   Calendar, 
@@ -24,15 +25,16 @@ import {
 export default function Navbar() {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const navItems = [
-    { path: '/', label: 'TỔNG QUAN', icon: Trophy },
-    { path: '/matches', label: 'TRẬN ĐẤU', icon: Calendar },
-    { path: '/media', label: 'MEDIA', icon: ImageIcon },
-    { path: '/stats', label: 'THỐNG KÊ', icon: Award },
-    { path: '/finances', label: 'TÀI CHÍNH', icon: Wallet },
-    { path: '/matchmaking', label: 'TÌM ĐỐI', icon: Search },
-    { path: '/members', label: 'THÀNH VIÊN', icon: Users },
+    { path: '/', label: t('navbar.overview'), icon: Trophy },
+    { path: '/matches', label: t('navbar.matches'), icon: Calendar },
+    { path: '/media', label: t('navbar.media'), icon: ImageIcon },
+    { path: '/stats', label: t('navbar.stats'), icon: Award },
+    { path: '/finances', label: t('navbar.finances'), icon: Wallet },
+    { path: '/matchmaking', label: t('navbar.matchmaking'), icon: Search },
+    { path: '/members', label: t('navbar.members'), icon: Users },
   ];
 
   return (
@@ -86,7 +88,7 @@ export default function Navbar() {
             {/* User Profile Pill */}
             <Link
               to="/profile"
-              title="Xem & Chỉnh sửa trang cá nhân"
+              title={t('navbar.profile_title')}
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full border border-white/20 text-white shadow-sm transition"
             >
               <img
@@ -99,11 +101,11 @@ export default function Navbar() {
                 <div className="text-[9px] text-white/80 capitalize flex items-center gap-1 font-bold">
                   {isAdmin ? (
                     <span className="text-amber-300 flex items-center gap-0.5">
-                      <ShieldAlert className="w-3 h-3" /> Admin
+                      <ShieldAlert className="w-3 h-3" /> {t('navbar.admin')}
                     </span>
                   ) : (
                     <span className="text-emerald-300 flex items-center gap-0.5">
-                      <UserCheck className="w-3 h-3" /> Member
+                      <UserCheck className="w-3 h-3" /> {t('navbar.member')}
                     </span>
                   )}
                 </div>
@@ -118,22 +120,22 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-4 shrink-0">
               <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-black text-[11px] animate-pulse">
-                <Zap className="w-3 h-3 fill-white" /> LIVE
+                <Zap className="w-3 h-3 fill-white" /> {t('navbar.live')}
               </span>
               <NavLink to="/matches" className={({isActive}) => `flex items-center gap-1 ${isActive ? 'text-white' : 'text-white/90 hover:text-white'} font-black`}>
-                ⚽ Bóng đá
+                ⚽ {t('navbar.football')}
               </NavLink>
               <NavLink to="/stats" className={({isActive}) => `flex items-center gap-1 ${isActive ? 'text-white' : 'text-white/90 hover:text-white'} font-black`}>
-                <Trophy className="w-3.5 h-3.5" /> BXH
+                <Trophy className="w-3.5 h-3.5" /> {t('navbar.standings')}
               </NavLink>
               <Link to="/matchmaking" className="flex items-center gap-1 text-amber-300 hover:text-amber-200 font-black">
-                <Star className="w-3.5 h-3.5 fill-amber-300" /> Tìm đối tác
+                <Star className="w-3.5 h-3.5 fill-amber-300" /> {t('navbar.find_partners')}
               </Link>
             </div>
 
             <div className="hidden lg:flex items-center gap-3 text-[11px] text-white/80 font-bold shrink-0">
               <span className="flex items-center gap-1">
-                <Globe className="w-3 h-3 text-cyan-300" /> Hà Nội (VN)
+                <Globe className="w-3 h-3 text-cyan-300" /> {t('navbar.location')}
               </span>
             </div>
           </div>

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, User, MapPin, Phone } from 'lucide-react';
 import api from '../services/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 export default function EditMemberModal({ isOpen, onClose, member }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ name: '', position: '', phone: '' });
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
-          <h2 className="font-bold flex items-center gap-2">Chỉnh sửa thành viên</h2>
+          <h2 className="font-bold flex items-center gap-2">{t('edit_member.title')}</h2>
           <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-xl">
             <X className="w-5 h-5" />
           </button>
@@ -39,7 +41,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
         
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Tên cầu thủ</label>
+            <label className="block text-xs font-bold text-slate-500 mb-1">{t('edit_member.player_name')}</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -50,7 +52,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Vị trí thi đấu</label>
+            <label className="block text-xs font-bold text-slate-500 mb-1">{t('edit_member.position')}</label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <select
@@ -58,18 +60,18 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
                 onChange={e => setFormData({ ...formData, position: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold text-slate-900 appearance-none"
               >
-                <option value="">-- Chọn vị trí --</option>
-                <option value="Tiền đạo">Tiền đạo</option>
-                <option value="Tiền vệ">Tiền vệ</option>
-                <option value="Hậu vệ">Hậu vệ</option>
-                <option value="Thủ môn">Thủ môn</option>
-                <option value="Tự do">Tự do</option>
-                <option value="Quản lý">Quản lý / Khác</option>
+                <option value="">{t('edit_member.select_position')}</option>
+                <option value="Tiền đạo">{t('edit_member.striker')}</option>
+                <option value="Tiền vệ">{t('edit_member.midfielder')}</option>
+                <option value="Hậu vệ">{t('edit_member.defender')}</option>
+                <option value="Thủ môn">{t('edit_member.goalkeeper')}</option>
+                <option value="Tự do">{t('edit_member.free_agent')}</option>
+                <option value="Quản lý">{t('edit_member.manager')}</option>
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Số điện thoại</label>
+            <label className="block text-xs font-bold text-slate-500 mb-1">{t('edit_member.phone')}</label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -83,7 +85,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
 
         <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 rounded-xl hover:bg-slate-200">
-            Hủy
+            {t('edit_member.cancel')}
           </button>
           <button 
             onClick={() => updateMutation.mutate(formData)}
@@ -91,7 +93,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
             className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
-            Lưu
+            {t('edit_member.save')}
           </button>
         </div>
       </div>

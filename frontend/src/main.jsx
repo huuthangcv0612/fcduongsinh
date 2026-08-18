@@ -9,6 +9,7 @@ import { PWAProvider } from './context/PWAContext';
 import { MatchmakingProvider } from './context/MatchmakingContext';
 import App from './App';
 import './index.css';
+import './i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {

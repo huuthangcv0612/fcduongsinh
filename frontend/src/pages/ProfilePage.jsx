@@ -4,13 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { User, Phone, Save, CheckCircle2, Sparkles, Upload, RefreshCw, LogOut, Bell, BellRing, BellOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { User, Phone, Save, CheckCircle2, Sparkles, Upload, RefreshCw, LogOut, Bell, BellRing, BellOff, Globe } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useToast();
+  const { t, i18n } = useTranslation();
   
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -18,14 +20,14 @@ export default function ProfilePage() {
 
   const handleSubscribePush = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      toast.error('Trình duyệt của bạn không hỗ trợ thông báo Push.', 'Không hỗ trợ');
+      toast.error(t('profile.not_supported'), t('profile.unsupported_title'));
       return;
     }
     try {
       const permission = await Notification.requestPermission();
       setPushStatus(permission);
       if (permission !== 'granted') {
-        toast.warning('Bạn đã từ chối nhận thông báo. Vui lòng mở cài đặt trình duyệt để cấp quyền lại.', 'Chưa cấp quyền');
+        toast.warning(t('profile.permission_denied'), t('profile.no_permission_title'));
         return;
       }
 
@@ -53,10 +55,10 @@ export default function ProfilePage() {
       }
 
       await api.post('/notifications/subscribe', { subscription });
-      toast.success('Đã bật thông báo thiết bị thành công!', 'Thành công');
+      toast.success(t('profile.push_success'), t('profile.success_title'));
     } catch (error) {
       console.error('Push subscription failed:', error);
-      toast.error('Bật thông báo thất bại: ' + error.message, 'Lỗi');
+      toast.error(t('profile.push_fail') + error.message, t('profile.error_title'));
     }
   };
 
@@ -74,11 +76,11 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       localStorage.setItem('user', JSON.stringify(res.data));
       setSavedSuccess(true);
-      toast.success('Hồ sơ cá nhân đã được cập nhật thành công!', 'Thành công');
+      toast.success(t('profile.update_success'), t('profile.success_title'));
       setTimeout(() => setSavedSuccess(false), 3000);
     },
     onError: (err) => {
-      toast.error(err.message || 'Cập nhật hồ sơ thất bại', 'Lỗi');
+      toast.error(err.message || t('profile.update_fail'), t('profile.error_title'));
     }
   });
 
@@ -138,13 +140,13 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (file.size > 20 * 1024 * 1024) {
-      toast.warning('Vui lòng chọn file ảnh dung lượng dưới 20MB', 'Ảnh quá lớn');
+      toast.warning(t('profile.image_too_large'), t('profile.image_too_large_title'));
       return;
     }
 
     setUploading(true);
     try {
-      toast.info('Đang xử lý và nén ảnh...', 'Chờ chút');
+      toast.info(t('profile.processing_image'), t('profile.wait_title'));
       const base64Str = await compressImage(file);
       const res = await api.post('/upload/avatar', { image: base64Str });
       if (res.success && res.data?.url) {
@@ -153,11 +155,11 @@ export default function ProfilePage() {
           localStorage.setItem('user', JSON.stringify(res.data.user));
         }
         queryClient.invalidateQueries({ queryKey: ['users'] });
-        toast.success('Đã tải ảnh đại diện lên Cloudinary thành công!', 'Upload hoàn tất');
+        toast.success(t('profile.upload_success'), t('profile.upload_complete_title'));
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.message || 'Upload ảnh lên Cloudinary thất bại', 'Lỗi Upload');
+      toast.error(err.message || t('profile.upload_fail'), t('profile.upload_fail_title'));
     } finally {
       setUploading(false);
     }
@@ -181,11 +183,11 @@ export default function ProfilePage() {
         await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
       }
 
-      toast.info('Đang tải lại phiên bản mới nhất...', 'Cập nhật ứng dụng');
+      toast.info(t('profile.reload_app'), t('profile.reload_app_title'));
       window.location.replace('/');
     } catch (error) {
       console.error(error);
-      toast.error('Không thể tải lại ứng dụng ngay bây giờ', 'Lỗi cập nhật');
+      toast.error(t('profile.reload_fail'), t('profile.reload_fail_title'));
     }
   };
 
@@ -215,7 +217,7 @@ export default function ProfilePage() {
               ) : (
                 <>
                   <Upload className="w-6 h-6 mb-1" />
-                  <span className="text-[10px] font-black uppercase">Đổi ảnh</span>
+                  <span className="text-[10px] font-black uppercase">{t('profile.change_photo')}</span>
                 </>
               )}
               <input
@@ -230,18 +232,18 @@ export default function ProfilePage() {
 
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/20 border border-emerald-300/40 text-emerald-200 text-xs font-black uppercase tracking-wider backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-300" /> THÔNG TIN CÁ NHÂN
+              <Sparkles className="w-3.5 h-3.5 text-emerald-300" /> {t('profile.personal_info')}
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center sm:justify-start gap-2 drop-shadow-md">
               {user?.name}
               {isAdmin ? (
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-amber-950 font-black text-xs uppercase font-mono shadow-sm">
-                  Admin
+                  {t('profile.admin')}
                 </span>
               ) : (
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-300 text-emerald-950 font-black text-xs uppercase font-mono shadow-sm">
-                  Member
+                  {t('profile.member')}
                 </span>
               )}
             </h2>
@@ -256,7 +258,7 @@ export default function ProfilePage() {
       {savedSuccess && (
         <div className="p-4 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-950 text-sm font-black flex items-center gap-2 shadow-sm">
           <CheckCircle2 className="w-5 h-5 text-emerald-700" />
-          <span>Cập nhật hồ sơ cá nhân thành công!</span>
+          <span>{t('profile.update_success')}</span>
         </div>
       )}
 
@@ -264,14 +266,14 @@ export default function ProfilePage() {
       <div className="glass-card-white rounded-3xl p-6 sm:p-8 border border-slate-300 bg-white shadow-md">
         <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
           <User className="w-5 h-5 text-emerald-700" />
-          <span>Chỉnh Sửa Hồ Sơ Đội Bóng</span>
+          <span>{t('profile.edit_profile')}</span>
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
-                Họ và Tên:
+                {t('profile.full_name')}
               </label>
               <input
                 type="text"
@@ -284,7 +286,7 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
-                Số Điện Thoại (Liên hệ đá bóng):
+                {t('profile.phone')}
               </label>
               <div className="relative">
                 <input
@@ -300,25 +302,25 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
-                Vị Trí Thi Đấu Yêu Thích:
+                {t('profile.position')}
               </label>
               <select
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
               >
-                <option value="Thủ môn" className="bg-white text-slate-900">🧤 Thủ môn (GK)</option>
-                <option value="Hậu vệ" className="bg-white text-slate-900">🛡️ Hậu vệ (DF)</option>
-                <option value="Tiền vệ" className="bg-white text-slate-900">⚽ Tiền vệ (MF)</option>
-                <option value="Tiền đạo" className="bg-white text-slate-900">🔥 Tiền đạo (FW)</option>
-                <option value="Tự do" className="bg-white text-slate-900">🏃 Tự do / Đa năng</option>
+                <option value="Thủ môn" className="bg-white text-slate-900">{t('profile.pos_gk')}</option>
+                <option value="Hậu vệ" className="bg-white text-slate-900">{t('profile.pos_df')}</option>
+                <option value="Tiền vệ" className="bg-white text-slate-900">{t('profile.pos_mf')}</option>
+                <option value="Tiền đạo" className="bg-white text-slate-900">{t('profile.pos_fw')}</option>
+                <option value="Tự do" className="bg-white text-slate-900">{t('profile.pos_free')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
-                <span>Ảnh Đại Diện (Upload Cloudinary):</span>
-                {uploading && <span className="text-emerald-700 font-bold animate-pulse">Đang tải lên...</span>}
+                <span>{t('profile.avatar')}</span>
+                {uploading && <span className="text-emerald-700 font-bold animate-pulse">{t('profile.uploading')}</span>}
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -330,7 +332,7 @@ export default function ProfilePage() {
                 />
                 <label className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm">
                   <Upload className="w-4 h-4" />
-                  <span>Chọn Ảnh</span>
+                  <span>{t('profile.choose_image')}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -344,18 +346,18 @@ export default function ProfilePage() {
 
             <div className="sm:col-span-2">
               <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
-                <span>Nhận Thông Báo Thiết Bị:</span>
+                <span>{t('profile.receive_notification')}</span>
               </label>
               <div className="flex items-center gap-3">
                 {pushStatus === 'granted' ? (
                   <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200 w-full shadow-sm">
                     <BellRing className="w-5 h-5" />
-                    Đã bật thông báo thiết bị (Sẽ nhận được thông báo như App)
+                    {t('profile.notification_on')}
                   </div>
                 ) : pushStatus === 'denied' ? (
                   <div className="flex items-center gap-2 text-rose-700 font-bold bg-rose-50 px-4 py-3 rounded-xl border border-rose-200 w-full shadow-sm">
                     <BellOff className="w-5 h-5" />
-                    Bạn đã chặn thông báo (Vui lòng mở cài đặt trình duyệt hoặc biểu tượng ổ khóa để bật lại)
+                    {t('profile.notification_off')}
                   </div>
                 ) : (
                   <button
@@ -364,9 +366,42 @@ export default function ProfilePage() {
                     className="w-full bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 rounded-xl px-4 py-3 text-sm font-black flex items-center justify-center gap-2 shadow-sm transition"
                   >
                     <Bell className="w-5 h-5" />
-                    Bật Thông Báo Cho Thiết Bị Này
+                    {t('profile.turn_on_notification')}
                   </button>
                 )}
+              </div>
+            </div>
+
+            <div className="sm:col-span-2 mt-4 pt-4 border-t border-slate-200">
+              <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                {t('profile.language_settings')}
+              </h4>
+              <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-300">
+                <span className="text-sm font-bold text-slate-700">{t('profile.language')}</span>
+                <div className="flex bg-white border border-slate-300 rounded-lg overflow-hidden shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      i18n.changeLanguage('vi');
+                      localStorage.setItem('appLanguage', 'vi');
+                    }}
+                    className={`px-4 py-2 text-sm font-bold transition ${i18n.language === 'vi' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                  >
+                    🇻🇳 Tiếng Việt
+                  </button>
+                  <div className="w-px bg-slate-300"></div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      i18n.changeLanguage('en');
+                      localStorage.setItem('appLanguage', 'en');
+                    }}
+                    className={`px-4 py-2 text-sm font-bold transition ${i18n.language === 'en' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                  >
+                    🇬🇧 English
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -381,7 +416,7 @@ export default function ProfilePage() {
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Gửi Thông Báo (Admin)</span>
+                  <span>{t('profile.admin_notification')}</span>
                 </button>
               )}
               <button
@@ -390,7 +425,7 @@ export default function ProfilePage() {
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Đăng xuất</span>
+                <span>{t('profile.logout')}</span>
               </button>
 
               <button
@@ -399,7 +434,7 @@ export default function ProfilePage() {
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>Tải bản mới nhất</span>
+                <span>{t('profile.load_latest')}</span>
               </button>
 
               <button
@@ -408,7 +443,7 @@ export default function ProfilePage() {
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>{updateProfileMutation.isPending ? 'Đang Lưu...' : 'Lưu Thay Đổi Hồ Sơ'}</span>
+                <span>{updateProfileMutation.isPending ? t('profile.saving') : t('profile.save_changes')}</span>
               </button>
             </div>
           </div>

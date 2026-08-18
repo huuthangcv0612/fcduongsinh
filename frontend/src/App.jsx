@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import MobileNav from './components/MobileNav';
 import ForceCheckInModal from './components/ForceCheckInModal';
 import PushNotificationPrompt from './components/PushNotificationPrompt';
+import { useTranslation } from 'react-i18next';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -22,6 +23,7 @@ import AdminNotificationsPage from './pages/AdminNotificationsPage';
 function ProtectedLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -70,7 +72,7 @@ function ProtectedLayout() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-400">
-        Đang tải dữ liệu FC Nhà Trẻ...
+        {t('app.loading')}
       </div>
     );
   }
