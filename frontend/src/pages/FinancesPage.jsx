@@ -12,7 +12,8 @@ import SendFundEmailModal from '../components/SendFundEmailModal';
 import SubmitFundModal from '../components/SubmitFundModal';
 import FundSubmissionReviewModal from '../components/FundSubmissionReviewModal';
 import FundConfigModal from '../components/FundConfigModal';
-import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail, CreditCard, Inbox, CheckCircle2, Clock, XCircle, Eye, Settings } from 'lucide-react';
+import QuickQrModal from '../components/QuickQrModal';
+import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail, CreditCard, Inbox, CheckCircle2, Clock, XCircle, Eye, Settings, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function FinancesPage() {
@@ -27,6 +28,7 @@ export default function FinancesPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showSubmitFundModal, setShowSubmitFundModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showQuickQrModal, setShowQuickQrModal] = useState(false);
   const [selectedReviewSubmission, setSelectedReviewSubmission] = useState(null);
   
   const [searchParams, setSearchParams] = useSearchParams();
@@ -180,6 +182,16 @@ export default function FinancesPage() {
         </div>
 
         <div className="flex gap-2 flex-wrap items-center">
+          {/* Quick QR View Button */}
+          <button
+            onClick={() => setShowQuickQrModal(true)}
+            className="tactile-btn flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md transition"
+            title="Xem mã QR đóng quỹ và thông tin chuyển khoản"
+          >
+            <QrCode className="w-4 h-4 text-cyan-400" />
+            <span>Xem Mã QR</span>
+          </button>
+
           {/* Member Submit Fund Button */}
           <button
             onClick={() => setShowSubmitFundModal(true)}
@@ -441,6 +453,12 @@ export default function FinancesPage() {
       <FundConfigModal
         isOpen={showConfigModal}
         onClose={() => setShowConfigModal(false)}
+      />
+
+      {/* Quick QR Viewer Modal for All Members */}
+      <QuickQrModal
+        isOpen={showQuickQrModal}
+        onClose={() => setShowQuickQrModal(false)}
       />
 
       {/* Add Single Transaction Modal */}

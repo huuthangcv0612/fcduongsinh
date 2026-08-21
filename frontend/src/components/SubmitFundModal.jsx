@@ -148,6 +148,23 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   const transferSyntax = `${transferPrefix} ${safeUserName} T${monthLabelsForQR}`;
   const qrUrl = customQrUrl || `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferSyntax)}&accountName=${encodeURIComponent(accountName)}`;
 
+  const [isQrZoomed, setIsQrZoomed] = useState(false);
+
+  const handleCopy = (text, label) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`Đã sao chép ${label}: ${text}`, 'Đã sao chép');
+  };
+
+  const handleDownloadQr = () => {
+    const link = document.createElement('a');
+    link.href = qrUrl;
+    link.download = `VietQR_FCNhaTre_${transferSyntax.replace(/\s+/g, '_')}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Đã tải ảnh mã QR về máy!', 'Tải thành công');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in overflow-y-auto">
       <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative my-8">
@@ -177,22 +194,118 @@ export default function SubmitFundModal({ isOpen, onClose }) {
           
           {/* VietQR Bank Box */}
           <div className="rounded-2xl p-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md flex flex-col sm:flex-row items-center gap-4">
-            <div className="bg-white p-2 rounded-xl shrink-0 shadow-sm">
+            <div 
+              className="bg-white p-2 rounded-xl shrink-0 shadow-sm relative group cursor-pointer"
+              onClick={() => setIsQrZoomed(true)}
+              title="Nhấn để xem phóng to mã QR"
+            >
               <img
                 src={qrUrl}
                 alt="QR Đóng Quỹ"
-                className="w-28 h-28 object-contain rounded-lg"
+                className="w-28 h-28 object-contain rounded-lg group-hover:opacity-90 transition"
               />
+              <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-[10px] font-black gap-1">
+                <QrCode className="w-5 h-5" />
+                <span>Xem ảnh QR</span>
+              </div>
             </div>
+
             <div className="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Thông Tin Thụ Hưởng {bankName}</span>
-              <div className="font-mono text-base font-black text-white tracking-tight">{accountNumber}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Thông Tin Thụ Hưởng {bankName}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsQrZoomed(true)}
+                  className="text-[10px] font-black text-cyan-300 hover:text-cyan-200 underline hidden sm:inline"
+                >
+                  🔍 Phóng to QR
+                </button>
+              </div>
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <span className="font-mono text-base font-black text-white tracking-tight">{accountNumber}</span>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(accountNumber, 'Số tài khoản')}
+                  className="tactile-btn text-[10px] px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 text-white font-bold transition"
+                >
+                  Sao chép
+                </button>
+              </div>
               <div className="text-xs font-bold text-slate-300 uppercase">{accountName}</div>
-              <div className="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 font-mono truncate">
+              <div 
+                onClick={() => handleCopy(transferSyntax, 'Cú pháp chuyển khoản')}
+                className="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 font-mono truncate cursor-pointer hover:border-slate-500 transition"
+                title="Nhấn để sao chép cú pháp"
+              >
                 Cú pháp: <span className="text-emerald-400 font-black">{transferSyntax}</span>
               </div>
             </div>
           </div>
+
+          {/* Fullscreen QR Lightbox Modal */}
+          {isQrZoomed && (
+            <div
+              className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+              onClick={() => setIsQrZoomed(false)}
+            >
+              <div 
+                className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4 relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setIsQrZoomed(false)}
+                  className="tactile-btn absolute top-4 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div>
+                  <h4 className="text-base font-black text-slate-900">📲 Quét Mã QR Chuyển Khoản</h4>
+                  <p className="text-xs text-slate-500 font-bold mt-0.5">{bankName} • {accountName}</p>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-2xl border-2 border-slate-200 inline-block shadow-inner">
+                  <img
+                    src={qrUrl}
+                    alt="Mã QR Chuyển Khoản Phóng To"
+                    className="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-xl mx-auto"
+                  />
+                </div>
+
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-left space-y-1 font-mono text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">STK:</span>
+                    <span className="font-black text-slate-900">{accountNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Số tiền:</span>
+                    <span className="font-black text-emerald-600">{Number(amount).toLocaleString('vi-VN')} đ</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Nội dung:</span>
+                    <span className="font-black text-blue-600 truncate">{transferSyntax}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadQr}
+                    className="tactile-btn flex-1 py-2.5 rounded-xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white text-xs font-black shadow-md transition"
+                  >
+                    📥 Tải Ảnh QR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(accountNumber, 'Số tài khoản')}
+                    className="tactile-btn px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black transition"
+                  >
+                    Sao Chép STK
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Month Multi-Select */}
           <div>
