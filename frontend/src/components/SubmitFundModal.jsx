@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,21 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
-  const standardFeePerMonth = user?.monthlyFund || 200000;
+  // Query live Fund & Bank configuration
+  const { data: configRes } = useQuery({
+    queryKey: ['fund-config'],
+    queryFn: () => api.get('/config/fund'),
+    enabled: isOpen
+  });
+
+  const config = configRes?.data || {};
+  const standardFeePerMonth = config.monthlyFee || user?.monthlyFund || 100000;
+  const bankName = config.bankName || 'MB Bank';
+  const bankCode = config.bankCode || 'MB';
+  const accountNumber = config.accountNumber || '0352526868';
+  const accountName = config.accountName || 'TRAN DUC HOANG';
+  const transferPrefix = config.transferPrefix || 'FCNHATRE';
+  const customQrUrl = config.customQrUrl || '';
 
   // Generate available months (previous month, current month, and next 4 months)
   const now = new Date();
@@ -37,6 +51,12 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   const [proofImage, setProofImage] = useState('');
   const [note, setNote] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  useEffect(() => {
+    if (config.monthlyFee && selectedMonths.length > 0) {
+      setAmount(selectedMonths.length * config.monthlyFee);
+    }
+  }, [config.monthlyFee, selectedMonths.length]);
 
   // Toggle month selection
   const toggleMonth = (monthValue) => {
@@ -122,8 +142,11 @@ export default function SubmitFundModal({ isOpen, onClose }) {
 
   // Build VietQR description
   const monthLabelsForQR = selectedMonths.map(m => m.split('-')[1]).join('-');
-  const transferSyntax = `FCNHATRE ${user?.name ? user.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase() : 'MEM'} T${monthLabelsForQR}`;
-  const qrUrl = `https://img.vietqr.io/image/MB-0352526868-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferSyntax)}&accountName=TRAN%20DUC%20HOANG`;
+  const safeUserName = user?.name
+    ? user.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase()
+    : 'MEM';
+  const transferSyntax = `${transferPrefix} ${safeUserName} T${monthLabelsForQR}`;
+  const qrUrl = customQrUrl || `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferSyntax)}&accountName=${encodeURIComponent(accountName)}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in overflow-y-auto">
@@ -157,14 +180,14 @@ export default function SubmitFundModal({ isOpen, onClose }) {
             <div className="bg-white p-2 rounded-xl shrink-0 shadow-sm">
               <img
                 src={qrUrl}
-                alt="VietQR Đóng Quỹ"
+                alt="QR Đóng Quỹ"
                 className="w-28 h-28 object-contain rounded-lg"
               />
             </div>
             <div className="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
-              <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Thông Tin Thụ Hưởng MB Bank</span>
-              <div className="font-mono text-base font-black text-white tracking-tight">0352526868</div>
-              <div className="text-xs font-bold text-slate-300 uppercase">TRAN DUC HOANG</div>
+              <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Thông Tin Thụ Hưởng {bankName}</span>
+              <div className="font-mono text-base font-black text-white tracking-tight">{accountNumber}</div>
+              <div className="text-xs font-bold text-slate-300 uppercase">{accountName}</div>
               <div className="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 font-mono truncate">
                 Cú pháp: <span className="text-emerald-400 font-black">{transferSyntax}</span>
               </div>

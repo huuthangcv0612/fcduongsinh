@@ -223,19 +223,27 @@ async function approveFundSubmission(req, res, next) {
       });
 
       if (!monthlyFund) {
-        monthlyFund = new MonthlyFund({
+        monthlyFund = await MonthlyFund.create({
           year,
           memberName: submission.memberName,
           userId: submission.userId,
-          months: {}
+          months: { [monthKey]: perMonthAmount }
         });
-      } else if (!monthlyFund.userId) {
-        monthlyFund.userId = submission.userId;
+      } else {
+        if (!monthlyFund.userId) {
+          monthlyFund.userId = submission.userId;
+        }
+        await MonthlyFund.findByIdAndUpdate(
+          monthlyFund._id,
+          { 
+            $set: { 
+              [`months.${monthKey}`]: perMonthAmount,
+              userId: submission.userId,
+              memberName: submission.memberName
+            } 
+          }
+        );
       }
-
-      monthlyFund.months = monthlyFund.months || {};
-      monthlyFund.months[monthKey] = perMonthAmount;
-      await monthlyFund.save();
 
       // 2. Create income Finance record in general ledger
       const financeDoc = await Finance.create({

@@ -11,7 +11,8 @@ import MonthlyFundGrid from '../components/MonthlyFundGrid';
 import SendFundEmailModal from '../components/SendFundEmailModal';
 import SubmitFundModal from '../components/SubmitFundModal';
 import FundSubmissionReviewModal from '../components/FundSubmissionReviewModal';
-import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail, CreditCard, Inbox, CheckCircle2, Clock, XCircle, Eye } from 'lucide-react';
+import FundConfigModal from '../components/FundConfigModal';
+import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail, CreditCard, Inbox, CheckCircle2, Clock, XCircle, Eye, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function FinancesPage() {
@@ -25,6 +26,7 @@ export default function FinancesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showSubmitFundModal, setShowSubmitFundModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [selectedReviewSubmission, setSelectedReviewSubmission] = useState(null);
   
   const [searchParams, setSearchParams] = useSearchParams();
@@ -189,6 +191,15 @@ export default function FinancesPage() {
 
           {isManager && (
             <>
+              <button
+                onClick={() => setShowConfigModal(true)}
+                className="tactile-btn flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs sm:text-sm shadow-md shadow-purple-600/25 transition"
+                title="Cấu hình tài khoản ngân hàng và mức đóng quỹ"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Cấu Hình Quỹ</span>
+              </button>
+
               <button
                 onClick={() => setShowEmailModal(true)}
                 className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md transition"
@@ -424,6 +435,12 @@ export default function FinancesPage() {
         submission={selectedReviewSubmission}
         isOpen={!!selectedReviewSubmission}
         onClose={handleCloseReviewModal}
+      />
+
+      {/* Fund Configuration Modal for Treasurer / Admin */}
+      <FundConfigModal
+        isOpen={showConfigModal}
+        onClose={() => setShowConfigModal(false)}
       />
 
       {/* Add Single Transaction Modal */}

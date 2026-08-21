@@ -15,6 +15,7 @@ const userController = require('../controllers/userController');
 const mediaController = require('../controllers/mediaController');
 const uploadController = require('../controllers/uploadController');
 const notificationController = require('../controllers/NotificationController');
+const configController = require('../controllers/configController');
 
 // --- Auth & Upload Routes ---
 router.post('/auth/google', authController.googleAuth);
@@ -59,6 +60,10 @@ router.get('/fund-submissions', authMiddleware, fundSubmissionController.getFund
 router.get('/fund-submissions/:id', authMiddleware, fundSubmissionController.getFundSubmissionById);
 router.put('/fund-submissions/:id/approve', authMiddleware, treasurerOrAdminMiddleware, fundSubmissionController.approveFundSubmission);
 router.put('/fund-submissions/:id/reject', authMiddleware, treasurerOrAdminMiddleware, fundSubmissionController.rejectFundSubmission);
+
+// --- Fund & Bank Configuration Routes ---
+router.get('/config/fund', authMiddleware, configController.getFundConfig);
+router.put('/config/fund', authMiddleware, treasurerOrAdminMiddleware, configController.updateFundConfig);
 
 // --- Opponent & AI Routes ---
 router.get('/opponents', authMiddleware, opponentController.getOpponents);
