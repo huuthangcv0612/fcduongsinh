@@ -2,34 +2,53 @@ import React from 'react';
 
 export default function StatCard({ title, value, subtext, icon: Icon, color = 'emerald' }) {
   const colorMap = {
-    emerald: 'from-emerald-500/10 to-teal-500/5 border-emerald-300 text-emerald-900 icon-emerald',
-    cyan: 'from-cyan-500/10 to-blue-500/5 border-cyan-300 text-cyan-900 icon-cyan',
-    violet: 'from-violet-500/10 to-purple-500/5 border-violet-300 text-violet-900 icon-violet',
-    rose: 'from-rose-500/10 to-pink-500/5 border-rose-300 text-rose-900 icon-rose',
-    amber: 'from-amber-500/10 to-yellow-500/5 border-amber-300 text-amber-900 icon-amber',
+    emerald: {
+      bg: 'bg-emerald-50/70',
+      border: 'border-emerald-200/80',
+      text: 'text-emerald-700',
+      iconBg: 'bg-emerald-100 text-emerald-700 border-emerald-300/60'
+    },
+    cyan: {
+      bg: 'bg-blue-50/70',
+      border: 'border-blue-200/80',
+      text: 'text-blue-700',
+      iconBg: 'bg-blue-100 text-blue-700 border-blue-300/60'
+    },
+    rose: {
+      bg: 'bg-rose-50/70',
+      border: 'border-rose-200/80',
+      text: 'text-rose-700',
+      iconBg: 'bg-rose-100 text-rose-700 border-rose-300/60'
+    },
+    amber: {
+      bg: 'bg-amber-50/70',
+      border: 'border-amber-200/80',
+      text: 'text-amber-700',
+      iconBg: 'bg-amber-100 text-amber-700 border-amber-300/60'
+    },
   };
 
-  const style = colorMap[color] || colorMap.emerald;
+  const scheme = colorMap[color] || colorMap.emerald;
 
   return (
-    <div className={`glass-panel rounded-3xl p-5 border bg-gradient-to-br ${style.split(' ')[0]} ${style.split(' ')[1]} ${style.split(' ')[2]} shadow-md flex items-center justify-between bg-white`}>
+    <div className={`tactile-btn rounded-3xl p-5 border ${scheme.border} bg-white shadow-sm hover:shadow-md transition flex items-center justify-between`}>
       <div>
-        <span className="text-xs font-black uppercase tracking-wider text-slate-700 block mb-1">
+        <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block mb-1">
           {title}
         </span>
-        <h4 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+        <h4 className={`text-xl sm:text-2xl font-black font-mono-numbers ${scheme.text} tracking-tight`}>
           {value}
         </h4>
         {subtext && (
-          <p className="text-xs text-slate-700 mt-1 font-bold">
+          <p className="text-[11px] text-slate-400 mt-1 font-bold">
             {subtext}
           </p>
         )}
       </div>
 
       {Icon && (
-        <div className="p-3.5 rounded-2xl bg-white border border-slate-300 shadow-sm text-emerald-700">
-          <Icon className="w-6 h-6" />
+        <div className={`p-3 rounded-2xl border ${scheme.iconBg} shadow-xs flex items-center justify-center shrink-0`}>
+          <Icon className="w-5 h-5" />
         </div>
       )}
     </div>

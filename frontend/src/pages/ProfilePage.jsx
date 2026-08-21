@@ -199,25 +199,25 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-20 md:pb-0">
       {/* High-Contrast Hero Banner */}
-      <div className="rounded-3xl p-6 sm:p-8 border-2 border-emerald-600 relative overflow-hidden bg-gradient-to-r from-emerald-800 via-teal-800 to-cyan-900 text-white shadow-xl">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="rounded-3xl p-6 sm:p-8 border border-blue-400/30 relative overflow-hidden bg-gradient-to-br from-[#1e2b99] via-[#2c3ec4] to-[#121966] text-white shadow-2xl">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-blue-400/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
           <div className="relative group">
             <img
               src={formData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
               alt={formData.name}
-              className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl object-cover border-4 border-white shadow-2xl shadow-emerald-900/30"
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl object-cover border-4 border-white/80 shadow-2xl shadow-blue-950/40"
             />
             
             {/* Instant Cloudinary Upload Button */}
-            <label className="absolute inset-0 bg-slate-900/70 rounded-3xl flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer">
+            <label className="absolute inset-0 bg-slate-900/75 rounded-3xl flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer backdrop-blur-xs">
               {uploading ? (
-                <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
+                <RefreshCw className="w-6 h-6 animate-spin text-amber-300" />
               ) : (
                 <>
-                  <Upload className="w-6 h-6 mb-1" />
-                  <span className="text-[10px] font-black uppercase">{t('profile.change_photo')}</span>
+                  <Upload className="w-6 h-6 mb-1 text-white" />
+                  <span className="text-[10px] font-black uppercase tracking-wide">{t('profile.change_photo')}</span>
                 </>
               )}
               <input
@@ -231,8 +231,8 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/20 border border-emerald-300/40 text-emerald-200 text-xs font-black uppercase tracking-wider backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-300" /> {t('profile.personal_info')}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-white text-xs font-black uppercase tracking-wider backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" /> {t('profile.personal_info')}
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center sm:justify-start gap-2 drop-shadow-md">
@@ -242,13 +242,13 @@ export default function ProfilePage() {
                   {t('profile.admin')}
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-300 text-emerald-950 font-black text-xs uppercase font-mono shadow-sm">
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-400 text-emerald-950 font-black text-xs uppercase font-mono shadow-sm">
                   {t('profile.member')}
                 </span>
               )}
             </h2>
 
-            <p className="text-xs sm:text-sm text-slate-100 font-bold font-mono">
+            <p className="text-xs sm:text-sm text-white/80 font-bold font-mono">
               {user?.email}
             </p>
           </div>
@@ -256,23 +256,23 @@ export default function ProfilePage() {
       </div>
 
       {savedSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-950 text-sm font-black flex items-center gap-2 shadow-sm">
-          <CheckCircle2 className="w-5 h-5 text-emerald-700" />
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-sm font-black flex items-center gap-2 shadow-sm animate-fade-in">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           <span>{t('profile.update_success')}</span>
         </div>
       )}
 
       {/* Main Profile Form Card */}
-      <div className="glass-card-white rounded-3xl p-6 sm:p-8 border border-slate-300 bg-white shadow-md">
+      <div className="rounded-3xl p-6 sm:p-8 border border-slate-200/80 bg-white shadow-sm">
         <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
-          <User className="w-5 h-5 text-emerald-700" />
+          <User className="w-5 h-5 text-[#2c3ec4]" />
           <span>{t('profile.edit_profile')}</span>
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
                 {t('profile.full_name')}
               </label>
               <input
@@ -280,12 +280,12 @@ export default function ProfilePage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
                 {t('profile.phone')}
               </label>
               <div className="relative">
@@ -294,20 +294,20 @@ export default function ProfilePage() {
                   placeholder="0901234567"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500 pl-10"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 pl-10"
                 />
-                <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
                 {t('profile.position')}
               </label>
               <select
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="Thủ môn" className="bg-white text-slate-900">{t('profile.pos_gk')}</option>
                 <option value="Hậu vệ" className="bg-white text-slate-900">{t('profile.pos_df')}</option>
@@ -318,9 +318,9 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
                 <span>{t('profile.avatar')}</span>
-                {uploading && <span className="text-emerald-700 font-bold animate-pulse">{t('profile.uploading')}</span>}
+                {uploading && <span className="text-blue-600 font-bold animate-pulse">{t('profile.uploading')}</span>}
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -328,9 +328,9 @@ export default function ProfilePage() {
                   placeholder="https://..."
                   value={formData.avatar}
                   onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                  className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-emerald-500"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
-                <label className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm">
+                <label className="tactile-btn px-4 py-3 rounded-xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm">
                   <Upload className="w-4 h-4" />
                   <span>{t('profile.choose_image')}</span>
                   <input
@@ -345,25 +345,25 @@ export default function ProfilePage() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
                 <span>{t('profile.receive_notification')}</span>
               </label>
               <div className="flex items-center gap-3">
                 {pushStatus === 'granted' ? (
-                  <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200 w-full shadow-sm">
-                    <BellRing className="w-5 h-5" />
+                  <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200 w-full shadow-xs">
+                    <BellRing className="w-5 h-5 text-emerald-600" />
                     {t('profile.notification_on')}
                   </div>
                 ) : pushStatus === 'denied' ? (
-                  <div className="flex items-center gap-2 text-rose-700 font-bold bg-rose-50 px-4 py-3 rounded-xl border border-rose-200 w-full shadow-sm">
-                    <BellOff className="w-5 h-5" />
+                  <div className="flex items-center gap-2 text-rose-700 font-bold bg-rose-50 px-4 py-3 rounded-xl border border-rose-200 w-full shadow-xs">
+                    <BellOff className="w-5 h-5 text-rose-600" />
                     {t('profile.notification_off')}
                   </div>
                 ) : (
                   <button
                     type="button"
                     onClick={handleSubscribePush}
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 rounded-xl px-4 py-3 text-sm font-black flex items-center justify-center gap-2 shadow-sm transition"
+                    className="tactile-btn w-full bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 rounded-xl px-4 py-3 text-sm font-black flex items-center justify-center gap-2 shadow-sm transition"
                   >
                     <Bell className="w-5 h-5" />
                     {t('profile.turn_on_notification')}
@@ -372,32 +372,31 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="sm:col-span-2 mt-4 pt-4 border-t border-slate-200">
-              <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Globe className="w-4 h-4" />
+            <div className="sm:col-span-2 mt-2 pt-4 border-t border-slate-100">
+              <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-[#2c3ec4]" />
                 {t('profile.language_settings')}
               </h4>
-              <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-300">
-                <span className="text-sm font-bold text-slate-700">{t('profile.language')}</span>
-                <div className="flex bg-white border border-slate-300 rounded-lg overflow-hidden shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <span className="text-xs font-bold text-slate-700">{t('profile.language')}</span>
+                <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-xs gap-1">
                   <button
                     type="button"
                     onClick={() => {
                       i18n.changeLanguage('vi');
                       localStorage.setItem('appLanguage', 'vi');
                     }}
-                    className={`px-4 py-2 text-sm font-bold transition ${i18n.language === 'vi' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                    className={`tactile-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition ${i18n.language === 'vi' ? 'bg-[#2c3ec4] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'}`}
                   >
                     🇻🇳 Tiếng Việt
                   </button>
-                  <div className="w-px bg-slate-300"></div>
                   <button
                     type="button"
                     onClick={() => {
                       i18n.changeLanguage('en');
                       localStorage.setItem('appLanguage', 'en');
                     }}
-                    className={`px-4 py-2 text-sm font-bold transition ${i18n.language === 'en' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                    className={`tactile-btn px-3.5 py-1.5 rounded-lg text-xs font-black transition ${i18n.language === 'en' ? 'bg-[#2c3ec4] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'}`}
                   >
                     🇬🇧 English
                   </button>
@@ -406,14 +405,14 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-stretch sm:justify-end">
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-stretch sm:justify-end">
+            <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
 
               {isAdmin && (
                 <button
                   type="button"
                   onClick={() => navigate('/admin/notifications')}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
+                  className="tactile-btn w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md transition"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>{t('profile.admin_notification')}</span>
@@ -422,7 +421,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
+                className="tactile-btn w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md transition"
               >
                 <LogOut className="w-4 h-4" />
                 <span>{t('profile.logout')}</span>
@@ -431,7 +430,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleReloadLatest}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-md transition transform hover:-translate-y-0.5"
+                className="tactile-btn w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs shadow-md transition"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>{t('profile.load_latest')}</span>
@@ -440,7 +439,7 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={updateProfileMutation.isPending || uploading}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5 disabled:opacity-50"
+                className="tactile-btn w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs shadow-md shadow-blue-600/20 transition disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 <span>{updateProfileMutation.isPending ? t('profile.saving') : t('profile.save_changes')}</span>

@@ -138,14 +138,14 @@ export default function FinancesPage() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setShowEmailModal(true)}
-              className="flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black text-xs sm:text-sm shadow-md shadow-slate-800/30 transition"
+              className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md transition"
             >
               <Mail className="w-4 h-4 text-emerald-400" />
               <span>{t('finances.send_email_btn')}</span>
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/30 transition"
+              className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs sm:text-sm shadow-md shadow-blue-600/30 transition"
             >
               <Plus className="w-4 h-4" />
               <span>{t('finances.add_transaction_btn')}</span>
@@ -182,13 +182,13 @@ export default function FinancesPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-300 pb-2 overflow-x-auto" style={{scrollbarWidth:'none'}}>
+      <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/80 self-start">
         <button
           onClick={() => setActiveTab('monthly_grid')}
-          className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
+          className={`tactile-btn px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'monthly_grid'
-              ? 'bg-emerald-700 text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-300'
+              ? 'bg-[#2c3ec4] text-white shadow-md'
+              : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
           }`}
         >
           <Table className="w-3.5 h-3.5" />
@@ -197,10 +197,10 @@ export default function FinancesPage() {
 
         <button
           onClick={() => setActiveTab('transactions')}
-          className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
+          className={`tactile-btn px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'transactions'
-              ? 'bg-emerald-700 text-white shadow-md'
-              : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-300'
+              ? 'bg-[#2c3ec4] text-white shadow-md'
+              : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
           }`}
         >
           <ListFilter className="w-3.5 h-3.5" />
