@@ -17,8 +17,8 @@ export default function MobileNav() {
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 px-1.5 py-2 shadow-2xl">
-      <div className="grid grid-cols-7 items-stretch gap-0.5">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-2xl border-t border-slate-200/80 px-1.5 pt-1.5 pb-[max(env(safe-area-inset-bottom,0px),8px)] shadow-[0_-4px_24px_rgba(15,23,42,0.08)]">
+      <div className="grid grid-cols-7 items-stretch gap-1 max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -26,23 +26,23 @@ export default function MobileNav() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 transition-all duration-200 ${
+                `tactile-btn flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl py-1.5 px-0.5 transition-all duration-200 min-h-[44px] ${
                   isActive
-                    ? 'text-[#2c3ec4] scale-105'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'text-[#2c3ec4] bg-blue-50/90 shadow-sm border border-blue-200/50 font-black scale-100'
+                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-bold'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
                   <Icon className="w-4 h-4" strokeWidth={isActive ? 2.5 : 2} />
-                  <span className="text-[8px] leading-tight font-black tracking-wide text-center whitespace-normal break-words max-w-[3.6rem]">{item.label}</span>
+                  <span className="text-[8.5px] leading-tight tracking-tight text-center truncate max-w-full">{item.label}</span>
                 </>
               )}
             </NavLink>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **fcnhatre** (898 symbols, 1904 relationships, 67 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **fcnhatre** (908 symbols, 1930 relationships, 71 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -50,4 +50,3 @@ This project is indexed by GitNexus as **fcnhatre** (898 symbols, 1904 relations
 ## Workflow Rules
 - **MUST update GitNexus after adding or modifying code.** Always run `npx gitnexus analyze` whenever new code or changes are made, to keep the knowledge graph and symbols up to date.
 - **NEVER finish a task that adds or modifies code without running `npx gitnexus analyze` to refresh the index.**
-
