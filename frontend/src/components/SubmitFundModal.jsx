@@ -347,8 +347,8 @@ export default function SubmitFundModal({ isOpen, onClose }) {
             <div className="relative">
               <input
                 type="number"
-                min="1000"
-                step="10000"
+                min="0"
+                step="1000"
                 required
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}

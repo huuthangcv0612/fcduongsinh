@@ -469,7 +469,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
                   <input
                     type="number"
                     min="0"
-                    step="10000"
+                    step="1000"
                     autoFocus
                     value={editingCell.value}
                     onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}

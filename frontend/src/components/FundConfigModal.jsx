@@ -200,8 +200,8 @@ export default function FundConfigModal({ isOpen, onClose }) {
                 <input
                   type="number"
                   required
-                  min="1000"
-                  step="10000"
+                  min="0"
+                  step="1000"
                   value={formData.monthlyFee}
                   onChange={(e) => setFormData({ ...formData, monthlyFee: Number(e.target.value) })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-black font-mono-numbers focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
