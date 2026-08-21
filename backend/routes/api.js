@@ -24,6 +24,10 @@ router.post('/upload/avatar', authMiddleware, uploadController.uploadAvatar);
 // --- Match Routes ---
 router.get('/matches', authMiddleware, matchController.getMatches);
 router.get('/matches/force-checkin', authMiddleware, matchController.getForceCheckInMatch);
+router.get('/matches/force-mvp-vote', authMiddleware, matchController.getForceMvpVoteMatch);
+router.get('/matches/:id/mvp-stats', authMiddleware, matchController.getMatchMvpStats);
+router.post('/matches/:id/vote-mvp', authMiddleware, matchController.voteMvp);
+router.post('/matches/:id/finalize-mvp', authMiddleware, adminMiddleware, matchController.finalizeMvp);
 router.post('/matches', authMiddleware, adminMiddleware, matchController.createMatch);
 router.put('/matches/:id/checkin', authMiddleware, matchController.updateCheckIn);
 router.put('/matches/:id', authMiddleware, adminMiddleware, matchController.updateMatch);

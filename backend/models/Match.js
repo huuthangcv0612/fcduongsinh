@@ -97,6 +97,38 @@ const MatchSchema = new mongoose.Schema({
   },
   scorers: [ScorerSchema],
   checkInList: [CheckInItemSchema],
+  mvpVotes: [{
+    voterId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    candidateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    votedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  isMvpVotingOpen: {
+    type: Boolean,
+    default: false
+  },
+  isMvpFinalized: {
+    type: Boolean,
+    default: false
+  },
+  motmReason: {
+    type: String,
+    default: ''
+  },
+  resultNotified: {
+    type: Boolean,
+    default: false
+  },
   notes: {
     type: String,
     default: ''

@@ -238,6 +238,134 @@ async function updateMatch(req, res, next) {
   }
 }
 
+// 🏆 HELPER: CALCULATE MVP WINNER & TIE-BREAKER
+async function calculateMatchMvp(match) {
+  if (!match.populated('checkInList.userId')) {
+    await match.populate('checkInList.userId', 'name email avatar position');
+  }
+
+  const joinedItems = (match.checkInList || []).filter(c => c.status === 'joined' && c.userId);
+  if (joinedItems.length === 0) {
+    match.isMvpFinalized = true;
+    await match.save();
+    return null;
+  }
+
+  // 1. Tally votes per candidate
+  const voteCounts = {};
+  joinedItems.forEach(item => {
+    const uid = (item.userId._id || item.userId).toString();
+    voteCounts[uid] = 0;
+  });
+
+  (match.mvpVotes || []).forEach(vote => {
+    const cid = vote.candidateId?.toString();
+    if (voteCounts[cid] !== undefined) {
+      voteCounts[cid]++;
+    }
+  });
+
+  // Find max vote count
+  let maxVotes = -1;
+  Object.values(voteCounts).forEach(v => {
+    if (v > maxVotes) maxVotes = v;
+  });
+
+  const topCandidates = joinedItems.filter(item => {
+    const uid = (item.userId._id || item.userId).toString();
+    return voteCounts[uid] === maxVotes;
+  });
+
+  let winnerItem = null;
+  let motmReason = '';
+
+  if (topCandidates.length === 1) {
+    winnerItem = topCandidates[0];
+    motmReason = `Đa số phiếu bầu (${maxVotes} phiếu)`;
+  } else if (topCandidates.length > 1) {
+    // Tie-breaker 1: Goals + Assists from match.scorers
+    const contribMap = {};
+    topCandidates.forEach(item => {
+      const uName = item.userId.name?.trim().toLowerCase();
+      let goals = 0;
+      let assists = 0;
+      (match.scorers || []).forEach(s => {
+        if (s.playerName?.trim().toLowerCase() === uName) {
+          goals += Number(s.count) || 1;
+        }
+        if (s.assisterName?.trim().toLowerCase() === uName) {
+          assists += Number(s.count) || 1;
+        }
+      });
+      const uid = (item.userId._id || item.userId).toString();
+      contribMap[uid] = goals + assists;
+    });
+
+    let maxContrib = -1;
+    topCandidates.forEach(item => {
+      const uid = (item.userId._id || item.userId).toString();
+      const c = contribMap[uid];
+      if (c > maxContrib) maxContrib = c;
+    });
+
+    const topByContrib = topCandidates.filter(item => {
+      const uid = (item.userId._id || item.userId).toString();
+      return contribMap[uid] === maxContrib;
+    });
+
+    if (topByContrib.length === 1 && maxContrib > 0) {
+      winnerItem = topByContrib[0];
+      motmReason = `Hòa phiếu (${maxVotes} phiếu), ưu tiên G+A (${maxContrib} bàn + kiến tạo)`;
+    } else {
+      // Tie-breaker 2: Random among top tied candidates!
+      const randomIndex = Math.floor(Math.random() * topByContrib.length);
+      winnerItem = topByContrib[randomIndex];
+      motmReason = `Hòa phiếu (${maxVotes} phiếu)${maxContrib > 0 ? ` & G+A (${maxContrib})` : ''}, phân định bằng Random May Mắn 🎲`;
+    }
+  }
+
+  if (winnerItem && winnerItem.userId) {
+    match.motm = winnerItem.userId.name;
+    match.motmReason = motmReason;
+    match.isMvpFinalized = true;
+    await match.save();
+
+    // Recalculate stats for all users
+    await recalculateUserStats();
+
+    // Send MVP Announcement Notification (in-app & web push)
+    try {
+      const title = '🎉 Vinh danh MVP Trận Đấu!';
+      const message = `Chúc mừng ${winnerItem.userId.name} đã trở thành Cầu thủ xuất sắc nhất (MVP) trận ngày ${match.date}! (${motmReason})`;
+      const link = '/matches';
+
+      await Notification.create({
+        recipient: null,
+        title,
+        message,
+        type: 'match',
+        link
+      });
+
+      const subscriptions = await PushSubscription.find();
+      const pushPayload = { title, body: message, url: link, type: 'match' };
+      subscriptions.forEach(async (sub) => {
+        try {
+          await sendNotification(sub.subscription, pushPayload);
+        } catch (err) {
+          if (err.message === 'SubscriptionExpired') {
+            await PushSubscription.findByIdAndDelete(sub._id);
+          }
+        }
+      });
+    } catch (pushErr) {
+      console.error('Failed to send MVP push notification:', pushErr);
+    }
+  }
+
+  return winnerItem;
+}
+
 // ⚽ UPDATE MATCH RESULT & GOAL SCORERS (Admin)
 async function updateMatchResult(req, res, next) {
   try {
@@ -267,7 +395,46 @@ async function updateMatchResult(req, res, next) {
       match.motm = req.body.motm;
     }
 
-    match.status = status || 'completed';
+    const newStatus = status || 'completed';
+    match.status = newStatus;
+
+    if (newStatus === 'completed') {
+      match.isMvpVotingOpen = true;
+
+      // Dispatch Result & MVP Vote Notification if not notified yet
+      if (!match.resultNotified) {
+        try {
+          const title = '⚽ Kết quả trận đấu & Bình chọn MVP!';
+          const message = `Trận đấu ngày ${match.date} đã kết thúc (${match.score.homeScore} - ${match.score.awayScore}). Hãy vào App để bình chọn MVP trận đấu ngay nhé!`;
+          const link = '/matches';
+
+          await Notification.create({
+            recipient: null,
+            title,
+            message,
+            type: 'match',
+            link
+          });
+
+          const subscriptions = await PushSubscription.find();
+          const pushPayload = { title, body: message, url: link, type: 'match' };
+          subscriptions.forEach(async (sub) => {
+            try {
+              await sendNotification(sub.subscription, pushPayload);
+            } catch (err) {
+              if (err.message === 'SubscriptionExpired') {
+                await PushSubscription.findByIdAndDelete(sub._id);
+              }
+            }
+          });
+
+          match.resultNotified = true;
+        } catch (notifErr) {
+          console.error('Error dispatching result notification:', notifErr);
+        }
+      }
+    }
+
     await match.save();
 
     // Recalculate stats for all users
@@ -450,10 +617,323 @@ async function notifyMatchPush(req, res, next) {
   }
 }
 
+// 🗳️ GET PENDING FORCE MVP VOTE MATCH
+async function getForceMvpVoteMatch(req, res, next) {
+  try {
+    const userId = req.user._id.toString();
+
+    // Find completed matches where voting is open
+    const matches = await Match.find({
+      status: 'completed',
+      isMvpVotingOpen: true,
+      'checkInList': {
+        $elemMatch: {
+          userId: req.user._id,
+          status: 'joined'
+        }
+      }
+    })
+      .sort({ date: -1 })
+      .populate('checkInList.userId', 'name email avatar position')
+      .populate('mvpVotes.voterId', 'name avatar')
+      .populate('mvpVotes.candidateId', 'name avatar')
+      .lean();
+
+    // Find the latest completed match where user hasn't voted yet
+    const pendingMatch = matches.find(match => {
+      const hasVoted = (match.mvpVotes || []).some(
+        v => (v.voterId?._id?.toString() || v.voterId?.toString()) === userId
+      );
+      return !hasVoted;
+    });
+
+    if (!pendingMatch) {
+      return res.json({
+        success: true,
+        data: null
+      });
+    }
+
+    // Filter joined members (eligible candidates)
+    const joinedCandidates = (pendingMatch.checkInList || [])
+      .filter(item => item.status === 'joined' && item.userId)
+      .map(item => ({
+        _id: item.userId._id,
+        name: item.userId.name,
+        avatar: item.userId.avatar,
+        position: item.userId.position
+      }));
+
+    // Calculate current live votes tally
+    const voteCounts = {};
+    joinedCandidates.forEach(c => {
+      voteCounts[c._id.toString()] = 0;
+    });
+
+    (pendingMatch.mvpVotes || []).forEach(v => {
+      const cid = (v.candidateId?._id || v.candidateId)?.toString();
+      if (voteCounts[cid] !== undefined) {
+        voteCounts[cid]++;
+      }
+    });
+
+    const totalVotes = pendingMatch.mvpVotes?.length || 0;
+    const totalJoined = joinedCandidates.length;
+
+    const candidatesWithStats = joinedCandidates.map(c => {
+      const votes = voteCounts[c._id.toString()] || 0;
+      const pct = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+      
+      // Calculate goals & assists in this match
+      let goals = 0;
+      let assists = 0;
+      (pendingMatch.scorers || []).forEach(s => {
+        if (s.playerName?.trim().toLowerCase() === c.name?.trim().toLowerCase()) {
+          goals += Number(s.count) || 1;
+        }
+        if (s.assisterName?.trim().toLowerCase() === c.name?.trim().toLowerCase()) {
+          assists += Number(s.count) || 1;
+        }
+      });
+
+      return {
+        ...c,
+        voteCount: votes,
+        votePercentage: pct,
+        goals,
+        assists
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...pendingMatch,
+        candidates: candidatesWithStats,
+        totalVotes,
+        totalJoined
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// 🗳️ SUBMIT MVP VOTE
+async function voteMvp(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { candidateId } = req.body;
+
+    if (!candidateId) {
+      throw new AppError('VALIDATION_ERROR', 'Vui lòng chọn cầu thủ bạn muốn bình chọn MVP', 400);
+    }
+
+    const match = await Match.findById(id);
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    if (match.status !== 'completed') {
+      throw new AppError('CONFLICT', 'Trận đấu chưa kết thúc, không thể bình chọn MVP', 409);
+    }
+
+    if (!match.isMvpVotingOpen) {
+      throw new AppError('CONFLICT', 'Cổng bình chọn MVP cho trận đấu này đã đóng', 409);
+    }
+
+    const userIdStr = req.user._id.toString();
+
+    // Check if voter joined this match
+    const voterCheckIn = match.checkInList.find(
+      c => c.userId.toString() === userIdStr && c.status === 'joined'
+    );
+    if (!voterCheckIn) {
+      throw new AppError('FORBIDDEN', 'Chỉ những thành viên tham gia trận đấu này mới được quyền bình chọn MVP', 403);
+    }
+
+    // Check if candidate joined this match
+    const candidateCheckIn = match.checkInList.find(
+      c => c.userId.toString() === candidateId.toString() && c.status === 'joined'
+    );
+    if (!candidateCheckIn) {
+      throw new AppError('VALIDATION_ERROR', 'Cầu thủ được chọn không nằm trong danh sách tham gia trận đấu', 400);
+    }
+
+    // Check if already voted
+    const existingVote = match.mvpVotes.find(
+      v => v.voterId.toString() === userIdStr
+    );
+    if (existingVote) {
+      throw new AppError('CONFLICT', 'Bạn đã bình chọn MVP cho trận đấu này rồi', 409);
+    }
+
+    match.mvpVotes.push({
+      voterId: req.user._id,
+      candidateId: candidateId,
+      votedAt: new Date()
+    });
+
+    const joinedCount = match.checkInList.filter(c => c.status === 'joined').length;
+
+    // If 100% of joined members have voted, finalize MVP
+    if (match.mvpVotes.length >= joinedCount) {
+      await calculateMatchMvp(match);
+    } else {
+      await match.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Bình chọn MVP thành công!',
+      data: {
+        isFinalized: match.isMvpFinalized,
+        motm: match.motm,
+        motmReason: match.motmReason,
+        totalVotes: match.mvpVotes.length,
+        totalJoined: joinedCount
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// 👑 ADMIN: FINALIZE MVP MANUALLY
+async function finalizeMvp(req, res, next) {
+  try {
+    const { id } = req.params;
+    const match = await Match.findById(id);
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    const winner = await calculateMatchMvp(match);
+
+    res.json({
+      success: true,
+      message: 'Đã chốt kết quả MVP trận đấu thành công!',
+      data: {
+        motm: match.motm,
+        motmReason: match.motmReason,
+        isMvpFinalized: match.isMvpFinalized,
+        winner
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// 📊 GET DETAILED MVP STATS FOR A MATCH
+async function getMatchMvpStats(req, res, next) {
+  try {
+    const { id } = req.params;
+    const match = await Match.findById(id)
+      .populate('checkInList.userId', 'name email avatar position')
+      .populate('mvpVotes.voterId', 'name avatar')
+      .populate('mvpVotes.candidateId', 'name avatar')
+      .lean();
+
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    const joinedCandidates = (match.checkInList || [])
+      .filter(item => item.status === 'joined' && item.userId)
+      .map(item => ({
+        _id: item.userId._id,
+        name: item.userId.name,
+        avatar: item.userId.avatar,
+        position: item.userId.position
+      }));
+
+    const voteCounts = {};
+    const voterMap = {};
+    joinedCandidates.forEach(c => {
+      voteCounts[c._id.toString()] = 0;
+      voterMap[c._id.toString()] = [];
+    });
+
+    (match.mvpVotes || []).forEach(v => {
+      const cid = (v.candidateId?._id || v.candidateId)?.toString();
+      if (voteCounts[cid] !== undefined) {
+        voteCounts[cid]++;
+        if (v.voterId) {
+          voterMap[cid].push({
+            _id: v.voterId._id || v.voterId,
+            name: v.voterId.name,
+            avatar: v.voterId.avatar
+          });
+        }
+      }
+    });
+
+    const totalVotes = match.mvpVotes?.length || 0;
+    const totalJoined = joinedCandidates.length;
+
+    const candidatesWithStats = joinedCandidates.map(c => {
+      const votes = voteCounts[c._id.toString()] || 0;
+      const pct = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+      
+      let goals = 0;
+      let assists = 0;
+      (match.scorers || []).forEach(s => {
+        if (s.playerName?.trim().toLowerCase() === c.name?.trim().toLowerCase()) {
+          goals += Number(s.count) || 1;
+        }
+        if (s.assisterName?.trim().toLowerCase() === c.name?.trim().toLowerCase()) {
+          assists += Number(s.count) || 1;
+        }
+      });
+
+      return {
+        ...c,
+        voteCount: votes,
+        votePercentage: pct,
+        voters: voterMap[c._id.toString()] || [],
+        goals,
+        assists,
+        isWinner: match.motm && match.motm.trim().toLowerCase() === c.name?.trim().toLowerCase()
+      };
+    });
+
+    const userVote = (match.mvpVotes || []).find(
+      v => (v.voterId?._id || v.voterId)?.toString() === req.user._id.toString()
+    );
+
+    res.json({
+      success: true,
+      data: {
+        matchId: match._id,
+        date: match.date,
+        time: match.time,
+        stadium: match.stadium,
+        score: match.score,
+        motm: match.motm,
+        motmReason: match.motmReason,
+        isMvpVotingOpen: match.isMvpVotingOpen,
+        isMvpFinalized: match.isMvpFinalized,
+        totalVotes,
+        totalJoined,
+        hasUserVoted: !!userVote,
+        userVotedCandidateId: userVote?.candidateId?._id || userVote?.candidateId || null,
+        candidates: candidatesWithStats
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createMatch,
   getMatches,
   getForceCheckInMatch,
+  getForceMvpVoteMatch,
+  voteMvp,
+  finalizeMvp,
+  getMatchMvpStats,
   updateCheckIn,
   updateMatch,
   updateMatchResult,
@@ -462,3 +942,4 @@ module.exports = {
   notifyMatch,
   notifyMatchPush
 };
+
