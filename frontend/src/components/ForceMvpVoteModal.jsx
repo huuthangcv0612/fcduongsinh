@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
-import { Trophy, Star, CheckCircle2, Users, Calendar, MapPin } from 'lucide-react';
+import { Trophy, Star, CheckCircle2, Users, Calendar, MapPin, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import teamLogo from '../asset/logo.png';
 
@@ -10,6 +10,7 @@ export default function ForceMvpVoteModal() {
   const { t } = useTranslation();
   const [selectedCandidateId, setSelectedCandidateId] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isDismissed, setIsDismissed] = useState(false);
 
   const { data: forceRes, isLoading } = useQuery({
     queryKey: ['forceMvpVoteMatch'],
@@ -35,7 +36,7 @@ export default function ForceMvpVoteModal() {
     }
   });
 
-  if (isLoading || !pendingMatch) {
+  if (isLoading || !pendingMatch || isDismissed) {
     return null;
   }
 
@@ -80,6 +81,15 @@ export default function ForceMvpVoteModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in select-none">
       <div className="w-full max-w-xl glass-modal rounded-3xl p-5 sm:p-7 text-center relative overflow-hidden bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[90vh]">
         
+        {/* Close Button */}
+        <button
+          onClick={() => setIsDismissed(true)}
+          className="tactile-btn absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+          title="Tắt bình chọn MVP"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
         {/* Top Gold Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-gradient-to-r from-amber-100 via-yellow-100 to-amber-200 border border-amber-400 text-amber-900 text-xs font-black uppercase tracking-wider mx-auto mb-3 shadow-xs">
           <Trophy className="w-4 h-4 text-amber-600 animate-bounce" />

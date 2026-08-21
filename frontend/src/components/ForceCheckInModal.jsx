@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
-import { AlertTriangle, CheckCircle, XCircle, HelpCircle, Calendar, MapPin, Clock, DollarSign } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, HelpCircle, Calendar, MapPin, Clock, DollarSign, X } from 'lucide-react';
 
 export default function ForceCheckInModal() {
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState(null); // 'uncertain' | 'absent'
   const [reason, setReason] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isDismissed, setIsDismissed] = useState(false);
 
   const { data: forceMatchRes, isLoading } = useQuery({
     queryKey: ['forceCheckInMatch'],
@@ -32,7 +33,7 @@ export default function ForceCheckInModal() {
     }
   });
 
-  if (isLoading || !pendingMatch) {
+  if (isLoading || !pendingMatch || isDismissed) {
     return null;
   }
 
@@ -54,6 +55,15 @@ export default function ForceCheckInModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xl animate-fade-in select-none">
       <div className="w-full max-w-lg glass-modal rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden bg-white border-2 border-emerald-400 shadow-2xl">
         
+        {/* Close Button */}
+        <button
+          onClick={() => setIsDismissed(true)}
+          className="tactile-btn absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+          title="Tắt thông báo điểm danh"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
         {/* Top Warning Banner */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-xs font-black uppercase tracking-wider mb-6">
           <AlertTriangle className="w-4 h-4 animate-bounce text-amber-600" />

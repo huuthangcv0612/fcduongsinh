@@ -92,7 +92,7 @@ function ProtectedLayout() {
       <ForceCheckInModal />
       <ForceMvpVoteModal />
       <PushNotificationPrompt />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 pt-32 pb-36 sm:px-4 sm:pt-28 sm:pb-8 lg:px-8 lg:pt-32 lg:pb-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 pt-20 pb-28 md:pt-28 md:pb-12 lg:px-8 lg:pt-32 lg:pb-12">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/matches" element={<MatchesPage />} />
