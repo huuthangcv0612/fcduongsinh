@@ -200,26 +200,33 @@ export default function MatchesPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-slate-200/80 p-1 rounded-2xl border border-slate-300 self-start">
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/80 self-start">
           <button
             onClick={() => setActiveTab('upcoming')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition ${
+            className={`tactile-btn flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition ${
               activeTab === 'upcoming'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-900'
+                ? 'bg-[#2c3ec4] text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            {t('matches.upcoming')} ({matches.filter(m => m.status === 'upcoming').length})
+            <span>{t('matches.upcoming')}</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono-numbers ${activeTab === 'upcoming' ? 'bg-white/20 text-white' : 'bg-slate-300/80 text-slate-700'}`}>
+              {matches.filter(m => m.status === 'upcoming').length}
+            </span>
           </button>
+          
           <button
             onClick={() => setActiveTab('past')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition ${
+            className={`tactile-btn flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition ${
               activeTab === 'past'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-900'
+                ? 'bg-[#2c3ec4] text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            {t('matches.past')} ({matches.filter(m => m.status !== 'upcoming').length})
+            <span>{t('matches.past')}</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono-numbers ${activeTab === 'past' ? 'bg-white/20 text-white' : 'bg-slate-300/80 text-slate-700'}`}>
+              {matches.filter(m => m.status !== 'upcoming').length}
+            </span>
           </button>
         </div>
       </div>
@@ -240,7 +247,7 @@ export default function MatchesPage() {
         ))}
 
         {filteredMatches.length === 0 && (
-          <div className="col-span-full glass-card-white rounded-3xl p-12 text-center text-slate-600 font-bold bg-white">
+          <div className="col-span-full rounded-3xl p-12 text-center text-slate-500 font-bold bg-white border border-slate-200/80 shadow-sm">
             {t('matches.no_matches')}
           </div>
         )}
