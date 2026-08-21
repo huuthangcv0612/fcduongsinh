@@ -1,13 +1,12 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **fcnhatre** (886 symbols, 1894 relationships, 67 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **fcnhatre** (898 symbols, 1904 relationships, 67 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
 ## Always Do
 
-- **MUST update GitNexus after adding or modifying code.** Always run `npx gitnexus analyze` whenever new code or changes are made, to keep the knowledge graph and symbols up to date.
 - **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
 - **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "main"})`.
 - **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
@@ -17,7 +16,6 @@ This project is indexed by GitNexus as **fcnhatre** (886 symbols, 1894 relations
 
 ## Never Do
 
-- NEVER finish a task that adds or modifies code without running `npx gitnexus analyze` to refresh the index.
 - NEVER edit a function, class, or method without first running `impact` on it.
 - NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
 - NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
@@ -44,3 +42,12 @@ This project is indexed by GitNexus as **fcnhatre** (886 symbols, 1894 relations
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+---
+
+# Mandatory Project Rules
+
+## Workflow Rules
+- **MUST update GitNexus after adding or modifying code.** Always run `npx gitnexus analyze` whenever new code or changes are made, to keep the knowledge graph and symbols up to date.
+- **NEVER finish a task that adds or modifies code without running `npx gitnexus analyze` to refresh the index.**
+
