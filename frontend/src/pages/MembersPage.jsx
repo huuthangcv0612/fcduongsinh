@@ -155,9 +155,14 @@ export default function MembersPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-black text-sm sm:text-base text-slate-900 flex flex-wrap items-center gap-1.5 leading-tight">
                       <span className="truncate">{member.name}</span>
-                      {member.role === 'admin' && (
+                      {(member.role === 'admin' || (Array.isArray(member.roles) && member.roles.includes('admin'))) && (
                         <span className="px-1.5 py-0.5 rounded-md border border-amber-300 bg-amber-100 text-amber-800 text-[9px] uppercase font-black shrink-0">
                           {t('members.admin')}
+                        </span>
+                      )}
+                      {(member.role === 'treasurer' || (Array.isArray(member.roles) && member.roles.includes('treasurer'))) && (
+                        <span className="px-1.5 py-0.5 rounded-md border border-purple-300 bg-purple-100 text-purple-800 text-[9px] uppercase font-black shrink-0">
+                          💰 Thủ Quỹ
                         </span>
                       )}
                       {member.role === 'pending' && (

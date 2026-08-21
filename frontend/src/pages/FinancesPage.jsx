@@ -9,23 +9,28 @@ import StatCard from '../components/StatCard';
 import DataGridTable from '../components/DataGridTable';
 import MonthlyFundGrid from '../components/MonthlyFundGrid';
 import SendFundEmailModal from '../components/SendFundEmailModal';
-import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail } from 'lucide-react';
+import SubmitFundModal from '../components/SubmitFundModal';
+import FundSubmissionReviewModal from '../components/FundSubmissionReviewModal';
+import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail, CreditCard, Inbox, CheckCircle2, Clock, XCircle, Eye } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function FinancesPage() {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, isTreasurer, isManager } = useAuth();
   const queryClient = useQueryClient();
   const toast = useToast();
   const confirm = useConfirm();
   const { t } = useTranslation();
   
-  const [activeTab, setActiveTab] = useState('monthly_grid'); // 'monthly_grid' | 'transactions'
+  const [activeTab, setActiveTab] = useState('monthly_grid'); // 'monthly_grid' | 'submissions' | 'transactions'
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showSubmitFundModal, setShowSubmitFundModal] = useState(false);
+  const [selectedReviewSubmission, setSelectedReviewSubmission] = useState(null);
   
   const [searchParams, setSearchParams] = useSearchParams();
   const [showQRModal, setShowQRModal] = useState(false);
   const qrUrlFromParam = searchParams.get('qrUrl');
+  const submissionIdParam = searchParams.get('submissionId');
 
   useEffect(() => {
     if (qrUrlFromParam) {
@@ -58,6 +63,44 @@ export default function FinancesPage() {
     queryKey: ['finances'],
     queryFn: () => api.get('/finances')
   });
+
+  // Fund Submissions query
+  const { data: submissionsRes } = useQuery({
+    queryKey: ['fund-submissions'],
+    queryFn: () => api.get('/fund-submissions')
+  });
+
+  const submissions = Array.isArray(submissionsRes?.data) ? submissionsRes.data : [];
+  const pendingCount = submissions.filter(s => s.status === 'pending').length;
+
+  // Auto-open review modal if submissionId exists in URL from notification
+  useEffect(() => {
+    if (submissionIdParam && submissions.length > 0) {
+      const match = submissions.find(s => s._id === submissionIdParam);
+      if (match) {
+        setSelectedReviewSubmission(match);
+        setActiveTab('submissions');
+      } else {
+        // Fetch single submission directly
+        api.get(`/fund-submissions/${submissionIdParam}`)
+          .then(res => {
+            if (res.data) {
+              setSelectedReviewSubmission(res.data);
+              setActiveTab('submissions');
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [submissionIdParam, submissions]);
+
+  const handleCloseReviewModal = () => {
+    setSelectedReviewSubmission(null);
+    if (searchParams.get('submissionId')) {
+      searchParams.delete('submissionId');
+      setSearchParams(searchParams);
+    }
+  };
 
   const createMutation = useMutation({
     mutationFn: (data) => api.post('/finances', {
@@ -134,24 +177,35 @@ export default function FinancesPage() {
           </p>
         </div>
 
-        {isAdmin && (
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setShowEmailModal(true)}
-              className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md transition"
-            >
-              <Mail className="w-4 h-4 text-emerald-400" />
-              <span>{t('finances.send_email_btn')}</span>
-            </button>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs sm:text-sm shadow-md shadow-blue-600/30 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{t('finances.add_transaction_btn')}</span>
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Member Submit Fund Button */}
+          <button
+            onClick={() => setShowSubmitFundModal(true)}
+            className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/30 transition"
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>Nộp Tiền Quỹ / Báo Đóng</span>
+          </button>
+
+          {isManager && (
+            <>
+              <button
+                onClick={() => setShowEmailModal(true)}
+                className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md transition"
+              >
+                <Mail className="w-4 h-4 text-emerald-400" />
+                <span>{t('finances.send_email_btn')}</span>
+              </button>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs sm:text-sm shadow-md shadow-blue-600/30 transition"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t('finances.add_transaction_btn')}</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -196,6 +250,23 @@ export default function FinancesPage() {
         </button>
 
         <button
+          onClick={() => setActiveTab('submissions')}
+          className={`tactile-btn px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'submissions'
+              ? 'bg-[#2c3ec4] text-white shadow-md'
+              : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
+          }`}
+        >
+          <Inbox className="w-3.5 h-3.5" />
+          <span>📥 {isManager ? 'Duyệt Đóng Quỹ' : 'Lịch Sử Nộp Quỹ'}</span>
+          {pendingCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-amber-950 font-black text-[10px] ml-1">
+              {pendingCount}
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('transactions')}
           className={`tactile-btn px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'transactions'
@@ -209,16 +280,151 @@ export default function FinancesPage() {
       </div>
 
       {/* Main Tab Contents */}
-      {activeTab === 'monthly_grid' ? (
-        <MonthlyFundGrid isAdmin={isAdmin} />
-      ) : (
+      {activeTab === 'monthly_grid' && (
+        <MonthlyFundGrid isAdmin={isManager} />
+      )}
+
+      {activeTab === 'submissions' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Inbox className="w-4 h-4 text-blue-600" />
+              <span>Danh Sách Yêu Cầu Đóng Quỹ ({submissions.length})</span>
+            </h3>
+            {pendingCount > 0 && (
+              <span className="text-xs font-black text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+                ⏳ Đang có {pendingCount} yêu cầu chờ xác nhận
+              </span>
+            )}
+          </div>
+
+          {submissions.length === 0 ? (
+            <div className="p-12 text-center bg-white rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                <Inbox className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-bold text-slate-500">Chưa có yêu cầu đóng quỹ nào.</p>
+              <button
+                onClick={() => setShowSubmitFundModal(true)}
+                className="tactile-btn px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-black"
+              >
+                Tạo yêu cầu nộp quỹ ngay
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {submissions.map((sub) => {
+                const isPending = sub.status === 'pending';
+                const isApproved = sub.status === 'approved';
+                const isRejected = sub.status === 'rejected';
+
+                return (
+                  <div
+                    key={sub._id}
+                    className="tactile-btn bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={sub.userId?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                            alt={sub.memberName}
+                            className="w-10 h-10 rounded-2xl object-cover border border-slate-200"
+                          />
+                          <div>
+                            <h4 className="text-sm font-black text-slate-900">{sub.memberName}</h4>
+                            <span className="text-[11px] text-slate-400 font-bold">
+                              {new Date(sub.createdAt).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {isPending && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase font-mono">
+                            ⏳ Chờ duyệt
+                          </span>
+                        )}
+                        {isApproved && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase font-mono">
+                            ✅ Đã duyệt
+                          </span>
+                        )}
+                        {isRejected && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-black uppercase font-mono">
+                            ❌ Từ chối
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-slate-500 font-bold">Tháng đóng:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {sub.months?.map(m => (
+                              <span key={m} className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-black font-mono">
+                                T{m.split('-')[1]}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-slate-500 font-bold">Số tiền:</span>
+                          <span className="text-sm font-black text-emerald-600 font-mono-numbers">
+                            {Number(sub.amount).toLocaleString('vi-VN')} đ
+                          </span>
+                        </div>
+                        {sub.note && (
+                          <p className="text-[11px] text-slate-600 font-bold italic line-clamp-1">
+                            "{sub.note}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      {sub.proofImage ? (
+                        <span className="text-[11px] text-blue-600 font-bold flex items-center gap-1">
+                          📸 Có ảnh bill đính kèm
+                        </span>
+                      ) : <span />}
+
+                      <button
+                        onClick={() => setSelectedReviewSubmission(sub)}
+                        className="tactile-btn px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center gap-1.5 shadow-xs"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{isManager && isPending ? 'Kiểm tra & Duyệt' : 'Xem Chi Tiết'}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'transactions' && (
         <DataGridTable
           data={finances}
           onBulkSave={(updates) => bulkUpdateMutation.mutateAsync(updates)}
           onDelete={handleDeleteFinance}
-          isAdmin={isAdmin}
+          isAdmin={isManager}
         />
       )}
+
+      {/* Submit Fund Modal for Members */}
+      <SubmitFundModal
+        isOpen={showSubmitFundModal}
+        onClose={() => setShowSubmitFundModal(false)}
+      />
+
+      {/* Review Modal for Treasurer / Admin */}
+      <FundSubmissionReviewModal
+        submission={selectedReviewSubmission}
+        isOpen={!!selectedReviewSubmission}
+        onClose={handleCloseReviewModal}
+      />
 
       {/* Add Single Transaction Modal */}
       {showAddModal && (

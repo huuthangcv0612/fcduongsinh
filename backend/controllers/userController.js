@@ -38,7 +38,7 @@ async function getUsers(req, res, next) {
 async function updateUser(req, res, next) {
   try {
     const { id } = req.params;
-    const { role, isActive, position, phone, name } = req.body;
+    const { role, roles, isActive, position, phone, name } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -47,7 +47,22 @@ async function updateUser(req, res, next) {
 
     const oldRole = user.role;
 
-    if (role !== undefined) user.role = role;
+    if (roles !== undefined && Array.isArray(roles)) {
+      user.roles = roles;
+      if (roles.includes('admin')) {
+        user.role = 'admin';
+      } else if (roles.includes('treasurer')) {
+        user.role = 'treasurer';
+      } else if (roles.includes('member')) {
+        user.role = 'member';
+      } else {
+        user.role = 'pending';
+      }
+    } else if (role !== undefined) {
+      user.role = role;
+      user.roles = [role];
+    }
+
     if (isActive !== undefined) user.isActive = isActive;
     if (position !== undefined) user.position = position;
     if (phone !== undefined) user.phone = phone;
@@ -55,9 +70,9 @@ async function updateUser(req, res, next) {
 
     await user.save();
 
-    // Nếu user được duyệt (từ pending sang member/admin) và đang active,
+    // Nếu user được duyệt (từ pending sang member/admin/treasurer) và đang active,
     // thêm vào danh sách điểm danh của các trận đấu sắp tới
-    if (oldRole === 'pending' && (user.role === 'member' || user.role === 'admin') && user.isActive) {
+    if (oldRole === 'pending' && user.role !== 'pending' && user.isActive) {
       const Match = require('../models/Match');
       await Match.updateMany(
         { status: 'upcoming' },

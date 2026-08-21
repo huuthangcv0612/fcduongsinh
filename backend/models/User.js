@@ -23,8 +23,17 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'member', 'pending'],
+    enum: ['admin', 'treasurer', 'member', 'pending'],
     default: 'pending'
+  },
+  roles: {
+    type: [{
+      type: String,
+      enum: ['admin', 'treasurer', 'member', 'pending']
+    }],
+    default: function() {
+      return this.role ? [this.role] : ['pending'];
+    }
   },
   isActive: {
     type: Boolean,

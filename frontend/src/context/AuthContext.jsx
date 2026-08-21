@@ -58,12 +58,21 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const userRoles = Array.isArray(user?.roles) ? user.roles : (user?.role ? [user.role] : ['member']);
+  const isAdmin = user?.role === 'admin' || userRoles.includes('admin');
+  const isTreasurer = user?.role === 'treasurer' || userRoles.includes('treasurer') || isAdmin;
+  const isTreasurerOnly = (user?.role === 'treasurer' || userRoles.includes('treasurer')) && !userRoles.includes('admin') && user?.role !== 'admin';
+
   return (
     <AuthContext.Provider value={{
       user,
       token,
       loading,
-      isAdmin: user?.role === 'admin',
+      isAdmin,
+      isTreasurer,
+      isTreasurerOnly,
+      isManager: isAdmin || isTreasurer,
+      roles: userRoles,
       loginWithGoogle,
       devBypassLogin,
       logout

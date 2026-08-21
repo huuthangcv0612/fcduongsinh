@@ -3,10 +3,12 @@ const router = express.Router();
 
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const adminMiddleware = require('../middlewares/adminMiddleware');
+const { treasurerOrAdminMiddleware } = require('../middlewares/adminMiddleware');
 
 const authController = require('../controllers/authController');
 const matchController = require('../controllers/matchController');
 const financeController = require('../controllers/financeController');
+const fundSubmissionController = require('../controllers/fundSubmissionController');
 const opponentController = require('../controllers/opponentController');
 const facebookGroupController = require('../controllers/facebookGroupController');
 const userController = require('../controllers/userController');
@@ -50,6 +52,13 @@ router.put('/finances/monthly-grid/cell', authMiddleware, adminMiddleware, finan
 router.post('/finances/monthly-grid/member', authMiddleware, adminMiddleware, financeController.addMonthlyMember);
 router.delete('/finances/monthly-grid/member/:id', authMiddleware, adminMiddleware, financeController.deleteMonthlyMember);
 router.post('/finances/send-notification', authMiddleware, adminMiddleware, financeController.sendFundEmail);
+
+// --- Fund Submissions & Proof Upload Routes ---
+router.post('/fund-submissions', authMiddleware, fundSubmissionController.submitFundPayment);
+router.get('/fund-submissions', authMiddleware, fundSubmissionController.getFundSubmissions);
+router.get('/fund-submissions/:id', authMiddleware, fundSubmissionController.getFundSubmissionById);
+router.put('/fund-submissions/:id/approve', authMiddleware, treasurerOrAdminMiddleware, fundSubmissionController.approveFundSubmission);
+router.put('/fund-submissions/:id/reject', authMiddleware, treasurerOrAdminMiddleware, fundSubmissionController.rejectFundSubmission);
 
 // --- Opponent & AI Routes ---
 router.get('/opponents', authMiddleware, opponentController.getOpponents);
