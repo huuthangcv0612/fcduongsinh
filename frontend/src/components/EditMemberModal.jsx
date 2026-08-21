@@ -36,8 +36,12 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
 
   const updateMutation = useMutation({
     mutationFn: (data) => api.put(`/users/${member._id}`, data),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      if (res?.data && user?._id === member._id) {
+        localStorage.setItem('user', JSON.stringify(res.data));
+        window.dispatchEvent(new Event('storage'));
+      }
       onClose();
     }
   });

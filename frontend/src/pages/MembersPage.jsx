@@ -216,43 +216,53 @@ export default function MembersPage() {
               </div>
 
               {/* Admin Controls */}
-              {isAdmin && member._id !== user._id && (
+              {isAdmin && (
                 <div className="pt-2.5 border-t border-slate-100 flex items-center gap-2">
                   <button
                     onClick={() => setEditingMember(member)}
-                    title="Chỉnh sửa cầu thủ"
-                    className="tactile-btn p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+                    title="Chỉnh sửa thông tin & phân quyền"
+                    className="tactile-btn p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
+                    {member._id === user?._id && <span className="text-[10px] font-black">Chỉnh sửa</span>}
                   </button>
-                  <button
-                    onClick={() => updateUserMutation.mutate({
-                      id: member._id,
-                      role: member.role === 'admin' ? 'member' : (member.role === 'pending' ? 'member' : 'admin')
-                    })}
-                    className={`tactile-btn flex-1 py-1.5 px-3 rounded-xl text-xs font-black border transition ${
-                      member.role === 'pending' 
-                        ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                    }`}
-                  >
-                    {member.role === 'pending' ? t('members.approve') : (member.role === 'admin' ? t('members.demote') : t('members.promote'))}
-                  </button>
-                  <button
-                    onClick={async () => {
-                      const confirmed = await confirm({
-                        title: t('members.delete_title'),
-                        message: t('members.delete_confirm')
-                      });
-                      if (confirmed) {
-                        deleteUserMutation.mutate(member._id);
-                      }
-                    }}
-                    title="Xóa thành viên"
-                    className="tactile-btn p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold border border-rose-200 transition"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+
+                  {member._id !== user?._id ? (
+                    <>
+                      <button
+                        onClick={() => updateUserMutation.mutate({
+                          id: member._id,
+                          role: member.role === 'admin' ? 'member' : (member.role === 'pending' ? 'member' : 'admin')
+                        })}
+                        className={`tactile-btn flex-1 py-1.5 px-3 rounded-xl text-xs font-black border transition ${
+                          member.role === 'pending' 
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                        }`}
+                      >
+                        {member.role === 'pending' ? t('members.approve') : (member.role === 'admin' ? t('members.demote') : t('members.promote'))}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const confirmed = await confirm({
+                            title: t('members.delete_title'),
+                            message: t('members.delete_confirm')
+                          });
+                          if (confirmed) {
+                            deleteUserMutation.mutate(member._id);
+                          }
+                        }}
+                        title="Xóa thành viên"
+                        className="tactile-btn p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold border border-rose-200 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="flex-1 text-[11px] text-slate-400 font-bold text-right italic pr-1">
+                      (Tài khoản của bạn)
+                    </span>
+                  )}
                 </div>
               )}
             </div>
