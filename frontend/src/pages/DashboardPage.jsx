@@ -317,56 +317,56 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {/* Balance Stat */}
-        <div className="tactile-btn p-4 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{t('dashboard.current_fund')}</span>
-            <span className={`text-lg sm:text-2xl font-black font-mono-numbers ${balanceData.balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+        <div className="p-3.5 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-xs hover:shadow-md transition-shadow overflow-hidden gap-2">
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">{t('dashboard.current_fund')}</span>
+            <span className={`text-base sm:text-2xl font-black font-mono-numbers block truncate ${balanceData.balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               {balanceData.balance?.toLocaleString('vi-VN')}đ
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
-            <DollarSign className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         {/* Total In */}
-        <div className="tactile-btn p-4 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{t('dashboard.total_in')}</span>
-            <span className="text-lg sm:text-2xl font-black font-mono-numbers text-emerald-600">
+        <div className="p-3.5 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-xs hover:shadow-md transition-shadow overflow-hidden gap-2">
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">{t('dashboard.total_in')}</span>
+            <span className="text-base sm:text-2xl font-black font-mono-numbers text-emerald-600 block truncate">
               +{balanceData.totalIn?.toLocaleString('vi-VN')}đ
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
-            <TrendingUp className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         {/* Total Out */}
-        <div className="tactile-btn p-4 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{t('dashboard.total_out')}</span>
-            <span className="text-lg sm:text-2xl font-black font-mono-numbers text-rose-600">
+        <div className="p-3.5 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-xs hover:shadow-md transition-shadow overflow-hidden gap-2">
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">{t('dashboard.total_out')}</span>
+            <span className="text-base sm:text-2xl font-black font-mono-numbers text-rose-600 block truncate">
               -{balanceData.totalOut?.toLocaleString('vi-VN')}đ
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
-            <TrendingDown className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">
+            <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         {/* Team Members Count */}
-        <div className="tactile-btn p-4 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">{t('dashboard.team_members')}</span>
-            <span className="text-lg sm:text-2xl font-black font-mono-numbers text-slate-900">
-              {users.length} <span className="text-xs font-bold text-slate-500">{t('dashboard.players_count')}</span>
+        <div className="p-3.5 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-xs hover:shadow-md transition-shadow overflow-hidden gap-2">
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">{t('dashboard.team_members')}</span>
+            <span className="text-base sm:text-2xl font-black font-mono-numbers text-slate-900 block truncate">
+              {users.length} <span className="text-[11px] sm:text-xs font-bold text-slate-500">{t('dashboard.players_count')}</span>
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
-            <Users className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0">
+            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>

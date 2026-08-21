@@ -49,6 +49,16 @@
   transform: scale(0.96) translateY(1px);
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 /* PWA Standalone: push content below status bar */
 @media (display-mode: standalone) {
   body {

@@ -31,24 +31,24 @@ export default function StatCard({ title, value, subtext, icon: Icon, color = 'e
   const scheme = colorMap[color] || colorMap.emerald;
 
   return (
-    <div className={`tactile-btn rounded-3xl p-5 border ${scheme.border} bg-white shadow-sm hover:shadow-md transition flex items-center justify-between`}>
-      <div>
-        <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+    <div className={`rounded-3xl p-3.5 sm:p-5 border ${scheme.border} bg-white shadow-xs hover:shadow-md transition flex items-center justify-between gap-2 overflow-hidden`}>
+      <div className="min-w-0 flex-1">
+        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 block mb-0.5 truncate">
           {title}
         </span>
-        <h4 className={`text-xl sm:text-2xl font-black font-mono-numbers ${scheme.text} tracking-tight`}>
+        <h4 className={`text-base sm:text-2xl font-black font-mono-numbers ${scheme.text} tracking-tight truncate`}>
           {value}
         </h4>
         {subtext && (
-          <p className="text-[11px] text-slate-400 mt-1 font-bold">
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 font-bold truncate">
             {subtext}
           </p>
         )}
       </div>
 
       {Icon && (
-        <div className={`p-3 rounded-2xl border ${scheme.iconBg} shadow-xs flex items-center justify-center shrink-0`}>
-          <Icon className="w-5 h-5" />
+        <div className={`p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border ${scheme.iconBg} shadow-2xs flex items-center justify-center shrink-0`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       )}
     </div>

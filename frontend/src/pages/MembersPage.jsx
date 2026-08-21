@@ -104,7 +104,7 @@ export default function MembersPage() {
       </div>
 
       {/* Position Filter Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold no-scrollbar">
         {[
           { id: 'ALL', label: 'Tất cả' },
           { id: 'FW', label: '⚽ Tiền đạo' },
@@ -139,11 +139,11 @@ export default function MembersPage() {
             >
               <div>
                 <div className="flex items-start gap-3 sm:gap-4 mb-3">
-                  <div className="relative shrink-0">
+                  <div className="relative shrink-0 w-14 h-14">
                     <img
                       src={member.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}
                       alt={member.name}
-                      className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 border-slate-100 shadow-sm"
+                      className="w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl object-cover border-2 border-slate-100 shadow-sm shrink-0"
                     />
                     {member.number && (
                       <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-slate-900 text-white font-black font-mono-numbers text-[9px] shadow">
