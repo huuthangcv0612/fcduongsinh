@@ -15,13 +15,13 @@ export default function FundSubmissionReviewModal({ submission, isOpen, onClose 
   const [isImageZoomed, setIsImageZoomed] = useState(false);
 
   const approveMutation = useMutation({
-    mutationFn: () => api.put(`/fund-submissions/${submission._id}/approve`),
+    mutationFn: () => api.put(`/fund-submissions/${submission?._id}/approve`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fund-submissions'] });
       queryClient.invalidateQueries({ queryKey: ['finances'] });
       queryClient.invalidateQueries({ queryKey: ['balance'] });
       queryClient.invalidateQueries({ queryKey: ['monthly-grid'] });
-      toast.success(`Đã xác nhận đóng quỹ cho ${submission.memberName}!`, 'Thành công');
+      toast.success(`Đã xác nhận đóng quỹ cho ${submission?.memberName}!`, 'Thành công');
       onClose();
     },
     onError: (err) => {
@@ -30,7 +30,7 @@ export default function FundSubmissionReviewModal({ submission, isOpen, onClose 
   });
 
   const rejectMutation = useMutation({
-    mutationFn: (reason) => api.put(`/fund-submissions/${submission._id}/reject`, { rejectionReason: reason }),
+    mutationFn: (reason) => api.put(`/fund-submissions/${submission?._id}/reject`, { rejectionReason: reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fund-submissions'] });
       toast.info('Đã từ chối yêu cầu đóng quỹ.', 'Thông báo');

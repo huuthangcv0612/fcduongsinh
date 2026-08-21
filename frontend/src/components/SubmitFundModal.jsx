@@ -138,7 +138,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     });
   };
 
-  if (!isOpen) return null;
+  const [isQrZoomed, setIsQrZoomed] = useState(false);
 
   // Build VietQR description
   const monthLabelsForQR = selectedMonths.map(m => m.split('-')[1]).join('-');
@@ -147,8 +147,6 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     : 'MEM';
   const transferSyntax = `${transferPrefix} ${safeUserName} T${monthLabelsForQR}`;
   const qrUrl = customQrUrl || `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferSyntax)}&accountName=${encodeURIComponent(accountName)}`;
-
-  const [isQrZoomed, setIsQrZoomed] = useState(false);
 
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -164,6 +162,8 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     document.body.removeChild(link);
     toast.success('Đã tải ảnh mã QR về máy!', 'Tải thành công');
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in overflow-y-auto">
