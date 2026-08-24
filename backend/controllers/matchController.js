@@ -958,7 +958,7 @@ async function getMatchLineup(req, res, next) {
         status: match.status,
         checkInList: match.checkInList || [],
         lineup: match.lineup || {
-          formation: '2-3-1',
+          formation: '3-2-1',
           starters: [],
           substitutes: [],
           tacticsNote: '',
@@ -987,7 +987,7 @@ async function updateMatchLineup(req, res, next) {
     const currentPublishedAt = match.lineup?.publishedAt;
 
     match.lineup = {
-      formation: formation || '2-3-1',
+      formation: formation || '3-2-1',
       starters: (starters || []).map(s => ({
         positionKey: s.positionKey,
         positionName: s.positionName || '',

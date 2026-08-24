@@ -2,19 +2,6 @@ import React, { useState } from 'react';
 import { Crown, UserMinus } from 'lucide-react';
 
 export const FORMATIONS = {
-  '2-3-1': {
-    name: '2-3-1 (Cân bằng)',
-    description: '1 GK, 2 Hậu vệ, 3 Tiền vệ, 1 Tiền đạo cắm',
-    slots: [
-      { positionKey: 'GK', positionName: 'Thủ môn', x: 50, y: 87 },
-      { positionKey: 'LB', positionName: 'Hậu vệ trái', x: 26, y: 68 },
-      { positionKey: 'RB', positionName: 'Hậu vệ phải', x: 74, y: 68 },
-      { positionKey: 'LM', positionName: 'Tiền vệ trái', x: 18, y: 45 },
-      { positionKey: 'CM', positionName: 'Tiền vệ trung tâm', x: 50, y: 45 },
-      { positionKey: 'RM', positionName: 'Tiền vệ phải', x: 82, y: 45 },
-      { positionKey: 'ST', positionName: 'Tiền đạo', x: 50, y: 18 }
-    ]
-  },
   '3-2-1': {
     name: '3-2-1 (Phòng ngự phản công)',
     description: '1 GK, 3 Hậu vệ, 2 Tiền vệ, 1 Tiền đạo',
@@ -25,6 +12,19 @@ export const FORMATIONS = {
       { positionKey: 'RCB', positionName: 'Trung vệ phải', x: 78, y: 70 },
       { positionKey: 'LCM', positionName: 'Tiền vệ trung tâm', x: 35, y: 45 },
       { positionKey: 'RCM', positionName: 'Tiền vệ trung tâm', x: 65, y: 45 },
+      { positionKey: 'ST', positionName: 'Tiền đạo', x: 50, y: 18 }
+    ]
+  },
+  '2-3-1': {
+    name: '2-3-1 (Cân bằng)',
+    description: '1 GK, 2 Hậu vệ, 3 Tiền vệ, 1 Tiền đạo cắm',
+    slots: [
+      { positionKey: 'GK', positionName: 'Thủ môn', x: 50, y: 87 },
+      { positionKey: 'LB', positionName: 'Hậu vệ trái', x: 26, y: 68 },
+      { positionKey: 'RB', positionName: 'Hậu vệ phải', x: 74, y: 68 },
+      { positionKey: 'LM', positionName: 'Tiền vệ trái', x: 18, y: 45 },
+      { positionKey: 'CM', positionName: 'Tiền vệ trung tâm', x: 50, y: 45 },
+      { positionKey: 'RM', positionName: 'Tiền vệ phải', x: 82, y: 45 },
       { positionKey: 'ST', positionName: 'Tiền đạo', x: 50, y: 18 }
     ]
   },

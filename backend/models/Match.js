@@ -74,8 +74,8 @@ const StarterSchema = new mongoose.Schema({
 const LineupSchema = new mongoose.Schema({
   formation: {
     type: String,
-    enum: ['2-3-1', '3-2-1', '2-1-2-1', '3-1-2', '1-4-1', 'custom'],
-    default: '2-3-1'
+    enum: ['3-2-1', '2-3-1', '2-1-2-1', '3-1-2', '1-4-1', 'custom'],
+    default: '3-2-1'
   },
   starters: [StarterSchema],
   substitutes: [{
@@ -153,7 +153,7 @@ const MatchSchema = new mongoose.Schema({
   lineup: {
     type: LineupSchema,
     default: () => ({
-      formation: '2-3-1',
+      formation: '3-2-1',
       starters: [],
       substitutes: [],
       tacticsNote: '',

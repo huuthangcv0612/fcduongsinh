@@ -37,7 +37,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
   // Mobile View Tab: 'pitch' | 'details'
   const [mobileTab, setMobileTab] = useState('pitch');
 
-  const [formation, setFormation] = useState('2-3-1');
+  const [formation, setFormation] = useState('3-2-1');
   const [starters, setStarters] = useState([]);
   const [substitutes, setSubstitutes] = useState([]);
   const [tacticsNote, setTacticsNote] = useState('');
@@ -61,7 +61,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
     const currentLineup = lineupData.lineup || {};
     const formKey = currentLineup.formation && FORMATIONS[currentLineup.formation]
       ? currentLineup.formation
-      : '2-3-1';
+      : '3-2-1';
 
     setFormation(formKey);
     setTacticsNote(currentLineup.tacticsNote || '');
@@ -334,7 +334,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
 
   if (!isOpen || !match) return null;
 
-  const currentFormationInfo = FORMATIONS[formation] || FORMATIONS['2-3-1'];
+  const currentFormationInfo = FORMATIONS[formation] || FORMATIONS['3-2-1'];
   const filledStartersCount = starters.filter(s => s.userId).length;
 
   return createPortal(
