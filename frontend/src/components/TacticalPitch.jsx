@@ -127,7 +127,7 @@ export default function TacticalPitch({
   return (
     <div
       ref={pitchRef}
-      className="relative w-full max-w-[480px] mx-auto select-none rounded-2xl overflow-hidden shadow-2xl border-4 border-emerald-800/80 bg-emerald-900 aspect-[3/4.2]"
+      className="relative w-full max-w-[340px] sm:max-w-[420px] md:max-w-[460px] mx-auto select-none rounded-2xl overflow-hidden shadow-2xl border-3 sm:border-4 border-emerald-800/80 bg-emerald-900 aspect-[3/4.1]"
       style={{
         background: 'radial-gradient(ellipse at center, #15803d 0%, #166534 60%, #14532d 100%)'
       }}
@@ -226,7 +226,7 @@ export default function TacticalPitch({
                   })
                 );
               }}
-              className={`relative w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-200 ${
+              className={`relative w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-200 ${
                 user
                   ? `shadow-lg ring-2 ${
                       slot.isCaptain
@@ -250,7 +250,7 @@ export default function TacticalPitch({
                     />
                   ) : (
                     <div
-                      className={`w-full h-full rounded-full flex items-center justify-center font-bold text-sm bg-gradient-to-br ${
+                      className={`w-full h-full rounded-full flex items-center justify-center font-bold text-xs sm:text-sm bg-gradient-to-br ${
                         slot.positionKey === 'GK'
                           ? 'from-amber-600 to-yellow-700 text-white'
                           : getKitGradient()
@@ -262,14 +262,14 @@ export default function TacticalPitch({
 
                   {/* Jersey Number Badge */}
                   {user.number && (
-                    <span className="absolute -bottom-1 -left-1 px-1 py-0.2 rounded-full bg-slate-900 text-white font-extrabold text-[9px] border border-white/50 shadow-sm leading-tight">
+                    <span className="absolute -bottom-1 -left-1 px-1 py-0.2 rounded-full bg-slate-900 text-white font-extrabold text-[8px] sm:text-[9px] border border-white/50 shadow-sm leading-tight">
                       #{user.number}
                     </span>
                   )}
 
                   {/* Captain (C) Badge */}
                   {slot.isCaptain && (
-                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] shadow-md border border-amber-200">
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] shadow-md border border-amber-200">
                       C
                     </span>
                   )}
@@ -282,8 +282,8 @@ export default function TacticalPitch({
             </div>
 
             {/* Player Name Pill */}
-            <div className="mt-1 max-w-[84px] md:max-w-[96px] truncate px-1.5 py-0.5 rounded-md bg-slate-950/85 backdrop-blur-sm text-center border border-white/10 shadow-md">
-              <p className="text-[10px] md:text-[11px] font-bold text-white truncate leading-tight">
+            <div className="mt-0.5 sm:mt-1 max-w-[74px] sm:max-w-[86px] md:max-w-[96px] truncate px-1.5 py-0.5 rounded-md bg-slate-950/85 backdrop-blur-sm text-center border border-white/10 shadow-md">
+              <p className="text-[9px] sm:text-[10px] md:text-[11px] font-bold text-white truncate leading-tight">
                 {user ? user.name : slot.positionName || 'Chưa xếp'}
               </p>
             </div>
