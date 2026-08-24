@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
@@ -16,6 +16,7 @@ import {
   LayoutGrid,
   FileText,
   Check,
+  ChevronLeft,
   ChevronRight
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -44,6 +45,14 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
   const [selectedPlayerToPlace, setSelectedPlayerToPlace] = useState(null);
   const [sendPushOnSave, setSendPushOnSave] = useState(true);
   const [activeTab, setActiveTab] = useState('joined'); // 'joined' | 'bench' | 'all'
+
+  const quickDockRef = useRef(null);
+  const scrollDock = (direction) => {
+    if (quickDockRef.current) {
+      const scrollAmount = direction === 'left' ? -160 : 160;
+      quickDockRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   // Query Lineup and Players
   const { data: lineupRes, isLoading, refetch } = useQuery({
@@ -519,7 +528,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
 
             {/* 📱 Mobile Quick Player Dock (Thanh chọn nhanh cầu thủ chưa xếp ở dưới sân) */}
             {mode === 'edit' && (
-              <div className="w-full lg:hidden bg-slate-800/80 border border-slate-700/80 rounded-2xl p-2.5 space-y-2">
+              <div className="w-full lg:hidden bg-slate-800/90 border border-slate-700/80 rounded-2xl p-2.5 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
                     <Users className="w-3.5 h-3.5 text-emerald-400" />
@@ -545,44 +554,76 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                   </div>
                 </div>
 
-                {/* Horizontal Scrolling Player Avatars */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
-                  {unplacedAvailablePlayers.length === 0 ? (
-                    <span className="text-xs text-slate-500 italic py-2">
-                      Đã xếp đủ tất cả cầu thủ tham gia.
-                    </span>
-                  ) : (
-                    unplacedAvailablePlayers.map(p => {
-                      const isSelected = selectedPlayerToPlace?._id === p._id;
-                      return (
-                        <button
-                          key={p._id}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedPlayerToPlace(isSelected ? null : p);
-                          }}
-                          className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border shrink-0 transition ${
-                            isSelected
-                              ? 'bg-amber-500/30 border-amber-400 ring-2 ring-amber-400 scale-105'
-                              : 'bg-slate-900/80 border-slate-700 hover:border-emerald-500/50'
-                          }`}
-                        >
-                          <div className="relative w-9 h-9 rounded-full overflow-hidden bg-slate-700 border border-slate-600">
-                            {p.avatar ? (
-                              <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
-                                {p.number ? `#${p.number}` : p.name?.charAt(0)}
-                              </div>
-                            )}
+                {/* Horizontal Scrolling Player Avatars with Navigation Buttons */}
+                <div className="relative flex items-center">
+                  {unplacedAvailablePlayers.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={() => scrollDock('left')}
+                      className="absolute -left-1.5 z-20 w-6 h-6 rounded-full bg-slate-950/90 border border-slate-700 text-white flex items-center justify-center shadow-lg active:scale-90"
+                      aria-label="Cuộn sang trái"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  <div
+                    ref={quickDockRef}
+                    className="flex items-center gap-2 overflow-x-auto pb-1 px-1 no-scrollbar touch-pan-x overscroll-x-contain w-full scroll-smooth"
+                    style={{
+                      touchAction: 'pan-x',
+                      WebkitOverflowScrolling: 'touch'
+                    }}
+                  >
+                    {unplacedAvailablePlayers.length === 0 ? (
+                      <span className="text-xs text-slate-500 italic py-2">
+                        Đã xếp đủ tất cả cầu thủ tham gia.
+                      </span>
+                    ) : (
+                      unplacedAvailablePlayers.map(p => {
+                        const isSelected = selectedPlayerToPlace?._id === p._id;
+                        return (
+                          <div
+                            key={p._id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPlayerToPlace(isSelected ? null : p);
+                            }}
+                            className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border shrink-0 transition cursor-pointer select-none touch-pan-x ${
+                              isSelected
+                                ? 'bg-amber-500/30 border-amber-400 ring-2 ring-amber-400 scale-105'
+                                : 'bg-slate-900/90 border-slate-700 hover:border-emerald-500/50'
+                            }`}
+                          >
+                            <div className="relative w-9 h-9 rounded-full overflow-hidden bg-slate-700 border border-slate-600 pointer-events-none">
+                              {p.avatar ? (
+                                <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
+                                  {p.number ? `#${p.number}` : p.name?.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-bold text-white truncate max-w-[60px] pointer-events-none text-center">
+                              {p.name}
+                            </span>
                           </div>
-                          <span className="text-[10px] font-bold text-white truncate max-w-[60px]">
-                            {p.name}
-                          </span>
-                        </button>
-                      );
-                    })
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {unplacedAvailablePlayers.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={() => scrollDock('right')}
+                      className="absolute -right-1.5 z-20 w-6 h-6 rounded-full bg-slate-950/90 border border-slate-700 text-white flex items-center justify-center shadow-lg active:scale-90"
+                      aria-label="Cuộn sang phải"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
                   )}
                 </div>
               </div>
