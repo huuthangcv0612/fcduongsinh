@@ -340,11 +340,11 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
   return createPortal(
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-200">
       <div
-        className="relative bg-slate-900 border-0 sm:border sm:border-slate-700/80 w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[92vh] rounded-none sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+        className="relative bg-slate-900 border-0 sm:border sm:border-slate-700/80 w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[92vh] rounded-none sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]"
         onClick={() => setSelectedPlayerToPlace(null)}
       >
-        {/* 🌟 Top Header */}
-        <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-slate-800/90 border-b border-slate-700 flex items-center justify-between gap-2 shrink-0">
+        {/* 🌟 Top Header with Safe Area Inset */}
+        <div className="pt-[max(env(safe-area-inset-top,0px),10px)] pb-2.5 px-3.5 sm:pt-3.5 sm:pb-3.5 sm:px-6 bg-slate-800/90 border-b border-slate-700 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
               <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -971,8 +971,8 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
           </div>
         </div>
 
-        {/* 🚀 Footer Controls */}
-        <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-slate-800/95 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+        {/* 🚀 Footer Controls with Safe Area Inset */}
+        <div className="pb-[max(env(safe-area-inset-bottom,0px),12px)] pt-2.5 px-3.5 sm:pb-3.5 sm:pt-3.5 sm:px-6 bg-slate-800/95 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-2">
             {isAdmin && mode === 'view' && (
               <button
