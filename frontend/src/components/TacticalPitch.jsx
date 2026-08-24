@@ -291,7 +291,9 @@ export default function TacticalPitch({
             {/* Quick Action Popover (for Edit mode) */}
             {isEditable && isMenuOpen && user && (
               <div
-                className="absolute -top-16 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white text-xs py-1.5 px-2 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-1.5 z-30 whitespace-nowrap animate-in fade-in zoom-in-90 duration-150"
+                className={`absolute ${
+                  slot.y < 35 ? 'top-14' : '-top-14'
+                } left-1/2 -translate-x-1/2 bg-slate-950/95 backdrop-blur-md text-white text-xs py-1.5 px-2 rounded-xl shadow-2xl border border-slate-700/90 flex items-center gap-1.5 z-30 whitespace-nowrap animate-in fade-in zoom-in-95 duration-150 ring-1 ring-black/40`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
@@ -300,7 +302,7 @@ export default function TacticalPitch({
                     onToggleCaptain(index);
                     setActiveSlotMenu(null);
                   }}
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold transition ${
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition ${
                     slot.isCaptain
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                       : 'hover:bg-slate-800 text-slate-300'
@@ -317,7 +319,7 @@ export default function TacticalPitch({
                     onRemovePlayer(index);
                     setActiveSlotMenu(null);
                   }}
-                  className="flex items-center gap-1 px-2 py-1 rounded hover:bg-rose-500/20 text-rose-400 text-[11px] font-semibold transition"
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-500/20 text-rose-400 text-[11px] font-semibold transition"
                   title="Đưa về ghế dự bị"
                 >
                   <UserMinus className="w-3.5 h-3.5" />

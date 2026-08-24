@@ -9,17 +9,14 @@ import {
   RotateCcw,
   Sparkles,
   Crown,
-  ChevronDown,
-  Info,
-  CheckCircle2,
-  AlertCircle,
-  HelpCircle,
   Clock,
   MapPin,
   Flame,
   UserCheck,
-  UserX,
-  Share2
+  LayoutGrid,
+  FileText,
+  Check,
+  ChevronRight
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
@@ -36,6 +33,10 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
 
   // Mode: 'view' | 'edit'
   const [mode, setMode] = useState(isAdmin ? 'edit' : 'view');
+  
+  // Mobile View Tab: 'pitch' | 'details'
+  const [mobileTab, setMobileTab] = useState('pitch');
+
   const [formation, setFormation] = useState('2-3-1');
   const [starters, setStarters] = useState([]);
   const [substitutes, setSubstitutes] = useState([]);
@@ -147,6 +148,13 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
   const startersUserIds = useMemo(() => {
     return new Set(starters.filter(s => s.userId).map(s => (s.userId._id || s.userId).toString()));
   }, [starters]);
+
+  // Unplaced players pool for Quick Bottom Dock on Mobile
+  const unplacedAvailablePlayers = useMemo(() => {
+    return [...joinedPlayers, ...uncertainPlayers].filter(
+      p => !startersUserIds.has(p._id.toString())
+    );
+  }, [joinedPlayers, uncertainPlayers, startersUserIds]);
 
   // Assign player to slot
   const assignPlayerToSlot = (slotIndex, playerUser) => {
@@ -330,46 +338,46 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
   const filledStartersCount = starters.filter(s => s.userId).length;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-200">
       <div
-        className="relative bg-slate-900 border border-slate-700/80 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]"
+        className="relative bg-slate-900 border-0 sm:border sm:border-slate-700/80 w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[92vh] rounded-none sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col"
         onClick={() => setSelectedPlayerToPlace(null)}
       >
-        {/* 🌟 Header */}
-        <div className="px-4 py-3.5 sm:px-6 sm:py-4 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
-              <Shield className="w-5 h-5" />
+        {/* 🌟 Top Header */}
+        <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-slate-800/90 border-b border-slate-700 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-black text-white truncate tracking-wide">
-                  Đội hình ra sân vs {match.opponent?.teamName || 'Đối thủ'}
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-sm sm:text-base font-black text-white truncate tracking-wide">
+                  Đội hình vs {match.opponent?.teamName || 'Đối thủ'}
                 </h2>
-                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase">
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase shrink-0">
                   Sân 7
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
+              <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                <span className="flex items-center gap-1 truncate">
+                  <Clock className="w-3 h-3 text-slate-500 shrink-0" />
                   {match.time} • {match.date}
                 </span>
-                <span className="hidden md:flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden md:flex items-center gap-1 truncate">
+                  <MapPin className="w-3 h-3 text-slate-500 shrink-0" />
                   {match.stadium}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             {isAdmin && (
-              <div className="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center">
+              <div className="bg-slate-950 p-0.5 rounded-lg border border-slate-800 flex items-center">
                 <button
                   type="button"
                   onClick={() => setMode('view')}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition ${
                     mode === 'view'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
@@ -380,13 +388,13 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                 <button
                   type="button"
                   onClick={() => setMode('edit')}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition ${
                     mode === 'edit'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Chỉnh sửa
+                  Sửa
                 </button>
               </div>
             )}
@@ -394,26 +402,63 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              title="Đóng"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
+        {/* 📱 Mobile Navigation Segmented Tabs (Visible on screens < lg) */}
+        <div className="lg:hidden px-3 pt-2 bg-slate-900 border-b border-slate-800 shrink-0">
+          <div className="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800/80">
+            <button
+              type="button"
+              onClick={() => setMobileTab('pitch')}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition ${
+                mobileTab === 'pitch'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Sa bàn ({filledStartersCount}/7)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMobileTab('details')}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition ${
+                mobileTab === 'details'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Danh sách & Ghi chú</span>
+            </button>
+          </div>
+        </div>
+
         {/* 📋 Content Body */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* ⚽ Left Column: Tactical Pitch */}
-          <div className="lg:col-span-6 flex flex-col items-center justify-start space-y-3">
-            {/* Formation & Quick Stats Bar */}
-            <div className="w-full flex items-center justify-between bg-slate-800/60 backdrop-blur border border-slate-700/60 rounded-2xl p-2.5 px-3.5">
+        <div className="flex-1 overflow-y-auto p-2.5 sm:p-4 md:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-5 overscroll-contain">
+          
+          {/* ⚽ Left Column: Tactical Pitch + Mobile Quick Dock (Always visible on desktop, tab-switched on mobile) */}
+          <div
+            className={`lg:col-span-6 flex flex-col items-center justify-start space-y-2.5 ${
+              mobileTab === 'pitch' ? 'flex' : 'hidden lg:flex'
+            }`}
+          >
+            {/* Sơ đồ & Bộ chọn chiến thuật */}
+            <div className="w-full flex items-center justify-between bg-slate-800/70 backdrop-blur border border-slate-700/60 rounded-xl p-2 px-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-400">Sơ đồ:</span>
+                <span className="text-[11px] font-semibold text-slate-400">Sơ đồ:</span>
                 {mode === 'edit' ? (
                   <select
                     value={formation}
                     onChange={(e) => handleFormationChange(e.target.value)}
-                    className="bg-slate-900 text-emerald-400 text-xs font-black px-2.5 py-1 rounded-lg border border-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="bg-slate-900 text-emerald-400 text-xs font-black px-2 py-0.5 rounded-lg border border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   >
                     {Object.entries(FORMATIONS).map(([key, f]) => (
                       <option key={key} value={key}>
@@ -422,13 +467,13 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                     ))}
                   </select>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 font-extrabold text-xs border border-emerald-500/30">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-extrabold text-xs border border-emerald-500/30">
                     {currentFormationInfo.name}
                   </span>
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-slate-300">
                   {filledStartersCount}/7 <span className="text-slate-500 font-normal">chính thức</span>
                 </span>
@@ -437,7 +482,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
 
             {/* Hint for mobile / tap to place */}
             {mode === 'edit' && selectedPlayerToPlace && (
-              <div className="w-full p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs flex items-center justify-between animate-pulse">
+              <div className="w-full p-2 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-xs flex items-center justify-between animate-pulse">
                 <span className="font-semibold truncate">
                   👉 Chạm vào 1 vị trí trên sân để xếp <strong>{selectedPlayerToPlace.name}</strong>
                 </span>
@@ -454,7 +499,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
               </div>
             )}
 
-            {/* 🏟️ The Pitch Component */}
+            {/* 🏟️ Tactical Football Pitch */}
             <div className="w-full flex justify-center">
               <TacticalPitch
                 starters={starters}
@@ -472,17 +517,92 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
               />
             </div>
 
+            {/* 📱 Mobile Quick Player Dock (Thanh chọn nhanh cầu thủ chưa xếp ở dưới sân) */}
+            {mode === 'edit' && (
+              <div className="w-full lg:hidden bg-slate-800/80 border border-slate-700/80 rounded-2xl p-2.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5 text-emerald-400" />
+                    Chạm cầu thủ để xếp ({unplacedAvailablePlayers.length})
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleAutoFill}
+                      className="px-2 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 font-bold text-[10px] border border-emerald-500/40 flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-300" />
+                      Tự động
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetPitch}
+                      className="px-2 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-[10px] border border-rose-500/40 flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Xoá
+                    </button>
+                  </div>
+                </div>
+
+                {/* Horizontal Scrolling Player Avatars */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                  {unplacedAvailablePlayers.length === 0 ? (
+                    <span className="text-xs text-slate-500 italic py-2">
+                      Đã xếp đủ tất cả cầu thủ tham gia.
+                    </span>
+                  ) : (
+                    unplacedAvailablePlayers.map(p => {
+                      const isSelected = selectedPlayerToPlace?._id === p._id;
+                      return (
+                        <button
+                          key={p._id}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPlayerToPlace(isSelected ? null : p);
+                          }}
+                          className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border shrink-0 transition ${
+                            isSelected
+                              ? 'bg-amber-500/30 border-amber-400 ring-2 ring-amber-400 scale-105'
+                              : 'bg-slate-900/80 border-slate-700 hover:border-emerald-500/50'
+                          }`}
+                        >
+                          <div className="relative w-9 h-9 rounded-full overflow-hidden bg-slate-700 border border-slate-600">
+                            {p.avatar ? (
+                              <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
+                                {p.number ? `#${p.number}` : p.name?.charAt(0)}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-bold text-white truncate max-w-[60px]">
+                            {p.name}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Formation description */}
-            <p className="text-[11px] text-slate-400 text-center italic">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 text-center italic">
               {currentFormationInfo.description}
             </p>
           </div>
 
-          {/* 👥 Right Column: Squad, Bench & Tactics Note */}
-          <div className="lg:col-span-6 flex flex-col space-y-4">
-            {/* Quick Actions (Admin Edit Mode) */}
+          {/* 👥 Right Column: Squad, Bench & Tactics Note (Always visible on desktop, tab-switched on mobile) */}
+          <div
+            className={`lg:col-span-6 flex flex-col space-y-3.5 ${
+              mobileTab === 'details' ? 'flex' : 'hidden lg:flex'
+            }`}
+          >
+            {/* Quick Actions (Desktop Edit Mode) */}
             {mode === 'edit' && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="hidden lg:grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={handleAutoFill}
@@ -503,12 +623,12 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
             )}
 
             {/* Squad Tabs */}
-            <div className="bg-slate-800/50 rounded-2xl border border-slate-700/70 p-3.5 flex flex-col flex-1">
-              <div className="flex items-center gap-2 border-b border-slate-700/60 pb-2 mb-3">
+            <div className="bg-slate-800/50 rounded-2xl border border-slate-700/70 p-3 sm:p-3.5 flex flex-col flex-1">
+              <div className="flex items-center gap-1.5 border-b border-slate-700/60 pb-2 mb-2.5 overflow-x-auto">
                 <button
                   type="button"
                   onClick={() => setActiveTab('joined')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
                     activeTab === 'joined'
                       ? 'bg-emerald-600 text-white shadow'
                       : 'text-slate-400 hover:text-white'
@@ -521,7 +641,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                 <button
                   type="button"
                   onClick={() => setActiveTab('bench')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
                     activeTab === 'bench'
                       ? 'bg-emerald-600 text-white shadow'
                       : 'text-slate-400 hover:text-white'
@@ -535,7 +655,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('all')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
                       activeTab === 'all'
                         ? 'bg-emerald-600 text-white shadow'
                         : 'text-slate-400 hover:text-white'
@@ -547,7 +667,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
               </div>
 
               {/* Player Cards List */}
-              <div className="flex-1 overflow-y-auto max-h-56 sm:max-h-64 space-y-2 pr-1 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto max-h-56 sm:max-h-64 space-y-1.5 pr-1 custom-scrollbar">
                 {activeTab === 'joined' && (
                   <>
                     {joinedPlayers.length === 0 && uncertainPlayers.length === 0 ? (
@@ -577,6 +697,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                                 e.stopPropagation();
                                 if (isOnField) return;
                                 setSelectedPlayerToPlace(isSelected ? null : p);
+                                if (mobileTab === 'details') setMobileTab('pitch'); // Auto switch to pitch on mobile
                               }}
                               className={`flex items-center justify-between p-2 rounded-xl border transition ${
                                 isSelected
@@ -616,7 +737,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                                   </span>
                                 ) : mode === 'edit' ? (
                                   <span className="text-[11px] font-bold text-amber-400 hover:underline">
-                                    {isSelected ? 'Đang chọn...' : '+ Kéo / Chạm'}
+                                    {isSelected ? 'Đang chọn...' : '+ Xếp'}
                                   </span>
                                 ) : null}
                               </div>
@@ -645,6 +766,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                                 e.stopPropagation();
                                 if (isOnField) return;
                                 setSelectedPlayerToPlace(isSelected ? null : p);
+                                if (mobileTab === 'details') setMobileTab('pitch');
                               }}
                               className={`flex items-center justify-between p-2 rounded-xl border transition ${
                                 isSelected
@@ -684,7 +806,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                                   </span>
                                 ) : mode === 'edit' ? (
                                   <span className="text-[11px] font-bold text-amber-400 hover:underline">
-                                    {isSelected ? 'Đang chọn...' : '+ Kéo / Chạm'}
+                                    {isSelected ? 'Đang chọn...' : '+ Xếp'}
                                   </span>
                                 ) : null}
                               </div>
@@ -722,6 +844,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                               if (mode !== 'edit') return;
                               e.stopPropagation();
                               setSelectedPlayerToPlace(isSelected ? null : p);
+                              if (mobileTab === 'details') setMobileTab('pitch');
                             }}
                             className={`flex items-center justify-between p-2 rounded-xl border bg-slate-800/80 border-slate-700/80 transition ${
                               isSelected ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/50' : 'hover:border-emerald-500/50'
@@ -784,6 +907,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
                           e.stopPropagation();
                           if (isOnField) return;
                           setSelectedPlayerToPlace(isSelected ? null : p);
+                          if (mobileTab === 'details') setMobileTab('pitch');
                         }}
                         className={`flex items-center justify-between p-2 rounded-xl border transition ${
                           isSelected
@@ -825,7 +949,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
             </div>
 
             {/* Tactics & Strategy Note */}
-            <div className="bg-slate-800/50 rounded-2xl border border-slate-700/70 p-3.5 space-y-1.5">
+            <div className="bg-slate-800/50 rounded-2xl border border-slate-700/70 p-3 sm:p-3.5 space-y-1.5">
               <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                 <Flame className="w-3.5 h-3.5 text-amber-400" />
                 Ghi chú & Dặn dò chiến thuật của BHL
@@ -848,14 +972,14 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
         </div>
 
         {/* 🚀 Footer Controls */}
-        <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-800/90 border-t border-slate-700 flex flex-wrap items-center justify-between gap-3">
+        <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-slate-800/95 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-2">
             {isAdmin && mode === 'view' && (
               <button
                 type="button"
                 onClick={() => pushNotificationMutation.mutate()}
                 disabled={pushNotificationMutation.isPending}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600/20 text-blue-300 border border-blue-500/40 text-xs font-bold hover:bg-blue-600/30 transition active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 text-blue-300 border border-blue-500/40 text-xs font-bold hover:bg-blue-600/30 transition active:scale-95 disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 {pushNotificationMutation.isPending ? 'Đang gửi...' : 'Bắn Push thông báo'}
@@ -865,14 +989,15 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
 
           <div className="flex items-center gap-2.5 ml-auto">
             {mode === 'edit' && (
-              <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none mr-2">
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-300 select-none mr-1">
                 <input
                   type="checkbox"
                   checked={sendPushOnSave}
                   onChange={(e) => setSendPushOnSave(e.target.checked)}
                   className="w-4 h-4 rounded text-emerald-600 bg-slate-900 border-slate-700 focus:ring-emerald-500"
                 />
-                <span>Bắn thông báo (Push & In-app) cho anh em</span>
+                <span className="hidden sm:inline">Bắn thông báo (Push)</span>
+                <span className="sm:hidden text-[11px]">Bắn Push</span>
               </label>
             )}
 
