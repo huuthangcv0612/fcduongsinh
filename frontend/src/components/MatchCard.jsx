@@ -7,6 +7,7 @@ import teamLogo from '../asset/logo.png';
 import { useToast } from '../context/ToastContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush, isAdmin }) {
   const { user } = useAuth();
@@ -59,6 +60,18 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
   const [targetStatus, setTargetStatus] = useState(null); // 'uncertain' | 'absent'
   const [reasonInput, setReasonInput] = useState('');
   const [reasonError, setReasonError] = useState('');
+
+  const isAnyModalOpen = Boolean(
+    showMembers ||
+    showEditModal ||
+    showResultModal ||
+    showMvpModal ||
+    showFinalizeConfirm ||
+    showDeleteModal ||
+    showNotifyModal ||
+    showReasonModal
+  );
+  useBodyScrollLock(isAnyModalOpen);
 
   // Query MVP stats for this match
   const { data: mvpStatsRes } = useQuery({
@@ -581,8 +594,8 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* 📋 MODAL: SHOW MEMBERS LIST */}
       {showMembers && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-[#374df5] shadow-2xl flex flex-col max-h-[80vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-[#374df5] shadow-2xl flex flex-col max-h-[80vh] overscroll-contain">
             <button onClick={() => setShowMembers(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl">
               <X className="w-4 h-4" />
             </button>
@@ -593,7 +606,7 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
               {t('matchcard.attendance_date')} {match.date}
             </p>
             
-            <div className="overflow-y-auto space-y-2 pr-1 text-xs">
+            <div className="overflow-y-auto space-y-2 pr-1 text-xs overscroll-contain">
               {match.checkInList?.map((item, idx) => (
                 <div key={idx} className="flex items-start justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
                   <div className="flex items-center gap-2">
@@ -642,8 +655,8 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* ❓ MANDATORY REASON MODAL FOR UNCERTAIN & ABSENT */}
       {showReasonModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border-2 border-amber-400 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border-2 border-amber-400 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain">
             <button onClick={() => setShowReasonModal(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl">
               <X className="w-4 h-4" />
             </button>
@@ -703,16 +716,18 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* ✏️ MODAL 1: EDIT MATCH DETAILS */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-[#374df5] shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-[#374df5] shadow-2xl flex flex-col max-h-[88vh] overscroll-contain">
             <button onClick={() => setShowEditModal(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl">
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-xl font-black text-slate-900 mb-1">✏️ Chỉnh Sửa Thông Tin Trận Đấu</h3>
-            <p className="text-xs text-slate-500 font-bold mb-4">Cập nhật thời gian, sân bóng và đối thủ</p>
+            <div className="shrink-0 mb-4">
+              <h3 className="text-xl font-black text-slate-900 mb-1">✏️ Chỉnh Sửa Thông Tin Trận Đấu</h3>
+              <p className="text-xs text-slate-500 font-bold">Cập nhật thời gian, sân bóng và đối thủ</p>
+            </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-3">
+            <form onSubmit={handleSaveEdit} className="space-y-3 overflow-y-auto flex-1 min-h-0 overscroll-contain pr-1">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Ngày đá:</label>
@@ -800,33 +815,33 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                   <input
                     type="number"
                     value={editForm.pitchCost}
-                    onChange={(e) => setEditForm({ ...editForm, pitchCost: e.target.value })}
+                    onChange={(e) => setEditForm({ ...editForm, pitchCost: parseInt(e.target.value) || 0 })}
                     className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Màu áo thi đấu:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Kèo đấu:</label>
                   <select
-                    value={editForm.kitColor}
-                    onChange={(e) => setEditForm({ ...editForm, kitColor: e.target.value })}
+                    value={editForm.deal}
+                    onChange={(e) => setEditForm({ ...editForm, deal: e.target.value })}
                     className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
                   >
-                    <option value="">-- Chưa chốt --</option>
-                    <option value="xanh dương">Xanh dương</option>
-                    <option value="đỏ">Đỏ</option>
-                    <option value="đen">Đen</option>
+                    <option value="5-5">5 - 5 (Chia đôi)</option>
+                    <option value="6-4">6 - 4</option>
+                    <option value="7-3">7 - 3</option>
+                    <option value="Thua đóng tất">Thua đóng tất</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Kèo giao hữu:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Màu áo thi đấu:</label>
                   <input
                     type="text"
-                    placeholder="5-5 / 6-4"
-                    value={editForm.deal}
-                    onChange={(e) => setEditForm({ ...editForm, deal: e.target.value })}
+                    placeholder="VD: Xanh dương, Đỏ..."
+                    value={editForm.kitColor}
+                    onChange={(e) => setEditForm({ ...editForm, kitColor: e.target.value })}
                     className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
                   />
                 </div>
@@ -841,11 +856,11 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                     <option value="live">Đang Live</option>
                     <option value="completed">Đã kết thúc</option>
                     <option value="cancelled">Hủy trận</option>
-                  </select>
+              </select>
                 </div>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3">
+              <div className="pt-3 flex items-center justify-end gap-3 shrink-0">
                 <button type="button" onClick={() => setShowEditModal(false)} className="px-4 py-2 text-xs font-bold text-slate-600">
                   Hủy
                 </button>
@@ -860,16 +875,18 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* ⚽ MODAL 2: UPDATE RESULT & SCORERS */}
       {showResultModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-lg glass-modal rounded-3xl p-6 relative bg-white border border-[#2c3ec4] shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-lg glass-modal rounded-3xl p-6 relative bg-white border border-[#2c3ec4] shadow-2xl flex flex-col max-h-[88vh] overscroll-contain">
             <button onClick={() => setShowResultModal(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl">
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-xl font-black text-slate-900 mb-1">⚽ Cập Nhật Tỉ Số & Cầu Thủ Ghi Bàn</h3>
-            <p className="text-xs text-slate-500 font-bold mb-4">Ghi nhận tỉ số trận đấu và chọn cầu thủ lập công từ danh sách thành viên</p>
+            <div className="shrink-0 mb-4">
+              <h3 className="text-xl font-black text-slate-900 mb-1">⚽ Cập Nhật Tỉ Số & Cầu Thủ Ghi Bàn</h3>
+              <p className="text-xs text-slate-500 font-bold">Ghi nhận tỉ số trận đấu và chọn cầu thủ lập công từ danh sách thành viên</p>
+            </div>
 
-            <form onSubmit={handleSaveResult} className="space-y-4">
+            <form onSubmit={handleSaveResult} className="space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain pr-1">
               {/* Ultra High-Contrast Score Input Box with Stepper Buttons */}
               <div className="bg-[#1f2ca3] text-white p-5 rounded-2xl border border-[#2c3ec4] flex items-center justify-around shadow-lg">
                 {/* Home Team (FC Nhà Trẻ) */}
@@ -898,23 +915,23 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                     <button
                       type="button"
                       onClick={() => setResultForm({ ...resultForm, homeScore: Number(resultForm.homeScore) + 1 })}
-                      className="w-9 h-9 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xl flex items-center justify-center shadow-md transition active:scale-95"
-                      title="Thêm 1 bàn"
+                      className="w-9 h-9 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl flex items-center justify-center transition active:scale-95 shadow-md"
+                      title="Tăng 1 bàn"
                     >
                       +
                     </button>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center px-2">
-                  <span className="text-white/60 font-black text-[10px] uppercase tracking-widest">TỈ SỐ</span>
-                  <span className="text-3xl font-black text-amber-300">-</span>
+                {/* VS Divider */}
+                <div className="text-2xl font-black text-white/40 tracking-widest px-2">
+                  VS
                 </div>
 
                 {/* Away Team (Opponent) */}
                 <div className="flex flex-col items-center">
-                  <div className="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1 line-clamp-1 max-w-[130px]">
-                    ⚔️ {match.opponent?.teamName || 'Đối thủ'}
+                  <div className="text-xs font-black text-white uppercase tracking-wider mb-2 truncate max-w-[120px]" title={match.opponent?.teamName || 'Đối thủ'}>
+                    🛡️ {match.opponent?.teamName || 'Đối thủ'}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -931,14 +948,14 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                       min="0"
                       value={resultForm.awayScore}
                       onChange={(e) => setResultForm({ ...resultForm, awayScore: Math.max(0, parseInt(e.target.value) || 0) })}
-                      className="w-16 h-14 text-center text-3xl font-black text-slate-950 bg-white border-2 border-amber-400 rounded-2xl shadow-inner focus:outline-none focus:ring-4 focus:ring-amber-400/40"
+                      className="w-16 h-14 text-center text-3xl font-black text-slate-950 bg-white border-2 border-rose-400 rounded-2xl shadow-inner focus:outline-none focus:ring-4 focus:ring-rose-400/40"
                     />
 
                     <button
                       type="button"
                       onClick={() => setResultForm({ ...resultForm, awayScore: Number(resultForm.awayScore) + 1 })}
-                      className="w-9 h-9 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xl flex items-center justify-center shadow-md transition active:scale-95"
-                      title="Thêm 1 bàn"
+                      className="w-9 h-9 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-black text-xl flex items-center justify-center transition active:scale-95 shadow-md"
+                      title="Tăng 1 bàn"
                     >
                       +
                     </button>
@@ -946,7 +963,22 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                 </div>
               </div>
 
-              {/* Add Goal Scorer Form with Member Dropdown Selection */}
+              {/* Match Status Selector */}
+              <div>
+                <label className="block text-xs font-black text-slate-800 mb-1">Trạng thái trận đấu:</label>
+                <select
+                  value={resultForm.status}
+                  onChange={(e) => setResultForm({ ...resultForm, status: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                >
+                  <option value="upcoming">Chưa đá (Sắp diễn ra)</option>
+                  <option value="live">Đang Live (Đang thi đấu)</option>
+                  <option value="completed">Đã kết thúc</option>
+                  <option value="cancelled">Hủy trận</option>
+                </select>
+              </div>
+
+              {/* Goal Scorers Box */}
               <div className="border-t border-slate-200 pt-3">
                 <label className="block text-xs font-black text-slate-800 mb-2">⚽ Chọn cầu thủ ghi bàn (FC Nhà Trẻ):</label>
                 
@@ -999,33 +1031,33 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                     <select
                       value={selectedAssister}
                       onChange={(e) => setSelectedAssister(e.target.value)}
-                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#374df5]"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                     >
-                      <option value="">-- Cầu thủ kiến tạo (Tùy chọn) --</option>
+                      <option value="">-- Chọn cầu thủ kiến tạo (nếu có) --</option>
                       {memberList.map((user) => (
                         <option key={user._id} value={user.name}>
                           👟 {user.name} ({user.position || 'Cầu thủ'})
                         </option>
                       ))}
-                      <option value="CUSTOM">➕ Nhập tên khác...</option>
+                      <option value="CUSTOM">➕ Nhập tên kiến tạo khác...</option>
                     </select>
                   </div>
 
-                  {/* Custom Name Inputs if CUSTOM is chosen */}
-                  <div className="flex flex-col gap-2 mt-2">
+                  {/* Custom Name Input if Selected */}
+                  <div className="space-y-2">
                     {selectedMember === 'CUSTOM' && (
                       <input
                         type="text"
-                        placeholder="Nhập tên người ghi bàn ngoài danh sách..."
+                        placeholder="Nhập tên cầu thủ ghi bàn..."
                         value={customPlayerName}
                         onChange={(e) => setCustomPlayerName(e.target.value)}
-                        className="w-full bg-amber-50 border border-amber-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
+                        className="w-full bg-emerald-50 border border-emerald-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
                       />
                     )}
                     {selectedAssister === 'CUSTOM' && (
                       <input
                         type="text"
-                        placeholder="Nhập tên người kiến tạo ngoài danh sách..."
+                        placeholder="Nhập tên cầu thủ kiến tạo..."
                         value={customAssisterName}
                         onChange={(e) => setCustomAssisterName(e.target.value)}
                         className="w-full bg-cyan-50 border border-cyan-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
@@ -1037,7 +1069,7 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
               {/* Current Scorers List */}
               {resultForm.scorers.length > 0 && (
-                <div className="space-y-1.5 max-h-36 overflow-y-auto border-t border-slate-100 pt-2">
+                <div className="space-y-1.5 max-h-36 overflow-y-auto border-t border-slate-100 pt-2 overscroll-contain">
                   <div className="text-[11px] font-bold text-slate-500 mb-1">Danh sách đã thêm:</div>
                   {resultForm.scorers.map((sc, i) => (
                     <div key={i} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
@@ -1084,7 +1116,7 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                 </select>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3">
+              <div className="pt-3 flex items-center justify-end gap-3 shrink-0">
                 <button type="button" onClick={() => setShowResultModal(false)} className="px-4 py-2 text-xs font-bold text-slate-600">
                   Hủy
                 </button>
@@ -1098,8 +1130,8 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
       )}
       {/* 🛑 CUSTOM DELETE CONFIRMATION MODAL */}
       {showDeleteModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-rose-500 shadow-2xl text-center">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-rose-500 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
             <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-8 h-8 text-rose-600" />
             </div>
@@ -1136,8 +1168,8 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* 📧 CUSTOM NOTIFY CONFIRMATION MODAL */}
       {showNotifyModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-emerald-500 shadow-2xl text-center">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-emerald-500 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Send className="w-8 h-8 text-emerald-600" />
             </div>
@@ -1174,8 +1206,8 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* 🏆 CUSTOM MVP DETAILS & VOTING MODAL */}
       {showMvpModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in select-none">
-          <div className="w-full max-w-lg glass-modal rounded-3xl p-5 sm:p-7 relative bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[88vh]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in select-none overscroll-contain">
+          <div className="w-full max-w-lg glass-modal rounded-3xl p-5 sm:p-7 relative bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[88vh] overscroll-contain">
             
             {/* Close Button */}
             <button
@@ -1186,7 +1218,7 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
             </button>
 
             {/* Header */}
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 shrink-0">
               <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-black">
                 <Trophy className="w-4 h-4 text-amber-600" />
               </div>
@@ -1194,13 +1226,13 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                 {t('mvp.modal_title')}
               </h3>
             </div>
-            <p className="text-xs font-bold text-slate-500 mb-3">
+            <p className="text-xs font-bold text-slate-500 mb-3 shrink-0">
               Trận ngày {match.date} • FC Nhà Trẻ ({match.score?.homeScore ?? 0}) - ({match.score?.awayScore ?? 0}) {match.opponent?.teamName || 'Đối thủ'}
             </p>
 
             {/* If winner finalized */}
             {mvpStats?.motm && (
-              <div className="mb-3.5 p-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 shadow-sm flex items-center gap-3">
+              <div className="mb-3.5 p-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 shadow-sm flex items-center gap-3 shrink-0">
                 <div className="w-11 h-11 rounded-xl bg-white/90 text-amber-900 flex items-center justify-center font-black text-2xl shadow-xs shrink-0">
                   👑
                 </div>
@@ -1221,7 +1253,7 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
             )}
 
             {/* Voting Progress Overview */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 mb-3 text-xs font-bold">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 mb-3 text-xs font-bold shrink-0">
               <div className="flex items-center justify-between text-slate-700 mb-1.5">
                 <span>{t('mvp.voting_progress')}:</span>
                 <span className="font-mono font-black text-[#2c3ec4]">
@@ -1239,11 +1271,11 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
             </div>
 
             {/* Candidates Leaderboard (Scrollable) */}
-            <div className="text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+            <div className="text-xs font-black text-slate-700 uppercase tracking-wider mb-2 shrink-0">
               📊 Bảng xếp hạng phiếu bầu:
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-1 space-y-2 mb-3">
+            <div className="flex-1 overflow-y-auto pr-1 space-y-2 mb-3 overscroll-contain">
               {(mvpStats?.candidates || []).sort((a, b) => (b.voteCount - a.voteCount) || ((b.goals + b.assists) - (a.goals + a.assists))).map((cand, idx) => {
                 const isUserVotedThis = mvpStats?.userVotedCandidateId === cand._id;
                 const isWinner = cand.isWinner;
@@ -1259,38 +1291,44 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                         : 'border-slate-200 bg-white hover:bg-slate-50'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-2.5 overflow-hidden">
-                        <span className={`w-5 text-center font-black text-xs ${idx === 0 ? 'text-amber-600 text-sm' : 'text-slate-400'}`}>
-                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
-                        </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {/* Rank Badge */}
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-mono font-black text-xs shrink-0 ${
+                          idx === 0 ? 'bg-amber-400 text-slate-950 font-extrabold' :
+                          idx === 1 ? 'bg-slate-300 text-slate-800' :
+                          idx === 2 ? 'bg-amber-700/20 text-amber-900' :
+                          'bg-slate-100 text-slate-500'
+                        }`}>
+                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                        </div>
 
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center font-black text-xs text-slate-600">
+                        {/* Avatar */}
+                        <div className="w-8 h-8 rounded-xl bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
                           {cand.avatar ? (
                             <img src={cand.avatar} alt={cand.name} className="w-full h-full object-cover" />
                           ) : (
-                            cand.name?.charAt(0) || '⚽'
+                            <div className="w-full h-full flex items-center justify-center font-bold text-xs text-slate-500">
+                              {cand.name.charAt(0)}
+                            </div>
                           )}
                         </div>
 
-                        <div className="overflow-hidden">
-                          <div className="font-black text-xs text-slate-900 truncate flex items-center gap-1.5">
-                            <span>{cand.name}</span>
-                            {isWinner && (
-                              <span className="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 text-[9px] font-black">
-                                MVP
-                              </span>
-                            )}
+                        {/* Name & Match contribution */}
+                        <div className="min-w-0">
+                          <div className="text-xs font-black text-slate-900 flex items-center gap-1.5 truncate">
+                            <span className="truncate">{cand.name}</span>
+                            {isWinner && <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />}
                             {isUserVotedThis && (
-                              <span className="px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 text-[9px] font-black">
-                                Phiếu của bạn
+                              <span className="px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 text-[10px] font-bold shrink-0">
+                                {t('mvp.voted_badge')}
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                          <div className="text-[10px] text-slate-500 font-bold flex items-center gap-2">
                             <span>{cand.position || 'Cầu thủ'}</span>
                             {(cand.goals > 0 || cand.assists > 0) && (
-                              <span className="text-amber-700 font-extrabold">
+                              <span className="text-amber-600 font-black">
                                 • {cand.goals > 0 ? `⚽ ${cand.goals}` : ''} {cand.assists > 0 ? `👟 ${cand.assists}` : ''}
                               </span>
                             )}
@@ -1298,58 +1336,59 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                         </div>
                       </div>
 
+                      {/* Vote Count & Action Button */}
                       <div className="flex items-center gap-2 shrink-0">
-                        {/* Vote Button if user hasn't voted yet and voting open */}
-                        {!mvpStats?.hasUserVoted && !mvpStats?.isMvpFinalized && userStatus === 'joined' && (
+                        <div className="text-right">
+                          <div className="font-mono font-black text-sm text-slate-900">
+                            {cand.voteCount} <span className="text-[10px] font-bold text-slate-500">{t('mvp.votes')}</span>
+                          </div>
+                        </div>
+
+                        {/* If MVP not finalized yet, show Vote button */}
+                        {!mvpStats?.isFinalized && (
                           <button
                             type="button"
                             onClick={() => voteMvpMutation.mutate(cand._id)}
                             disabled={voteMvpMutation.isPending}
-                            className="px-2.5 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[10px] shadow-xs transition"
+                            className={`p-2 rounded-xl text-xs font-black transition flex items-center gap-1 ${
+                              isUserVotedThis
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-800'
+                            }`}
+                            title={isUserVotedThis ? 'Đã bỏ phiếu cho cầu thủ này' : 'Bình chọn MVP cho cầu thủ này'}
                           >
-                            Bình chọn ⭐
+                            <Star className={`w-3.5 h-3.5 ${isUserVotedThis ? 'fill-white' : ''}`} />
+                            <span className="hidden sm:inline">{isUserVotedThis ? t('mvp.voted_badge') : t('mvp.vote_action')}</span>
                           </button>
                         )}
-
-                        <div className="text-right">
-                          <div className="font-mono font-black text-xs text-slate-900">
-                            {cand.voteCount} <span className="text-[10px] text-slate-500 font-bold">{t('mvp.votes')}</span>
-                          </div>
-                          <div className="text-[10px] font-bold text-slate-400">
-                            {cand.votePercentage}%
-                          </div>
-                        </div>
                       </div>
-                    </div>
-
-                    {/* Progress Bar for each candidate */}
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          isWinner ? 'bg-amber-500' : 'bg-[#374df5]'
-                        }`}
-                        style={{ width: `${cand.votePercentage}%` }}
-                      />
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Action Footer */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-              <div className="text-[11px] font-bold text-slate-500">
-                💡 {t('mvp.tie_breaker_info')}
-              </div>
+            {/* Bottom Actions for Admin (Chốt MVP thủ công sớm) */}
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowMvpModal(false)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+              >
+                Đóng
+              </button>
 
-              {isAdmin && !mvpStats?.isMvpFinalized && (
+              {isAdmin && !mvpStats?.isFinalized && (
                 <button
                   type="button"
-                  onClick={() => setShowFinalizeConfirm(true)}
-                  disabled={finalizeMvpMutation.isPending}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-sm transition shrink-0"
+                  onClick={() => {
+                    setShowMvpModal(false);
+                    setShowFinalizeConfirm(true);
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition active:scale-95"
                 >
-                  👑 {t('matchcard.mvp_finalize_early')}
+                  <Crown className="w-4 h-4" />
+                  <span>Chốt Kết Quả MVP Sớm</span>
                 </button>
               )}
             </div>
@@ -1361,8 +1400,8 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* 👑 CUSTOM MODAL: CONFIRM FINALIZE MVP EARLY (Admin) */}
       {showFinalizeConfirm && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-amber-500 shadow-2xl text-center">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-amber-500 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
             <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
               👑
             </div>

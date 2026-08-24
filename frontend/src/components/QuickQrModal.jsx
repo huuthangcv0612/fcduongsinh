@@ -4,10 +4,13 @@ import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { X, QrCode, Download, Copy, Check, Landmark, Sparkles } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function QuickQrModal({ isOpen, onClose }) {
   const { user } = useAuth();
   const toast = useToast();
+
+  useBodyScrollLock(isOpen);
 
   const { data: configRes } = useQuery({
     queryKey: ['fund-config'],
@@ -51,11 +54,11 @@ export default function QuickQrModal({ isOpen, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in overscroll-contain"
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center space-y-4"
+        className="w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center space-y-4 max-h-[90vh] overflow-y-auto overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

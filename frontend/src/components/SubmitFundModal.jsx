@@ -5,12 +5,15 @@ import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { X, UploadCloud, QrCode, Check, AlertCircle, Sparkles, CreditCard, ChevronRight } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function SubmitFundModal({ isOpen, onClose }) {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+
+  useBodyScrollLock(isOpen);
 
   // Query live Fund & Bank configuration
   const { data: configRes } = useQuery({
@@ -166,16 +169,17 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative my-8">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="tactile-btn absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+      <div className="min-h-full flex items-center justify-center py-4">
+        <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative">
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="tactile-btn absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
         {/* Header */}
         <div className="mb-6">
@@ -434,5 +438,6 @@ export default function SubmitFundModal({ isOpen, onClose }) {
         </form>
       </div>
     </div>
+  </div>
   );
 }

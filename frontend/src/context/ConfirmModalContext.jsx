@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useRef } from 'react';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 const ConfirmModalContext = createContext(null);
 
@@ -12,6 +13,8 @@ export function ConfirmModalProvider({ children }) {
     cancelText: 'Hủy',
     type: 'danger' // 'danger' | 'warning' | 'info'
   });
+
+  useBodyScrollLock(modalState.isOpen);
 
   const resolverRef = useRef(null);
 
@@ -50,8 +53,8 @@ export function ConfirmModalProvider({ children }) {
 
       {/* Confirmation Pop-Up Modal */}
       {modalState.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-md animate-fade-in select-none">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 sm:p-7 text-center relative overflow-hidden bg-white border-2 border-rose-400 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-md animate-fade-in select-none overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-6 sm:p-7 text-center relative overflow-y-auto max-h-[90vh] overscroll-contain bg-white border-2 border-rose-400 shadow-2xl">
             <button
               onClick={handleCancel}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100 transition"

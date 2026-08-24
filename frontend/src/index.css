@@ -176,3 +176,25 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgb(55, 77, 245);
 }
+
+/* Mobile Modal Scroll Lock & Touch Containment */
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: none;
+}
+
+body.modal-open .modal-backdrop,
+body.modal-open [class*="fixed inset-0"] {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.modal-open .glass-modal,
+body.modal-open [class*="overflow-y-auto"],
+body.modal-open [class*="overflow-x-auto"],
+body.modal-open [class*="overflow-auto"] {
+  touch-action: pan-y pinch-zoom;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}

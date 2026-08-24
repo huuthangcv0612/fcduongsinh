@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { AlertTriangle, CheckCircle, XCircle, HelpCircle, Calendar, MapPin, Clock, DollarSign, X } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function ForceCheckInModal() {
   const queryClient = useQueryClient();
@@ -18,6 +19,9 @@ export default function ForceCheckInModal() {
 
   const pendingMatch = forceMatchRes?.data;
 
+  const isOpen = !isLoading && Boolean(pendingMatch) && !isDismissed;
+  useBodyScrollLock(isOpen);
+
   const checkInMutation = useMutation({
     mutationFn: ({ matchId, status, reason }) =>
       api.put(`/matches/${matchId}/checkin`, { status, reason }),
@@ -33,7 +37,7 @@ export default function ForceCheckInModal() {
     }
   });
 
-  if (isLoading || !pendingMatch || isDismissed) {
+  if (!isOpen) {
     return null;
   }
 
@@ -52,8 +56,8 @@ export default function ForceCheckInModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xl animate-fade-in select-none">
-      <div className="w-full max-w-lg glass-modal rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden bg-white border-2 border-emerald-400 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xl animate-fade-in select-none overscroll-contain">
+      <div className="w-full max-w-lg glass-modal rounded-3xl p-6 sm:p-8 text-center relative overflow-y-auto max-h-[90vh] overscroll-contain bg-white border-2 border-emerald-400 shadow-2xl">
         
         {/* Close Button */}
         <button

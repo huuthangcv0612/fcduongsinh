@@ -4,11 +4,14 @@ import api from '../services/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function EditMemberModal({ isOpen, onClose, member }) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+
+  useBodyScrollLock(isOpen && Boolean(member));
 
   const [formData, setFormData] = useState({
     name: '',
@@ -60,9 +63,9 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
   if (!isOpen || !member) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
-        <div className="bg-slate-900 p-5 text-white flex justify-between items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in overscroll-contain">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
+        <div className="bg-slate-900 p-5 text-white flex justify-between items-center shrink-0">
           <h2 className="font-black text-sm flex items-center gap-2">
             <span>✏️ {t('edit_member.title')}</span>
           </h2>
@@ -71,7 +74,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
           </button>
         </div>
         
-        <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
           <div>
             <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">{t('edit_member.player_name')}</label>
             <div className="relative">

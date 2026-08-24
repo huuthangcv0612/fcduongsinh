@@ -15,6 +15,7 @@ import FundConfigModal from '../components/FundConfigModal';
 import QuickQrModal from '../components/QuickQrModal';
 import { Wallet, Plus, ArrowUpRight, ArrowDownRight, X, Table, ListFilter, Mail, CreditCard, Inbox, CheckCircle2, Clock, XCircle, Eye, Settings, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function FinancesPage() {
   const { user, isAdmin, isTreasurer, isManager } = useAuth();
@@ -35,6 +36,8 @@ export default function FinancesPage() {
   const [showQRModal, setShowQRModal] = useState(false);
   const qrUrlFromParam = searchParams.get('qrUrl');
   const submissionIdParam = searchParams.get('submissionId');
+
+  useBodyScrollLock(showAddModal || (showQRModal && Boolean(qrUrlFromParam)));
 
   useEffect(() => {
     if (qrUrlFromParam) {
@@ -463,8 +466,8 @@ export default function FinancesPage() {
 
       {/* Add Single Transaction Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain">
             <button
               onClick={() => setShowAddModal(false)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100"
@@ -570,8 +573,8 @@ export default function FinancesPage() {
 
       {/* QR Code Viewer Modal */}
       {showQRModal && qrUrlFromParam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
-          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400 shadow-2xl text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
             <button
               onClick={handleCloseQR}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100 transition"

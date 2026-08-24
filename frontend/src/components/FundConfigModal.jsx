@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { X, Save, Settings, Landmark, CreditCard, DollarSign, QrCode, UploadCloud, Check } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 const POPULAR_BANKS = [
   { code: 'MB', name: 'MB Bank (Quân Đội)' },
@@ -23,6 +24,8 @@ const POPULAR_BANKS = [
 export default function FundConfigModal({ isOpen, onClose }) {
   const toast = useToast();
   const queryClient = useQueryClient();
+
+  useBodyScrollLock(isOpen);
 
   const { data: configRes, isLoading } = useQuery({
     queryKey: ['fund-config'],
@@ -113,16 +116,17 @@ export default function FundConfigModal({ isOpen, onClose }) {
   const previewQrUrl = formData.customQrUrl || `https://img.vietqr.io/image/${formData.bankCode}-${formData.accountNumber}-compact2.png?amount=${formData.monthlyFee}&addInfo=${encodeURIComponent(formData.transferPrefix + ' TEST T08')}&accountName=${encodeURIComponent(formData.accountName)}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative my-8">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="tactile-btn absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 bg-slate-900/65 backdrop-blur-md animate-fade-in">
+      <div className="min-h-full flex items-center justify-center py-4">
+        <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative">
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="tactile-btn absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
         {/* Header */}
         <div className="mb-6">
@@ -277,5 +281,6 @@ export default function FundConfigModal({ isOpen, onClose }) {
         )}
       </div>
     </div>
+  </div>
   );
 }

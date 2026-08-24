@@ -4,11 +4,14 @@ import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { X, CheckCircle2, XCircle, Calendar, CreditCard, User, Maximize2, ShieldCheck, Clock } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function FundSubmissionReviewModal({ submission, isOpen, onClose }) {
   const { isManager } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
+
+  useBodyScrollLock(isOpen && Boolean(submission));
 
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -53,16 +56,17 @@ export default function FundSubmissionReviewModal({ submission, isOpen, onClose 
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative my-8">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="tactile-btn absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 bg-slate-900/65 backdrop-blur-md animate-fade-in">
+      <div className="min-h-full flex items-center justify-center py-4">
+        <div className="w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative">
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="tactile-btn absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
         {/* Modal Header */}
         <div className="mb-6 flex items-start gap-4">
@@ -240,5 +244,6 @@ export default function FundSubmissionReviewModal({ submission, isOpen, onClose 
         )}
       </div>
     </div>
+  </div>
   );
 }

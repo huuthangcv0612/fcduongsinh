@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BellRing, X } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function PushNotificationPrompt() {
   const [show, setShow] = useState(false);
   const toast = useToast();
+
+  useBodyScrollLock(show);
 
   useEffect(() => {
     // Only show if the browser supports notifications and we haven't asked yet
@@ -75,8 +78,8 @@ export default function PushNotificationPrompt() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300 overscroll-contain">
+      <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto overscroll-contain">
         
         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 flex flex-col items-center justify-center text-center relative">
           <button 

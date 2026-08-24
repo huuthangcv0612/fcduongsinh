@@ -17,6 +17,7 @@ import {
   Sparkles,
   Calendar
 } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 const MONTH_KEYS = [
   { key: 'm1', label: 'Tháng 1' },
@@ -44,6 +45,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
   const scrollContainerRef = useRef(null);
+
+  useBodyScrollLock(Boolean(editingCell) || showAddMemberModal);
 
   const currentMonthIndex = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -424,8 +427,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
 
       {/* ✏️ HIGH CONTRAST CELL EDIT MODAL */}
       {editingCell && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border-2 border-[#374df5] shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border-2 border-[#374df5] shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain">
             <button
               onClick={() => setEditingCell(null)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl"
@@ -509,8 +512,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
 
       {/* Add Member Modal */}
       {showAddMemberModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-emerald-400 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain">
             <button
               onClick={() => setShowAddMemberModal(false)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100"

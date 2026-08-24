@@ -4,6 +4,7 @@ import api from '../services/api';
 import { Trophy, Star, CheckCircle2, Users, Calendar, MapPin, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import teamLogo from '../asset/logo.png';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function ForceMvpVoteModal() {
   const queryClient = useQueryClient();
@@ -19,6 +20,9 @@ export default function ForceMvpVoteModal() {
   });
 
   const pendingMatch = forceRes?.data;
+
+  const isOpen = !isLoading && Boolean(pendingMatch) && !isDismissed;
+  useBodyScrollLock(isOpen);
 
   const voteMutation = useMutation({
     mutationFn: ({ matchId, candidateId }) =>
@@ -36,7 +40,7 @@ export default function ForceMvpVoteModal() {
     }
   });
 
-  if (isLoading || !pendingMatch || isDismissed) {
+  if (!isOpen) {
     return null;
   }
 
@@ -78,8 +82,8 @@ export default function ForceMvpVoteModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in select-none">
-      <div className="w-full max-w-xl glass-modal rounded-3xl p-5 sm:p-7 text-center relative overflow-hidden bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in select-none overscroll-contain">
+      <div className="w-full max-w-xl glass-modal rounded-3xl p-5 sm:p-7 text-center relative overflow-hidden bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[90vh] overscroll-contain">
         
         {/* Close Button */}
         <button

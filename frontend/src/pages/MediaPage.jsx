@@ -5,6 +5,7 @@ import { Image as ImageIcon, Video, Link as LinkIcon, Plus, Trash2, UploadCloud,
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function MediaPage() {
   const { user, isAdmin } = useAuth();
@@ -17,6 +18,8 @@ export default function MediaPage() {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkForm, setLinkForm] = useState({ title: '', url: '' });
   const [selectedMedia, setSelectedMedia] = useState(null);
+
+  useBodyScrollLock(showLinkModal || Boolean(selectedMedia));
 
   const { data: mediaRes, isLoading } = useQuery({
     queryKey: ['media'],
@@ -247,8 +250,8 @@ export default function MediaPage() {
 
       {/* Link Modal */}
       {showLinkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overscroll-contain">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-slate-200 max-h-[90vh] overflow-y-auto overscroll-contain">
             <h3 className="text-lg font-black text-slate-900 mb-4">{t('media.add_link_modal')}</h3>
             <form onSubmit={handleAddLink}>
               <div className="space-y-4">
@@ -287,7 +290,7 @@ export default function MediaPage() {
 
       {/* Lightbox Modal */}
       {selectedMedia && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm overscroll-contain">
           <button 
             onClick={() => setSelectedMedia(null)}
             className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition"

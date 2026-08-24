@@ -95,13 +95,13 @@ export default function NotificationBell() {
         <>
           {/* Mobile backdrop */}
           <div
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 sm:hidden animate-fade-in"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 sm:hidden animate-fade-in overscroll-contain"
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+58px)] right-3 left-3 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2 sm:w-88 origin-top sm:origin-top-right rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 z-50 border border-slate-200/90 overflow-hidden flex flex-col max-h-[75vh] sm:max-h-96 animate-fade-in">
+          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+58px)] right-3 left-3 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2 sm:w-88 origin-top sm:origin-top-right rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 z-50 border border-slate-200/90 overflow-hidden flex flex-col max-h-[75vh] sm:max-h-96 animate-fade-in overscroll-contain">
             {/* Header with Close X Button */}
-            <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/90 backdrop-blur-sm sticky top-0 flex justify-between items-center z-10">
+            <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/90 backdrop-blur-sm sticky top-0 flex justify-between items-center z-10 shrink-0">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-black text-slate-800">🔔 Thông báo</h3>
                 {unreadCount > 0 && (
@@ -121,7 +121,7 @@ export default function NotificationBell() {
               </button>
             </div>
             
-            <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+            <div className="overflow-y-auto flex-1 divide-y divide-slate-100 overscroll-contain">
               {notifications.length === 0 ? (
                 <div className="px-4 py-10 text-center text-sm text-slate-400 font-bold">
                   Không có thông báo nào.

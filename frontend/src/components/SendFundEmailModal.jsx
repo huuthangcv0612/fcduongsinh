@@ -2,9 +2,13 @@ import React, { useState, useRef } from 'react';
 import { Mail, Upload, X, Check, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function SendFundEmailModal({ isOpen, onClose }) {
   const { t } = useTranslation();
+
+  useBodyScrollLock(isOpen);
+
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(`${t('finances.month_prefix')} ${currentMonth}`);
   const [message, setMessage] = useState('');
@@ -28,40 +32,43 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
         return;
       }
       
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setQrImage(reader.result);
-        setPreviewUrl(reader.result);
-        setError('');
-      };
-      reader.readAsDataURL(file);
+      setQrImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setError('');
     }
   };
 
   const handleSend = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess('');
-    
+    if (!qrImage) {
+      setError(t('finances.qr_required_error'));
+      return;
+    }
+
     try {
-      await api.post('/finances/send-notification', {
-        month,
-        message,
-        qrImage,
-        sendEmail
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      const formData = new FormData();
+      formData.append('month', month);
+      formData.append('message', message);
+      formData.append('qrImage', qrImage);
+      formData.append('sendEmail', sendEmail);
+
+      await api.post('/finances/fund-reminder', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      
-      setSuccess(sendEmail ? t('finances.send_success_both') : t('finances.send_success_push'));
+
+      setSuccess(t('finances.send_success'));
       setTimeout(() => {
         onClose();
         setSuccess('');
-        setMonth(`${t('finances.month_prefix')} ${currentMonth}`);
-        setMessage('');
         setQrImage(null);
         setPreviewUrl(null);
-        setSendEmail(true);
-      }, 2500);
-      
+      }, 1500);
+
     } catch (err) {
       console.error(err);
       setError(err.message || t('finances.send_error'));
@@ -71,11 +78,11 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overscroll-contain">
+      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white flex justify-between items-start">
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white flex justify-between items-start shrink-0">
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
               <Mail className="w-6 h-6" />
@@ -94,7 +101,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto flex-1 min-h-0 overscroll-contain">
           {error && (
             <div className="p-3 bg-rose-50 text-rose-600 rounded-xl text-sm font-semibold border border-rose-200">
               {error}
@@ -200,7 +207,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 rounded-b-3xl">
+        <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 rounded-b-3xl shrink-0">
           <button 
             onClick={onClose}
             disabled={loading}

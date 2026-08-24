@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Download, Share, Plus, X, Smartphone, Monitor, QrCode } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 // ============================================================
 // PWA Install Context & Hook
@@ -33,10 +34,10 @@ function detectPlatform() {
 function IOSGuideModal({ onClose, isChromeiOS }) {
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm overscroll-contain"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 animate-fade-in">
+      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh] overscroll-contain border border-slate-200 animate-fade-in">
         <div className="bg-gradient-to-r from-[#1f2ca3] to-[#2c3ec4] px-5 pt-5 pb-4 text-white relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition">
             <X className="w-4 h-4" />
@@ -93,12 +94,12 @@ function DesktopInstallModal({ onClose, onNativeInstall, hasNativePrompt }) {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm overscroll-contain"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 animate-fade-in">
+      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh] overscroll-contain border border-slate-200 animate-fade-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#1f2ca3] to-[#2c3ec4] px-6 pt-6 pb-5 text-white relative">
+        <div className="bg-gradient-to-r from-[#1f2ca3] to-[#2c3ec4] px-6 pt-6 pb-5 text-white relative shrink-0">
           <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition">
             <X className="w-4 h-4" />
           </button>
@@ -278,6 +279,8 @@ export function PWAProvider({ children }) {
   const [isInstalled, setIsInstalled] = useState(false);
   const [platform] = useState(() => detectPlatform());
   const promptRef = useRef(null);
+
+  useBodyScrollLock(showIOSGuide || showDesktopModal);
 
   // Service Worker registration is handled automatically by vite-plugin-pwa
   // (registerType: 'autoUpdate' injects its own registration script).
