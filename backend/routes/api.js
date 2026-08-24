@@ -39,6 +39,9 @@ router.delete('/matches/:id', authMiddleware, adminMiddleware, matchController.d
 router.post('/matches/:id/clone', authMiddleware, adminMiddleware, matchController.cloneMatch);
 router.post('/matches/:id/notify', authMiddleware, adminMiddleware, matchController.notifyMatch);
 router.post('/matches/:id/notify-push', authMiddleware, adminMiddleware, matchController.notifyMatchPush);
+router.get('/matches/:id/lineup', authMiddleware, matchController.getMatchLineup);
+router.put('/matches/:id/lineup', authMiddleware, adminMiddleware, matchController.updateMatchLineup);
+router.post('/matches/:id/lineup/notify', authMiddleware, adminMiddleware, matchController.notifyLineupPush);
 
 // --- Finance Routes ---
 router.get('/finances', authMiddleware, financeController.getFinances);

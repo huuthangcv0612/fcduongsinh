@@ -43,6 +43,59 @@ const ScorerSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+const StarterSchema = new mongoose.Schema({
+  positionKey: {
+    type: String,
+    required: true
+  },
+  positionName: {
+    type: String,
+    default: ''
+  },
+  x: {
+    type: Number,
+    default: 50
+  },
+  y: {
+    type: Number,
+    default: 50
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  isCaptain: {
+    type: Boolean,
+    default: false
+  }
+}, { _id: false });
+
+const LineupSchema = new mongoose.Schema({
+  formation: {
+    type: String,
+    enum: ['2-3-1', '3-2-1', '2-1-2-1', '3-1-2', '1-4-1', 'custom'],
+    default: '2-3-1'
+  },
+  starters: [StarterSchema],
+  substitutes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  tacticsNote: {
+    type: String,
+    default: ''
+  },
+  isPublished: {
+    type: Boolean,
+    default: false
+  },
+  publishedAt: {
+    type: Date,
+    default: null
+  }
+}, { _id: false });
+
 const MatchSchema = new mongoose.Schema({
   motm: {
     type: String,
@@ -97,6 +150,16 @@ const MatchSchema = new mongoose.Schema({
   },
   scorers: [ScorerSchema],
   checkInList: [CheckInItemSchema],
+  lineup: {
+    type: LineupSchema,
+    default: () => ({
+      formation: '2-3-1',
+      starters: [],
+      substitutes: [],
+      tacticsNote: '',
+      isPublished: false
+    })
+  },
   mvpVotes: [{
     voterId: {
       type: mongoose.Schema.Types.ObjectId,

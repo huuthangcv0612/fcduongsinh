@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, Clock, MapPin, DollarSign, Users, Copy, CheckCircle2, XCircle, HelpCircle, Edit3, Trophy, Plus, Minus, Trash2, X, Zap, Send, Shirt, Bell, Star, Award, Crown, Flame } from 'lucide-react';
+import { Calendar, Clock, MapPin, DollarSign, Users, Copy, CheckCircle2, XCircle, HelpCircle, Edit3, Trophy, Plus, Minus, Trash2, X, Zap, Send, Shirt, Bell, Star, Award, Crown, Flame, Shield } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import teamLogo from '../asset/logo.png';
@@ -8,6 +8,7 @@ import { useToast } from '../context/ToastContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import MatchLineupModal from './MatchLineupModal';
 
 export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush, isAdmin }) {
   const { user } = useAuth();
@@ -54,6 +55,7 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
   const [showResultModal, setShowResultModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [showLineupModal, setShowLineupModal] = useState(false);
 
   // Reason Modal State for 'uncertain' and 'absent'
   const [showReasonModal, setShowReasonModal] = useState(false);
@@ -69,7 +71,8 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
     showFinalizeConfirm ||
     showDeleteModal ||
     showNotifyModal ||
-    showReasonModal
+    showReasonModal ||
+    showLineupModal
   );
   useBodyScrollLock(isAnyModalOpen);
 
@@ -538,14 +541,29 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
           </div>
         </div>
 
-        {/* Member Check-in List Toggle */}
-        <button
-          onClick={() => setShowMembers(true)}
-          className="w-full text-center text-xs font-black text-slate-600 hover:text-[#374df5] py-1.5 transition flex items-center justify-center gap-1 border-t border-slate-100"
-        >
-          <Users className="w-3.5 h-3.5" />
-          <span>{t('matchcard.view_details')}</span>
-        </button>
+        {/* Action Buttons: Lineup & Attendance */}
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2.5">
+          <button
+            type="button"
+            onClick={() => setShowLineupModal(true)}
+            className="py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black transition flex items-center justify-center gap-1.5 shadow-2xs group"
+          >
+            <Shield className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
+            <span>Đội hình ra sân</span>
+            {match.lineup?.isPublished && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Đã có đội hình" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowMembers(true)}
+            className="py-1.5 px-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5"
+          >
+            <Users className="w-3.5 h-3.5 text-slate-500" />
+            <span>{t('matchcard.view_details')}</span>
+          </button>
+        </div>
       </div>
 
       {/* User Action Footer (3 Options: Joined, Uncertain, Absent) */}
@@ -1432,6 +1450,14 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
         </div>,
         document.body
       )}
+
+      {/* 📋 MODAL: MATCH LINEUP (Sa bàn chiến thuật & Đội hình ra sân) */}
+      <MatchLineupModal
+        match={match}
+        isOpen={showLineupModal}
+        onClose={() => setShowLineupModal(false)}
+        isAdmin={isAdmin}
+      />
 
     </div>
   );

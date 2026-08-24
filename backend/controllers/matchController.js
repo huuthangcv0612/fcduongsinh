@@ -79,7 +79,9 @@ async function getMatches(req, res, next) {
 
     const matches = await Match.find(filter)
       .sort({ date: 1, time: 1 })
-      .populate('checkInList.userId', 'name email avatar position')
+      .populate('checkInList.userId', 'name email avatar position number phone')
+      .populate('lineup.starters.userId', 'name avatar number position')
+      .populate('lineup.substitutes', 'name avatar number position')
       .lean();
 
     const formatted = matches.map(match => {
@@ -926,6 +928,192 @@ async function getMatchMvpStats(req, res, next) {
   }
 }
 
+// 📋 GET MATCH LINEUP & AVAILABLE PLAYERS
+async function getMatchLineup(req, res, next) {
+  try {
+    const { id } = req.params;
+    const match = await Match.findById(id)
+      .populate('checkInList.userId', 'name avatar number position phone')
+      .populate('lineup.starters.userId', 'name avatar number position')
+      .populate('lineup.substitutes', 'name avatar number position')
+      .lean();
+
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    const allUsers = await User.find({ isActive: true })
+      .select('name avatar number position phone')
+      .lean();
+
+    res.json({
+      success: true,
+      data: {
+        matchId: match._id,
+        date: match.date,
+        time: match.time,
+        stadium: match.stadium,
+        opponent: match.opponent,
+        kitColor: match.kitColor,
+        status: match.status,
+        checkInList: match.checkInList || [],
+        lineup: match.lineup || {
+          formation: '2-3-1',
+          starters: [],
+          substitutes: [],
+          tacticsNote: '',
+          isPublished: false
+        },
+        allUsers
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// 📋 UPDATE MATCH LINEUP
+async function updateMatchLineup(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { formation, starters, substitutes, tacticsNote, isPublished, sendPush } = req.body;
+
+    const match = await Match.findById(id);
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    const shouldPublish = isPublished !== undefined ? isPublished : true;
+    const currentPublishedAt = match.lineup?.publishedAt;
+
+    match.lineup = {
+      formation: formation || '2-3-1',
+      starters: (starters || []).map(s => ({
+        positionKey: s.positionKey,
+        positionName: s.positionName || '',
+        x: Number(s.x) || 50,
+        y: Number(s.y) || 50,
+        userId: s.userId ? (s.userId._id || s.userId) : null,
+        isCaptain: !!s.isCaptain
+      })),
+      substitutes: (substitutes || []).map(sub => sub?._id || sub).filter(Boolean),
+      tacticsNote: tacticsNote || '',
+      isPublished: shouldPublish,
+      publishedAt: shouldPublish ? (currentPublishedAt || new Date()) : currentPublishedAt
+    };
+
+    await match.save();
+
+    // Populate for response
+    await match.populate('lineup.starters.userId', 'name avatar number position');
+    await match.populate('lineup.substitutes', 'name avatar number position');
+
+    // If sendPush is true, notify members with status 'joined' or 'uncertain'
+    if (sendPush) {
+      const targetCheckIns = (match.checkInList || []).filter(
+        item => item.status === 'joined' || item.status === 'uncertain'
+      );
+      const targetUserIds = targetCheckIns.map(item => (item.userId?._id || item.userId)?.toString()).filter(Boolean);
+
+      const title = '📋 Đội hình ra sân đã được công bố!';
+      const opponentName = match.opponent?.teamName || 'Đối thủ';
+      const message = `Đội hình trận gặp ${opponentName} (${match.time} ngày ${match.date}) đã có. Xem ngay sơ đồ chiến thuật!`;
+      const link = `/matches`;
+
+      if (targetUserIds.length > 0) {
+        // In-app notifications
+        const notiDocs = targetUserIds.map(uid => ({
+          recipient: uid,
+          title,
+          message,
+          type: 'match',
+          link
+        }));
+        await Notification.insertMany(notiDocs);
+
+        // Web push notifications
+        const subscriptions = await PushSubscription.find({ userId: { $in: targetUserIds } });
+        const pushPayload = { title, body: message, url: link, type: 'match' };
+
+        subscriptions.forEach(async (sub) => {
+          try {
+            await sendNotification(sub.subscription, pushPayload);
+          } catch (error) {
+            if (error.message === 'SubscriptionExpired') {
+              await PushSubscription.findByIdAndDelete(sub._id);
+            }
+          }
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: match.lineup,
+      message: sendPush ? 'Đã lưu đội hình và gửi thông báo thành công!' : 'Đã lưu đội hình thành công!'
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// 📋 SEND PUSH NOTIFICATION FOR LINEUP
+async function notifyLineupPush(req, res, next) {
+  try {
+    const { id } = req.params;
+    const match = await Match.findById(id);
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    const targetCheckIns = (match.checkInList || []).filter(
+      item => item.status === 'joined' || item.status === 'uncertain'
+    );
+    const targetUserIds = targetCheckIns.map(item => (item.userId?._id || item.userId)?.toString()).filter(Boolean);
+
+    if (targetUserIds.length === 0) {
+      return res.json({
+        success: true,
+        message: 'Chưa có thành viên nào vote Tham gia hoặc 50-50 để gửi thông báo.'
+      });
+    }
+
+    const title = '📋 Đội hình ra sân đã được công bố!';
+    const opponentName = match.opponent?.teamName || 'Đối thủ';
+    const message = `Đội hình trận gặp ${opponentName} (${match.time} ngày ${match.date}) đã có. Xem ngay sơ đồ chiến thuật!`;
+    const link = `/matches`;
+
+    const notiDocs = targetUserIds.map(uid => ({
+      recipient: uid,
+      title,
+      message,
+      type: 'match',
+      link
+    }));
+    await Notification.insertMany(notiDocs);
+
+    const subscriptions = await PushSubscription.find({ userId: { $in: targetUserIds } });
+    const pushPayload = { title, body: message, url: link, type: 'match' };
+
+    subscriptions.forEach(async (sub) => {
+      try {
+        await sendNotification(sub.subscription, pushPayload);
+      } catch (error) {
+        if (error.message === 'SubscriptionExpired') {
+          await PushSubscription.findByIdAndDelete(sub._id);
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `Đã gửi thông báo đội hình đến ${targetUserIds.length} thành viên.`
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createMatch,
   getMatches,
@@ -940,6 +1128,9 @@ module.exports = {
   deleteMatch,
   cloneMatch,
   notifyMatch,
-  notifyMatchPush
+  notifyMatchPush,
+  getMatchLineup,
+  updateMatchLineup,
+  notifyLineupPush
 };
 
