@@ -93,6 +93,7 @@ router.delete('/media/:id', authMiddleware, mediaController.deleteMedia);
 
 // --- Notification Routes ---
 router.get('/notifications', authMiddleware, notificationController.getNotifications);
+router.put('/notifications/read-all', authMiddleware, notificationController.markAllAsRead);
 router.put('/notifications/:id/read', authMiddleware, notificationController.markAsRead);
 router.post('/notifications/subscribe', authMiddleware, notificationController.subscribePush);
 router.post('/notifications/admin-send', authMiddleware, adminMiddleware, notificationController.sendAdminNotification);

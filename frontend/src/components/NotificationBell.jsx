@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bell, CheckCheck, X, Sparkles, Calendar, DollarSign, Trophy } from 'lucide-react';
 import api from '../services/api';
 
 export default function NotificationBell() {
@@ -51,7 +52,7 @@ export default function NotificationBell() {
       const res = await api.get('/notifications');
       if (res.success) {
         setNotifications(res.notifications || []);
-        setUnreadCount(res.notifications.filter(n => !n.read).length);
+        setUnreadCount((res.notifications || []).filter(n => !n.read).length);
       }
     } catch (error) {
       console.error('Failed to fetch notifications', error);
@@ -75,17 +76,43 @@ export default function NotificationBell() {
     }
   };
 
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+    try {
+      await api.put('/notifications/read-all');
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all as read', error);
+    }
+  };
+
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'match':
+        return <span className="text-base">⚽</span>;
+      case 'fund':
+      case 'finance':
+        return <span className="text-base">💰</span>;
+      case 'mvp':
+        return <span className="text-base">👑</span>;
+      default:
+        return <span className="text-base">🔔</span>;
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
+      {/* Bell Trigger Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-white/90 hover:text-white relative rounded-full transition-colors focus:outline-none"
+        className="p-2 text-white/90 hover:text-white hover:bg-white/10 relative rounded-full transition-colors focus:outline-none"
+        title="Thông báo"
+        type="button"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-        </svg>
+        <Bell className="w-5 h-5 sm:w-5 sm:h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+          <span className="absolute top-1 right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-sm ring-2 ring-[#2c3ec4]">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -99,50 +126,97 @@ export default function NotificationBell() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+58px)] right-3 left-3 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2 sm:w-88 origin-top sm:origin-top-right rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 z-50 border border-slate-200/90 overflow-hidden flex flex-col max-h-[75vh] sm:max-h-96 animate-fade-in overscroll-contain">
-            {/* Header with Close X Button */}
-            <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/90 backdrop-blur-sm sticky top-0 flex justify-between items-center z-10 shrink-0">
+          {/* Dropdown Container */}
+          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+56px)] right-3 left-3 sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-2 w-auto sm:w-[380px] sm:min-w-[380px] sm:max-w-[400px] origin-top sm:origin-top-right rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 z-50 border border-slate-200 overflow-hidden flex flex-col max-h-[75vh] sm:max-h-[30rem] animate-fade-in overscroll-contain">
+            
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/95 backdrop-blur-sm sticky top-0 flex justify-between items-center z-10 shrink-0">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-black text-slate-800">🔔 Thông báo</h3>
+                <span className="text-base">🔔</span>
+                <h3 className="text-sm font-black text-slate-900 whitespace-nowrap">Thông báo</h3>
                 {unreadCount > 0 && (
-                  <span className="text-[11px] text-blue-700 font-bold bg-blue-100 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full whitespace-nowrap">
                     {unreadCount} mới
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="tactile-btn p-1.5 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-200/70 hover:bg-slate-200 transition"
-                title="Đóng cửa sổ thông báo"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+
+              <div className="flex items-center gap-1.5">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleMarkAllAsRead}
+                    className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded-lg transition whitespace-nowrap"
+                    title="Đánh dấu tất cả đã đọc"
+                  >
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    <span>Đọc tất cả</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition"
+                  title="Đóng"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             
+            {/* List */}
             <div className="overflow-y-auto flex-1 divide-y divide-slate-100 overscroll-contain">
               {notifications.length === 0 ? (
-                <div className="px-4 py-10 text-center text-sm text-slate-400 font-bold">
-                  Không có thông báo nào.
+                <div className="px-4 py-12 text-center flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2 text-slate-400">
+                    <Bell className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-500">Chưa có thông báo nào</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Các thông báo trận đấu, quỹ, MVP sẽ xuất hiện ở đây.</p>
                 </div>
               ) : (
                 notifications.map(notif => (
                   <button
                     key={notif._id}
+                    type="button"
                     onClick={() => handleNotificationClick(notif)}
-                    className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex gap-3 ${notif.read ? 'bg-white' : 'bg-blue-50/60'}`}
+                    className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex gap-3 items-start ${
+                      notif.read ? 'bg-white' : 'bg-blue-50/50 hover:bg-blue-50/80'
+                    }`}
                   >
-                    <div className={`mt-1.5 flex-shrink-0 w-2.5 h-2.5 rounded-full ${notif.read ? 'bg-slate-200' : 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]'}`} />
+                    {/* Notification Type Icon */}
+                    <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center border shadow-2xs ${
+                      notif.read
+                        ? 'bg-slate-100 border-slate-200 text-slate-500'
+                        : 'bg-blue-100 border-blue-200 text-blue-600'
+                    }`}>
+                      {getNotificationIcon(notif.type)}
+                    </div>
+
+                    {/* Notification Content */}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs sm:text-sm ${notif.read ? 'text-slate-700' : 'text-slate-950 font-black'}`}>
-                        {notif.title}
-                      </p>
+                      <div className="flex items-center justify-between gap-1">
+                        <p className={`text-xs sm:text-sm truncate ${notif.read ? 'text-slate-700 font-semibold' : 'text-slate-950 font-black'}`}>
+                          {notif.title}
+                        </p>
+                        {!notif.read && (
+                          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0 shadow-sm" />
+                        )}
+                      </div>
+
                       <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
                         {notif.message}
                       </p>
-                      <p className="text-[10px] text-slate-400 mt-1 font-bold font-mono">
-                        {new Date(notif.createdAt).toLocaleString('vi-VN')}
+
+                      <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                        {new Date(notif.createdAt).toLocaleString('vi-VN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })}
                       </p>
                     </div>
                   </button>
