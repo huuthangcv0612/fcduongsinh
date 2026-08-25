@@ -77,8 +77,12 @@ async function getMatches(req, res, next) {
     const filter = { status: { $ne: 'deleted' } };
     if (status) filter.status = status;
 
+    const sortOrder = (status === 'completed' || status === 'cancelled')
+      ? { date: -1, time: -1 }
+      : { date: 1, time: 1 };
+
     const matches = await Match.find(filter)
-      .sort({ date: 1, time: 1 })
+      .sort(sortOrder)
       .populate('checkInList.userId', 'name email avatar position number phone')
       .populate('lineup.starters.userId', 'name avatar number position')
       .populate('lineup.substitutes', 'name avatar number position')

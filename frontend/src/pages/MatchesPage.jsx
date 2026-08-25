@@ -140,7 +140,32 @@ export default function MatchesPage() {
   });
 
   const matches = matchesRes?.data || [];
-  const filteredMatches = matches.filter(m => activeTab === 'upcoming' ? m.status === 'upcoming' : m.status !== 'upcoming');
+
+  // Upcoming matches: live matches first, then nearest upcoming date/time first
+  const upcomingMatches = React.useMemo(() => {
+    return matches
+      .filter(m => m.status === 'upcoming' || m.status === 'live')
+      .sort((a, b) => {
+        if (a.status === 'live' && b.status !== 'live') return -1;
+        if (b.status === 'live' && a.status !== 'live') return 1;
+        const dateComp = (a.date || '').localeCompare(b.date || '');
+        if (dateComp !== 0) return dateComp;
+        return (a.time || '').localeCompare(b.time || '');
+      });
+  }, [matches]);
+
+  // History / Past matches: most recent past matches first (descending date/time)
+  const pastMatches = React.useMemo(() => {
+    return matches
+      .filter(m => m.status !== 'upcoming' && m.status !== 'live')
+      .sort((a, b) => {
+        const dateComp = (b.date || '').localeCompare(a.date || '');
+        if (dateComp !== 0) return dateComp;
+        return (b.time || '').localeCompare(a.time || '');
+      });
+  }, [matches]);
+
+  const filteredMatches = activeTab === 'upcoming' ? upcomingMatches : pastMatches;
 
   const uniqueOpponents = React.useMemo(() => {
     if (!matches) return [];
@@ -214,7 +239,7 @@ export default function MatchesPage() {
           >
             <span>{t('matches.upcoming')}</span>
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono-numbers ${activeTab === 'upcoming' ? 'bg-white/20 text-white' : 'bg-slate-300/80 text-slate-700'}`}>
-              {matches.filter(m => m.status === 'upcoming').length}
+              {upcomingMatches.length}
             </span>
           </button>
           
@@ -228,7 +253,7 @@ export default function MatchesPage() {
           >
             <span>{t('matches.past')}</span>
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono-numbers ${activeTab === 'past' ? 'bg-white/20 text-white' : 'bg-slate-300/80 text-slate-700'}`}>
-              {matches.filter(m => m.status !== 'upcoming').length}
+              {pastMatches.length}
             </span>
           </button>
         </div>

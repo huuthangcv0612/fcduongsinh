@@ -181,7 +181,18 @@ export default function DashboardPage() {
   const activeHeroImage = carouselImages[heroImageIndex]?.url || coverImage;
   const activeHeroTitle = carouselImages[heroImageIndex]?.title || 'FC Nhà Trẻ';
 
-  const upcomingMatches = matches.filter(m => m.status === 'upcoming');
+  const upcomingMatches = React.useMemo(() => {
+    return matches
+      .filter(m => m.status === 'upcoming' || m.status === 'live')
+      .sort((a, b) => {
+        if (a.status === 'live' && b.status !== 'live') return -1;
+        if (b.status === 'live' && a.status !== 'live') return 1;
+        const dateComp = (a.date || '').localeCompare(b.date || '');
+        if (dateComp !== 0) return dateComp;
+        return (a.time || '').localeCompare(b.time || '');
+      });
+  }, [matches]);
+
   const recentFinances = finances.slice(0, 5);
 
   const nextUpcomingMatch = upcomingMatches[0];
