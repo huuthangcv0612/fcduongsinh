@@ -51,6 +51,7 @@ router.put('/finances/bulk-update', authMiddleware, adminMiddleware, financeCont
 router.delete('/finances/:id', authMiddleware, adminMiddleware, financeController.deleteFinance);
 
 // --- Monthly Fund Grid Routes (Google Sheets Style Matrix) ---
+router.get('/finances/my-fund-status', authMiddleware, financeController.getMyFundStatus);
 router.get('/finances/monthly-grid', authMiddleware, financeController.getMonthlyGrid);
 router.put('/finances/monthly-grid/cell', authMiddleware, adminMiddleware, financeController.updateMonthlyCell);
 router.post('/finances/monthly-grid/member', authMiddleware, adminMiddleware, financeController.addMonthlyMember);

@@ -1,5 +1,7 @@
 const Finance = require('../models/Finance');
 const MonthlyFund = require('../models/MonthlyFund');
+const FundSubmission = require('../models/FundSubmission');
+const TeamConfig = require('../models/TeamConfig');
 const User = require('../models/User');
 const { AppError } = require('../middlewares/authMiddleware');
 const { CreateFinanceSchema, BulkUpdateFinanceSchema } = require('../validators/schemas');
@@ -337,6 +339,67 @@ async function sendFundEmail(req, res, next) {
   }
 }
 
+async function getMyFundStatus(req, res, next) {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.json({ success: true, data: { isUnpaid: false } });
+    }
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    const currentMonthKey = `m${currentMonth}`;
+    const monthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+
+    // Get Fund Config for monthly fee
+    const fundConfig = await TeamConfig.findOne({ key: 'fund_config' }).lean();
+    const requiredAmount = fundConfig?.monthlyFee || user.monthlyFund || 100000;
+
+    // 1. Find user's MonthlyFund for this year
+    let monthlyRecord = await MonthlyFund.findOne({ year: currentYear, userId: user._id }).lean();
+    if (!monthlyRecord && user.name) {
+      monthlyRecord = await MonthlyFund.findOne({ year: currentYear, memberName: user.name }).lean();
+    }
+
+    const paidAmount = monthlyRecord?.months?.[currentMonthKey] || 0;
+
+    // 2. Check if user has a pending fund submission for this month
+    const pendingSubmission = await FundSubmission.findOne({
+      userId: user._id,
+      status: 'pending',
+      months: monthStr
+    }).lean();
+
+    const isPaidInFull = paidAmount >= requiredAmount;
+    const isUnpaid = !isPaidInFull && !pendingSubmission;
+
+    res.json({
+      success: true,
+      data: {
+        isUnpaid,
+        isPaidInFull,
+        hasPendingSubmission: Boolean(pendingSubmission),
+        currentMonth,
+        currentYear,
+        paidAmount,
+        requiredAmount,
+        remainingAmount: Math.max(0, requiredAmount - paidAmount),
+        fundConfig: fundConfig ? {
+          bankName: fundConfig.bankName,
+          bankCode: fundConfig.bankCode,
+          accountNumber: fundConfig.accountNumber,
+          accountName: fundConfig.accountName,
+          customQrUrl: fundConfig.customQrUrl,
+          transferPrefix: fundConfig.transferPrefix
+        } : null
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createFinance,
   getFinances,
@@ -347,5 +410,6 @@ module.exports = {
   updateMonthlyCell,
   addMonthlyMember,
   deleteMonthlyMember,
-  sendFundEmail
+  sendFundEmail,
+  getMyFundStatus
 };

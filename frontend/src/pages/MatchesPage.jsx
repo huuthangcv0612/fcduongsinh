@@ -258,22 +258,26 @@ export default function MatchesPage() {
 
       {/* Create Match Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
-          <div className="w-full max-w-lg max-h-[90vh] glass-modal rounded-3xl relative bg-white border border-emerald-400 shadow-2xl overflow-hidden flex flex-col overscroll-contain">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-lg max-h-[92dvh] glass-modal rounded-3xl relative bg-white border border-emerald-400 shadow-2xl overflow-hidden flex flex-col overscroll-contain">
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-xl bg-slate-100 transition"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="px-5 sm:px-6 pt-5 pb-3 border-b border-slate-100 shrink-0">
-              <h3 className="text-xl font-black text-slate-900 mb-1">⚽ {t('matches.create_title')}</h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">{t('matches.create_subtitle')}</p>
+            <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-slate-100 shrink-0 pr-10">
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-1 flex items-center gap-1.5">
+                ⚽ {t('matches.create_title')}
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">
+                {t('matches.create_subtitle')}
+              </p>
             </div>
 
-            <form id="create-match-form" onSubmit={handleSubmit} className="space-y-4 px-5 sm:px-6 py-5 overflow-y-auto flex-1 min-h-0 overscroll-contain">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form id="create-match-form" onSubmit={handleSubmit} className="space-y-3.5 px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.match_date')}</label>
                   <input
@@ -281,7 +285,7 @@ export default function MatchesPage() {
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -292,12 +296,12 @@ export default function MatchesPage() {
                     placeholder="19:15"
                     value={formData.time}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.stadium')}</label>
                   <input
@@ -306,7 +310,7 @@ export default function MatchesPage() {
                     placeholder={t('matches.stadium_placeholder')}
                     value={formData.stadium}
                     onChange={(e) => setFormData({ ...formData, stadium: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -316,12 +320,12 @@ export default function MatchesPage() {
                     placeholder="https://maps.app.goo.gl/..."
                     value={formData.stadiumLink}
                     onChange={(e) => setFormData({ ...formData, stadiumLink: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.pitch_cost')}</label>
                   <input
@@ -330,7 +334,7 @@ export default function MatchesPage() {
                     step="100000"
                     value={formData.pitchCost}
                     onChange={(e) => setFormData({ ...formData, pitchCost: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -340,17 +344,17 @@ export default function MatchesPage() {
                     placeholder="5-5 / 6-4"
                     value={formData.deal}
                     onChange={(e) => setFormData({ ...formData, deal: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.select_old_opponent')}</label>
                   <select
                     onChange={handleSelectOldOpponent}
-                    className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-sm text-blue-900 font-bold focus:outline-none focus:border-blue-500"
+                    className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5 text-sm text-blue-900 font-bold focus:outline-none focus:border-blue-500"
                   >
                     <option value="">{t('matches.select_old_opponent_placeholder')}</option>
                     {uniqueOpponents.map((opp, idx) => (
@@ -366,7 +370,7 @@ export default function MatchesPage() {
                     placeholder="FC Thăng Long"
                     value={formData.opponentTeamName}
                     onChange={(e) => setFormData({ ...formData, opponentTeamName: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -374,7 +378,7 @@ export default function MatchesPage() {
                   <select
                     value={formData.kitColor}
                     onChange={(e) => setFormData({ ...formData, kitColor: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">{t('matches.kit_unselected')}</option>
                     <option value="xanh dương">{t('matches.kit_blue')}</option>
@@ -384,7 +388,7 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_phone')}</label>
                   <input
@@ -392,7 +396,7 @@ export default function MatchesPage() {
                     placeholder="098..."
                     value={formData.opponentPhone}
                     onChange={(e) => setFormData({ ...formData, opponentPhone: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -402,18 +406,18 @@ export default function MatchesPage() {
                     placeholder="https://facebook.com/..."
                     value={formData.opponentFbLink}
                     onChange={(e) => setFormData({ ...formData, opponentFbLink: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
             </form>
 
-            <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 shrink-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 rounded-b-3xl">
+            <div className="p-3.5 sm:p-4 border-t border-slate-100 bg-slate-50 shrink-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 rounded-b-3xl">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 text-sm font-bold w-full sm:w-auto transition"
+                className="px-4 py-3 rounded-xl text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 text-sm font-bold w-full sm:w-auto transition min-h-[44px]"
               >
                 {t('matches.cancel')}
               </button>
@@ -421,7 +425,7 @@ export default function MatchesPage() {
                 type="submit"
                 form="create-match-form"
                 disabled={createMutation.isPending}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-md w-full sm:w-auto transition"
+                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-sm shadow-md w-full sm:w-auto transition min-h-[44px]"
               >
                 {t('matches.submit')}
               </button>

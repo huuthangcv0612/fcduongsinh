@@ -52,7 +52,7 @@ export default function ForceMvpVoteModal() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedCandidateId) {
-      setErrorMsg('Vui lòng chọn 1 cầu thủ bạn muốn bình chọn MVP!');
+      setErrorMsg(t('mvp.select_error'));
       return;
     }
     setErrorMsg('');
@@ -102,7 +102,7 @@ export default function ForceMvpVoteModal() {
 
         {/* Header Title */}
         <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-1 tracking-tight">
-          ⭐ Ai là Cầu thủ xuất sắc nhất trận?
+          {t('mvp.header_question')}
         </h2>
         <p className="text-slate-500 text-xs sm:text-sm font-semibold mb-4">
           {t('mvp.modal_subtitle')}

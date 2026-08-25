@@ -734,115 +734,119 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* ✏️ MODAL 1: EDIT MATCH DETAILS */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
-          <div className="w-full max-w-md glass-modal rounded-3xl p-6 relative bg-white border border-[#374df5] shadow-2xl flex flex-col max-h-[88vh] overscroll-contain">
-            <button onClick={() => setShowEditModal(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-md glass-modal rounded-3xl p-5 sm:p-6 relative bg-white border border-[#374df5] shadow-2xl flex flex-col max-h-[90dvh] overscroll-contain">
+            <button onClick={() => setShowEditModal(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl transition">
               <X className="w-4 h-4" />
             </button>
 
-            <div className="shrink-0 mb-4">
-              <h3 className="text-xl font-black text-slate-900 mb-1">✏️ Chỉnh Sửa Thông Tin Trận Đấu</h3>
-              <p className="text-xs text-slate-500 font-bold">Cập nhật thời gian, sân bóng và đối thủ</p>
+            <div className="shrink-0 mb-3 pr-8">
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-1 flex items-center gap-1.5">
+                ✏️ {t('matchcard.edit_modal_title')}
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">
+                {t('matchcard.edit_modal_subtitle')}
+              </p>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-3 overflow-y-auto flex-1 min-h-0 overscroll-contain pr-1">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSaveEdit} className="space-y-3.5 overflow-y-auto flex-1 min-h-0 overscroll-contain pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Ngày đá:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.match_date')}</label>
                   <input
                     type="date"
                     required
                     value={editForm.date}
                     onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Giờ đá:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.match_time')}</label>
                   <input
                     type="time"
                     required
                     value={editForm.time}
                     onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tên sân bóng:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.stadium')}</label>
                   <input
                     type="text"
                     required
-                    placeholder="VD: Sân Ngọc Minh, Sân Viettel 1..."
+                    placeholder={t('matches.stadium_placeholder')}
                     value={editForm.stadium}
                     onChange={(e) => setEditForm({ ...editForm, stadium: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Link Google Maps:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.maps_link')}</label>
                   <input
                     type="text"
                     placeholder="https://maps.app.goo.gl/..."
                     value={editForm.stadiumLink}
                     onChange={(e) => setEditForm({ ...editForm, stadiumLink: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tên đội đối thủ:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_name')}</label>
                   <input
                     type="text"
                     placeholder="VD: FC Thăng Long"
                     value={editForm.opponentName}
                     onChange={(e) => setEditForm({ ...editForm, opponentName: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">SĐT liên hệ:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_phone')}</label>
                   <input
                     type="text"
                     placeholder="0987654321"
                     value={editForm.opponentPhone}
                     onChange={(e) => setEditForm({ ...editForm, opponentPhone: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Link Facebook Đội bạn:</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_fb')}</label>
                 <input
                   type="text"
                   placeholder="https://facebook.com/..."
                   value={editForm.opponentFbLink || ''}
                   onChange={(e) => setEditForm({ ...editForm, opponentFbLink: e.target.value })}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tiền sân (VNĐ):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.pitch_cost')}</label>
                   <input
                     type="number"
                     value={editForm.pitchCost}
                     onChange={(e) => setEditForm({ ...editForm, pitchCost: parseInt(e.target.value) || 0 })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold font-mono text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Kèo đấu:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.deal')}</label>
                   <select
                     value={editForm.deal}
                     onChange={(e) => setEditForm({ ...editForm, deal: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   >
                     <option value="5-5">5 - 5 (Chia đôi)</option>
                     <option value="6-4">6 - 4</option>
@@ -852,38 +856,45 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Màu áo thi đấu:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.kit_color')}</label>
                   <input
                     type="text"
                     placeholder="VD: Xanh dương, Đỏ..."
                     value={editForm.kitColor}
                     onChange={(e) => setEditForm({ ...editForm, kitColor: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Trạng thái:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matchcard.match_status')}</label>
                   <select
                     value={editForm.status}
                     onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                   >
-                    <option value="upcoming">Sắp diễn ra</option>
-                    <option value="live">Đang Live</option>
-                    <option value="completed">Đã kết thúc</option>
-                    <option value="cancelled">Hủy trận</option>
-              </select>
+                    <option value="upcoming">{t('matchcard.status_upcoming')}</option>
+                    <option value="live">{t('matchcard.status_live')}</option>
+                    <option value="completed">{t('matchcard.status_completed')}</option>
+                    <option value="cancelled">{t('matchcard.status_cancelled')}</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3 shrink-0">
-                <button type="button" onClick={() => setShowEditModal(false)} className="px-4 py-2 text-xs font-bold text-slate-600">
-                  Hủy
+              <div className="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 shrink-0 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition min-h-[40px] text-center"
+                >
+                  {t('matches.cancel')}
                 </button>
-                <button type="submit" className="px-5 py-2.5 rounded-full bg-[#374df5] text-white font-black text-xs shadow-md">
-                  Lưu Thay Đổi
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-[#374df5] hover:bg-[#2c3ec4] active:scale-95 text-white font-black text-xs shadow-md transition min-h-[40px] text-center"
+                >
+                  {t('matchcard.save_changes_btn')}
                 </button>
               </div>
             </form>
@@ -893,30 +904,34 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* ⚽ MODAL 2: UPDATE RESULT & SCORERS */}
       {showResultModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
-          <div className="w-full max-w-lg glass-modal rounded-3xl p-6 relative bg-white border border-[#2c3ec4] shadow-2xl flex flex-col max-h-[88vh] overscroll-contain">
-            <button onClick={() => setShowResultModal(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-lg glass-modal rounded-3xl p-5 sm:p-6 relative bg-white border border-[#2c3ec4] shadow-2xl flex flex-col max-h-[90dvh] overscroll-contain">
+            <button onClick={() => setShowResultModal(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-xl transition">
               <X className="w-4 h-4" />
             </button>
 
-            <div className="shrink-0 mb-4">
-              <h3 className="text-xl font-black text-slate-900 mb-1">⚽ Cập Nhật Tỉ Số & Cầu Thủ Ghi Bàn</h3>
-              <p className="text-xs text-slate-500 font-bold">Ghi nhận tỉ số trận đấu và chọn cầu thủ lập công từ danh sách thành viên</p>
+            <div className="shrink-0 mb-3 pr-8">
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-1 flex items-center gap-1.5">
+                ⚽ {t('matchcard.score_modal_title')}
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold leading-tight">
+                {t('matchcard.score_modal_subtitle')}
+              </p>
             </div>
 
             <form onSubmit={handleSaveResult} className="space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain pr-1">
               {/* Ultra High-Contrast Score Input Box with Stepper Buttons */}
-              <div className="bg-[#1f2ca3] text-white p-5 rounded-2xl border border-[#2c3ec4] flex items-center justify-around shadow-lg">
+              <div className="bg-[#1f2ca3] text-white p-3.5 sm:p-4 rounded-2xl border border-[#2c3ec4] flex items-center justify-between sm:justify-around shadow-lg gap-2">
                 {/* Home Team (FC Nhà Trẻ) */}
-                <div className="flex flex-col items-center">
-                  <div className="text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1">
+                <div className="flex flex-col items-center min-w-0">
+                  <div className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1 truncate">
                     🏠 FC Nhà Trẻ
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
                       type="button"
                       onClick={() => setResultForm({ ...resultForm, homeScore: Math.max(0, Number(resultForm.homeScore) - 1) })}
-                      className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white font-black text-xl flex items-center justify-center transition active:scale-95"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 hover:bg-white/30 text-white font-black text-lg sm:text-xl flex items-center justify-center transition active:scale-95 shrink-0"
                       title="Giảm 1 bàn"
                     >
                       -
@@ -927,13 +942,13 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                       min="0"
                       value={resultForm.homeScore}
                       onChange={(e) => setResultForm({ ...resultForm, homeScore: Math.max(0, parseInt(e.target.value) || 0) })}
-                      className="w-16 h-14 text-center text-3xl font-black text-slate-950 bg-white border-2 border-emerald-400 rounded-2xl shadow-inner focus:outline-none focus:ring-4 focus:ring-emerald-400/40"
+                      className="w-12 sm:w-16 h-11 sm:h-14 text-center text-xl sm:text-3xl font-black text-slate-950 bg-white border-2 border-emerald-400 rounded-2xl shadow-inner focus:outline-none focus:ring-4 focus:ring-emerald-400/40"
                     />
 
                     <button
                       type="button"
                       onClick={() => setResultForm({ ...resultForm, homeScore: Number(resultForm.homeScore) + 1 })}
-                      className="w-9 h-9 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl flex items-center justify-center transition active:scale-95 shadow-md"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg sm:text-xl flex items-center justify-center transition active:scale-95 shadow-md shrink-0"
                       title="Tăng 1 bàn"
                     >
                       +
@@ -942,20 +957,20 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                 </div>
 
                 {/* VS Divider */}
-                <div className="text-2xl font-black text-white/40 tracking-widest px-2">
+                <div className="text-xl sm:text-2xl font-black text-white/40 tracking-widest px-1 shrink-0">
                   VS
                 </div>
 
                 {/* Away Team (Opponent) */}
-                <div className="flex flex-col items-center">
-                  <div className="text-xs font-black text-white uppercase tracking-wider mb-2 truncate max-w-[120px]" title={match.opponent?.teamName || 'Đối thủ'}>
-                    🛡️ {match.opponent?.teamName || 'Đối thủ'}
+                <div className="flex flex-col items-center min-w-0">
+                  <div className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider mb-2 truncate max-w-[100px] sm:max-w-[130px]" title={match.opponent?.teamName || t('matchcard.opponent')}>
+                    🛡️ {match.opponent?.teamName || t('matchcard.opponent')}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
                       type="button"
                       onClick={() => setResultForm({ ...resultForm, awayScore: Math.max(0, Number(resultForm.awayScore) - 1) })}
-                      className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white font-black text-xl flex items-center justify-center transition active:scale-95"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 hover:bg-white/30 text-white font-black text-lg sm:text-xl flex items-center justify-center transition active:scale-95 shrink-0"
                       title="Giảm 1 bàn"
                     >
                       -
@@ -966,13 +981,13 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                       min="0"
                       value={resultForm.awayScore}
                       onChange={(e) => setResultForm({ ...resultForm, awayScore: Math.max(0, parseInt(e.target.value) || 0) })}
-                      className="w-16 h-14 text-center text-3xl font-black text-slate-950 bg-white border-2 border-rose-400 rounded-2xl shadow-inner focus:outline-none focus:ring-4 focus:ring-rose-400/40"
+                      className="w-12 sm:w-16 h-11 sm:h-14 text-center text-xl sm:text-3xl font-black text-slate-950 bg-white border-2 border-rose-400 rounded-2xl shadow-inner focus:outline-none focus:ring-4 focus:ring-rose-400/40"
                     />
 
                     <button
                       type="button"
                       onClick={() => setResultForm({ ...resultForm, awayScore: Number(resultForm.awayScore) + 1 })}
-                      className="w-9 h-9 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-black text-xl flex items-center justify-center transition active:scale-95 shadow-md"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-black text-lg sm:text-xl flex items-center justify-center transition active:scale-95 shadow-md shrink-0"
                       title="Tăng 1 bàn"
                     >
                       +
@@ -983,132 +998,138 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
               {/* Match Status Selector */}
               <div>
-                <label className="block text-xs font-black text-slate-800 mb-1">Trạng thái trận đấu:</label>
+                <label className="block text-xs font-black text-slate-800 mb-1">{t('matchcard.match_status')}</label>
                 <select
                   value={resultForm.status}
                   onChange={(e) => setResultForm({ ...resultForm, status: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                 >
-                  <option value="upcoming">Chưa đá (Sắp diễn ra)</option>
-                  <option value="live">Đang Live (Đang thi đấu)</option>
-                  <option value="completed">Đã kết thúc</option>
-                  <option value="cancelled">Hủy trận</option>
+                  <option value="upcoming">{t('matchcard.status_upcoming')}</option>
+                  <option value="live">{t('matchcard.status_live')}</option>
+                  <option value="completed">{t('matchcard.status_completed')}</option>
+                  <option value="cancelled">{t('matchcard.status_cancelled')}</option>
                 </select>
               </div>
 
               {/* Goal Scorers Box */}
               <div className="border-t border-slate-200 pt-3">
-                <label className="block text-xs font-black text-slate-800 mb-2">⚽ Chọn cầu thủ ghi bàn (FC Nhà Trẻ):</label>
+                <label className="block text-xs font-black text-slate-800 mb-2">⚽ {t('matchcard.select_scorer_title')}</label>
                 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                     {/* Member Dropdown */}
-                    <select
-                      value={selectedMember}
-                      onChange={(e) => setSelectedMember(e.target.value)}
-                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
-                    >
-                      <option value="">-- Chọn thành viên trong đội --</option>
-                      {memberList.map((user) => (
-                        <option key={user._id} value={user.name}>
-                          👤 {user.name} ({user.position || 'Cầu thủ'})
-                        </option>
-                      ))}
-                      <option value="CUSTOM">➕ Nhập tên khác (Khách / Thử việc)...</option>
-                    </select>
+                    <div className="sm:col-span-6">
+                      <select
+                        value={selectedMember}
+                        onChange={(e) => setSelectedMember(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                      >
+                        <option value="">{t('matchcard.select_member_placeholder')}</option>
+                        {memberList.map((user) => (
+                          <option key={user._id} value={user.name}>
+                            👤 {user.name} ({user.position || 'Cầu thủ'})
+                          </option>
+                        ))}
+                        <option value="CUSTOM">{t('matchcard.custom_scorer_option')}</option>
+                      </select>
+                    </div>
 
-                    <input
-                      type="text"
-                      placeholder="Phút (15', 38')"
-                      value={newScorer.minute}
-                      onChange={(e) => setNewScorer({ ...newScorer, minute: e.target.value })}
-                      className="w-24 bg-white border border-slate-300 text-slate-950 placeholder:text-slate-400 font-bold rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#374df5]"
-                    />
+                    <div className="grid grid-cols-12 sm:col-span-6 gap-2">
+                      <input
+                        type="text"
+                        placeholder={t('matchcard.minute_placeholder')}
+                        value={newScorer.minute}
+                        onChange={(e) => setNewScorer({ ...newScorer, minute: e.target.value })}
+                        className="col-span-5 bg-white border border-slate-300 text-slate-950 placeholder:text-slate-400 font-bold rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:border-[#374df5]"
+                      />
 
-                    <input
-                      type="number"
-                      min="1"
-                      value={newScorer.count}
-                      onChange={(e) => setNewScorer({ ...newScorer, count: e.target.value })}
-                      className="w-14 bg-white border border-slate-300 text-slate-950 font-black rounded-xl px-2 py-2 text-xs text-center focus:outline-none focus:border-[#374df5]"
-                      title="Số bàn thắng"
-                    />
+                      <input
+                        type="number"
+                        min="1"
+                        value={newScorer.count}
+                        onChange={(e) => setNewScorer({ ...newScorer, count: e.target.value })}
+                        className="col-span-4 bg-white border border-slate-300 text-slate-950 font-black rounded-xl px-1.5 py-2 text-xs text-center focus:outline-none focus:border-[#374df5]"
+                        title={t('matchcard.goal_count_tooltip')}
+                      />
 
-                    <button
-                      type="button"
-                      onClick={handleAddScorer}
-                      className="p-2 bg-[#374df5] text-white rounded-xl hover:bg-[#2c3ec4] font-black shadow-md transition"
-                      title="Thêm vào danh sách ghi bàn"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
+                      <button
+                        type="button"
+                        onClick={handleAddScorer}
+                        className="col-span-3 min-h-[36px] bg-[#374df5] text-white rounded-xl hover:bg-[#2c3ec4] font-black shadow-md transition flex items-center justify-center active:scale-95"
+                        title={t('matchcard.add_scorer_tooltip')}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Assister Dropdown */}
-                  <div className="flex items-center gap-2 mt-2">
+                  <div>
                     <select
                       value={selectedAssister}
                       onChange={(e) => setSelectedAssister(e.target.value)}
-                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
                     >
-                      <option value="">-- Chọn cầu thủ kiến tạo (nếu có) --</option>
+                      <option value="">{t('matchcard.select_assister_placeholder')}</option>
                       {memberList.map((user) => (
                         <option key={user._id} value={user.name}>
                           👟 {user.name} ({user.position || 'Cầu thủ'})
                         </option>
                       ))}
-                      <option value="CUSTOM">➕ Nhập tên kiến tạo khác...</option>
+                      <option value="CUSTOM">{t('matchcard.custom_assister_option')}</option>
                     </select>
                   </div>
 
                   {/* Custom Name Input if Selected */}
-                  <div className="space-y-2">
-                    {selectedMember === 'CUSTOM' && (
-                      <input
-                        type="text"
-                        placeholder="Nhập tên cầu thủ ghi bàn..."
-                        value={customPlayerName}
-                        onChange={(e) => setCustomPlayerName(e.target.value)}
-                        className="w-full bg-emerald-50 border border-emerald-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
-                      />
-                    )}
-                    {selectedAssister === 'CUSTOM' && (
-                      <input
-                        type="text"
-                        placeholder="Nhập tên cầu thủ kiến tạo..."
-                        value={customAssisterName}
-                        onChange={(e) => setCustomAssisterName(e.target.value)}
-                        className="w-full bg-cyan-50 border border-cyan-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
-                      />
-                    )}
-                  </div>
+                  {(selectedMember === 'CUSTOM' || selectedAssister === 'CUSTOM') && (
+                    <div className="space-y-2 pt-1">
+                      {selectedMember === 'CUSTOM' && (
+                        <input
+                          type="text"
+                          placeholder={t('matchcard.custom_scorer_placeholder')}
+                          value={customPlayerName}
+                          onChange={(e) => setCustomPlayerName(e.target.value)}
+                          className="w-full bg-emerald-50 border border-emerald-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
+                        />
+                      )}
+                      {selectedAssister === 'CUSTOM' && (
+                        <input
+                          type="text"
+                          placeholder={t('matchcard.custom_assister_placeholder')}
+                          value={customAssisterName}
+                          onChange={(e) => setCustomAssisterName(e.target.value)}
+                          className="w-full bg-cyan-50 border border-cyan-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Current Scorers List */}
               {resultForm.scorers.length > 0 && (
                 <div className="space-y-1.5 max-h-36 overflow-y-auto border-t border-slate-100 pt-2 overscroll-contain">
-                  <div className="text-[11px] font-bold text-slate-500 mb-1">Danh sách đã thêm:</div>
+                  <div className="text-[11px] font-bold text-slate-500 mb-1">{t('matchcard.scorers_list_title')}</div>
                   {resultForm.scorers.map((sc, i) => (
-                    <div key={i} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
-                      <div className="flex flex-col">
-                        <span className="flex items-center gap-1.5">
-                          <span className="p-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px]">⚽ Ghi bàn</span>
-                          <span className="font-black text-slate-900">{sc.playerName}</span>
+                    <div key={i} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <span className="flex items-center gap-1.5 flex-wrap">
+                          <span className="p-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] shrink-0">⚽ {t('matchcard.goal_badge')}</span>
+                          <span className="font-black text-slate-900 truncate">{sc.playerName}</span>
                           {sc.minute && <span className="text-slate-500">({sc.minute})</span>}
                           {sc.count > 1 && <span className="text-rose-600 font-black px-1.5 py-0.5 rounded-full bg-rose-100 text-[10px]">x{sc.count}</span>}
                         </span>
                         {sc.assisterName && (
-                          <span className="text-[10px] text-slate-500 mt-0.5 ml-1">
-                            👟 Kiến tạo: <span className="font-bold text-slate-700">{sc.assisterName}</span>
+                          <span className="text-[10px] text-slate-500 mt-0.5 ml-1 truncate">
+                            👟 {t('matchcard.assist_label')} <span className="font-bold text-slate-700">{sc.assisterName}</span>
                           </span>
                         )}
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveScorer(i)}
-                        className="text-slate-400 hover:text-rose-600 p-1"
-                        title="Xóa khỏi danh sách"
+                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0"
+                        title={t('matchcard.delete_scorer_tooltip')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1119,13 +1140,13 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
               {/* MOTM Selector */}
               <div className="border-t border-slate-200 pt-3">
-                <label className="block text-xs font-black text-slate-800 mb-2">⭐ Cầu thủ xuất sắc nhất trận (MOTM):</label>
+                <label className="block text-xs font-black text-slate-800 mb-1.5">⭐ {t('matchcard.motm_title')}</label>
                 <select
                   value={resultForm.motm}
                   onChange={(e) => setResultForm({ ...resultForm, motm: e.target.value })}
                   className="w-full bg-amber-50 border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-900 focus:outline-none focus:border-amber-500"
                 >
-                  <option value="">-- Không bình chọn --</option>
+                  <option value="">{t('matchcard.no_motm_option')}</option>
                   {memberList.map((user) => (
                     <option key={user._id} value={user.name}>
                       ⭐ {user.name} ({user.position || 'Cầu thủ'})
@@ -1134,38 +1155,46 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                 </select>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3 shrink-0">
-                <button type="button" onClick={() => setShowResultModal(false)} className="px-4 py-2 text-xs font-bold text-slate-600">
-                  Hủy
+              <div className="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 shrink-0 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowResultModal(false)}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition min-h-[40px] text-center"
+                >
+                  {t('matches.cancel')}
                 </button>
-                <button type="submit" className="px-5 py-2.5 rounded-full bg-[#2c3ec4] text-white font-black text-xs shadow-md">
-                  Lưu Tỉ Số & Cầu Thủ Ghi Bàn
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-[#2c3ec4] hover:bg-[#23319e] active:scale-95 text-white font-black text-xs shadow-md transition min-h-[40px] text-center"
+                >
+                  {t('matchcard.save_score_btn')}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
       {/* 🛑 CUSTOM DELETE CONFIRMATION MODAL */}
       {showDeleteModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
-          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-rose-500 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
-            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-8 h-8 text-rose-600" />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3.5 sm:p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-sm glass-modal rounded-3xl p-5 sm:p-6 relative bg-white border border-rose-500 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Trash2 className="w-7 h-7 sm:w-8 sm:h-8 text-rose-600" />
             </div>
             
-            <h3 className="text-xl font-black text-slate-900 mb-2">Xác nhận xóa trận đấu</h3>
-            <p className="text-sm text-slate-600 font-bold mb-6">
-              Bạn có chắc chắn muốn xóa trận đấu ngày <span className="text-rose-600">{match.date}</span> này không? Hành động này không thể hoàn tác!
+            <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-1.5">{t('matchcard.delete_match_modal_title')}</h3>
+            <p className="text-xs sm:text-sm text-slate-600 font-bold mb-5 leading-relaxed">
+              {t('matchcard.delete_match_confirm_text')} <span className="text-rose-600 font-black">{match.date}</span>? {t('matchcard.delete_match_modal_warning')}
             </p>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <button 
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setShowDeleteModal(false); }} 
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition min-h-[40px]"
               >
-                Hủy
+                {t('matches.cancel')}
               </button>
               <button 
                 type="button"
@@ -1173,10 +1202,10 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                   e.stopPropagation();
                   onDelete(match._id);
                   setShowDeleteModal(false);
-                }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-black text-white bg-rose-600 hover:bg-rose-700 shadow-md transition"
+                }} 
+                className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white bg-rose-600 hover:bg-rose-700 shadow-md transition active:scale-95 min-h-[40px]"
               >
-                Xóa ngay
+                {t('matchcard.delete_match_btn')}
               </button>
             </div>
           </div>
@@ -1186,24 +1215,24 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
 
       {/* 📧 CUSTOM NOTIFY CONFIRMATION MODAL */}
       {showNotifyModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
-          <div className="w-full max-w-sm glass-modal rounded-3xl p-6 relative bg-white border border-emerald-500 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Send className="w-8 h-8 text-emerald-600" />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3.5 sm:p-4 bg-slate-900/60 backdrop-blur-md overscroll-contain">
+          <div className="w-full max-w-sm glass-modal rounded-3xl p-5 sm:p-6 relative bg-white border border-emerald-500 shadow-2xl text-center max-h-[90vh] overflow-y-auto overscroll-contain">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Send className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-600" />
             </div>
             
-            <h3 className="text-xl font-black text-slate-900 mb-2">Gửi Email Thông Báo</h3>
-            <p className="text-sm text-slate-600 font-bold mb-6">
-              Bạn có muốn gửi Email thông báo trận đấu ngày <span className="text-emerald-600">{match.date}</span> tới toàn thể thành viên đội không? Hành động này chỉ thực hiện được 1 lần cho mỗi trận!
+            <h3 className="text-lg sm:text-xl font-black text-slate-900 mb-1.5">{t('matchcard.notify_email_action')}</h3>
+            <p className="text-xs sm:text-sm text-slate-600 font-bold mb-5 leading-relaxed">
+              Bạn có muốn gửi Email thông báo trận đấu ngày <span className="text-emerald-600 font-black">{match.date}</span> tới toàn thể thành viên đội không?
             </p>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <button 
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setShowNotifyModal(false); }} 
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition min-h-[40px]"
               >
-                Hủy
+                {t('matches.cancel')}
               </button>
               <button 
                 type="button"
@@ -1211,10 +1240,10 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
                   e.stopPropagation();
                   onNotify(match._id);
                   setShowNotifyModal(false);
-                }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition"
+                }} 
+                className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition active:scale-95 min-h-[40px]"
               >
-                Gửi Email Ngay
+                {t('matchcard.notify_email_action')}
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ import MobileNav from './components/MobileNav';
 import ForceCheckInModal from './components/ForceCheckInModal';
 import ForceMvpVoteModal from './components/ForceMvpVoteModal';
 import PushNotificationPrompt from './components/PushNotificationPrompt';
+import UnpaidFundPromptModal from './components/UnpaidFundPromptModal';
 import { useTranslation } from 'react-i18next';
 
 import LoginPage from './pages/LoginPage';
@@ -89,6 +90,7 @@ function ProtectedLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <UnpaidFundPromptModal />
       <ForceCheckInModal />
       <ForceMvpVoteModal />
       <PushNotificationPrompt />

@@ -225,28 +225,28 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    ĐIỂM DANH NHANH TRẬN TỚI ({nextUpcomingMatch.date})
+                    {t('dashboard.quick_checkin_title')} ({nextUpcomingMatch.date})
                   </span>
                   <span className="text-white/70 text-[11px] font-bold">{nextUpcomingMatch.time} @ {nextUpcomingMatch.stadium}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'joined', reason: '' })}
-                    className="tactile-btn py-2 px-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1"
+                    className="tactile-btn py-2 px-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1 min-h-[38px] active:scale-95"
                   >
-                    ✓ Tham gia
+                    ✓ {t('matchcard.play')}
                   </button>
                   <button
-                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'uncertain', reason: 'Chưa chắc chắn' })}
-                    className="tactile-btn py-2 px-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1"
+                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'uncertain', reason: t('dashboard.reason_uncertain_default') })}
+                    className="tactile-btn py-2 px-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1 min-h-[38px] active:scale-95"
                   >
-                    ? Chưa chắc
+                    ? {t('matchcard.uncertain_btn')}
                   </button>
                   <button
-                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'absent', reason: 'Bận việc riêng' })}
-                    className="tactile-btn py-2 px-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1"
+                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'absent', reason: t('dashboard.reason_absent_default') })}
+                    className="tactile-btn py-2 px-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1 min-h-[38px] active:scale-95"
                   >
-                    ✕ Báo vắng
+                    ✕ {t('matchcard.absent_btn')}
                   </button>
                 </div>
               </div>
