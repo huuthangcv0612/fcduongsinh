@@ -43,7 +43,7 @@ export default function QuickQrModal({ isOpen, onClose }) {
   const handleDownloadQr = () => {
     const link = document.createElement('a');
     link.href = qrUrl;
-    link.download = `VietQR_${bankCode}_${accountNumber}.png`;
+    link.download = `FCNhaTre_QR_${bankCode}_${accountNumber}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

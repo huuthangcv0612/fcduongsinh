@@ -227,36 +227,53 @@ export default function FundConfigModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* QR Preview & Custom QR */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center gap-4">
-              <div className="bg-white p-2 rounded-xl shadow-xs shrink-0 border border-slate-200">
-                <img
-                  src={previewQrUrl}
-                  alt="Xem trước QR"
-                  className="w-24 h-24 object-contain rounded-lg"
-                />
-              </div>
-              <div className="flex-1 min-w-0 space-y-2 text-center sm:text-left">
-                <span className="text-xs font-black text-slate-800 block">Mã QR VietQR Tự Động</span>
-                <p className="text-[11px] text-slate-500 font-bold">
-                  Mã QR sẽ tự động hiển thị số tiền và cú pháp chính xác khi thành viên bấm chọn tháng đóng quỹ.
-                </p>
-                {formData.customQrUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, customQrUrl: '' })}
-                    className="text-[11px] font-black text-rose-600 hover:underline"
-                  >
-                    Dùng lại VietQR tự động (Xóa ảnh QR tĩnh)
-                  </button>
-                ) : (
-                  <label className="inline-flex items-center gap-1.5 text-[11px] font-black text-purple-600 hover:text-purple-800 cursor-pointer">
-                    <UploadCloud className="w-3.5 h-3.5" />
-                    <span>Tải ảnh QR tĩnh tùy chỉnh (nếu có)</span>
+            {/* QR Image Upload & Preview */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider">
+                Ảnh Mã QR Chuyển Khoản Của Đội
+              </label>
+
+              {formData.customQrUrl ? (
+                <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-3.5 rounded-xl border border-slate-200">
+                  <img
+                    src={formData.customQrUrl}
+                    alt="Ảnh QR của đội"
+                    className="w-32 h-32 sm:w-36 sm:h-36 object-contain rounded-lg border border-slate-100 shadow-xs"
+                  />
+                  <div className="space-y-2 text-center sm:text-left flex-1 min-w-0">
+                    <span className="text-xs font-bold text-emerald-600 block">
+                      ✅ Đang sử dụng ảnh mã QR của đội
+                    </span>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Thành viên sẽ quét trực tiếp ảnh mã QR này khi nộp quỹ hoặc xem mã QR nhanh.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start pt-1">
+                      <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-xs font-bold hover:bg-purple-100 cursor-pointer transition">
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>Đổi ảnh QR khác</span>
+                        <input type="file" accept="image/*" onChange={handleCustomQrUpload} className="hidden" />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, customQrUrl: '' })}
+                        className="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition"
+                      >
+                        Xóa ảnh
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-slate-300 hover:border-purple-400 rounded-2xl p-6 text-center transition bg-white space-y-2">
+                  <UploadCloud className="w-8 h-8 text-purple-600 mx-auto" />
+                  <p className="text-xs font-black text-slate-700">Tải lên ảnh mã QR chuyển khoản của đội</p>
+                  <p className="text-[11px] text-slate-400">Hỗ trợ PNG, JPG, JPEG (Tối đa 5MB)</p>
+                  <label className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-black hover:bg-purple-700 cursor-pointer shadow-md transition">
+                    <span>Chọn ảnh từ máy</span>
                     <input type="file" accept="image/*" onChange={handleCustomQrUpload} className="hidden" />
                   </label>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Submit Action */}

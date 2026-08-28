@@ -11,7 +11,8 @@ import {
   CheckCircle2, 
   Clock, 
   Sparkles,
-  Wallet
+  Wallet,
+  QrCode
 } from 'lucide-react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
@@ -19,6 +20,7 @@ export default function UnpaidFundPromptModal() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isDismissed, setIsDismissed] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   const { data: statusRes, isLoading } = useQuery({
     queryKey: ['myFundStatus'],
@@ -121,11 +123,35 @@ export default function UnpaidFundPromptModal() {
 
         {/* Bank Details Snippet */}
         {fundData.fundConfig && (
-          <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3.5 mb-4 text-xs font-bold text-slate-700 space-y-1.5">
-            <div className="text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5 mb-1">
-              <CreditCard className="w-3.5 h-3.5 text-indigo-600" />
-              {t('fund_prompt.bank_info_title')}
+          <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3.5 mb-4 text-xs font-bold text-slate-700 space-y-2">
+            <div className="text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center justify-between mb-1">
+              <span className="flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-indigo-600" />
+                {t('fund_prompt.bank_info_title')}
+              </span>
+              {fundData.fundConfig.customQrUrl && (
+                <button
+                  type="button"
+                  onClick={() => setShowQr(!showQr)}
+                  className="text-[11px] font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer transition"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>{showQr ? 'Ẩn QR' : 'Xem mã QR'}</span>
+                </button>
+              )}
             </div>
+
+            {showQr && fundData.fundConfig.customQrUrl && (
+              <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-center animate-fade-in">
+                <img
+                  src={fundData.fundConfig.customQrUrl}
+                  alt="QR Đóng Quỹ"
+                  className="w-44 h-44 sm:w-48 sm:h-48 object-contain rounded-lg mx-auto"
+                />
+                <p className="text-[10px] text-slate-400 font-medium mt-1">Quét mã QR để chuyển khoản nhanh</p>
+              </div>
+            )}
+
             <div className="flex justify-between items-center">
               <span className="text-slate-500">{t('fund_prompt.bank_name')}</span>
               <span className="font-black text-slate-900">{fundData.fundConfig.bankName} ({fundData.fundConfig.bankCode})</span>

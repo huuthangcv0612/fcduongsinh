@@ -159,7 +159,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   const handleDownloadQr = () => {
     const link = document.createElement('a');
     link.href = qrUrl;
-    link.download = `VietQR_FCNhaTre_${transferSyntax.replace(/\s+/g, '_')}.png`;
+    link.download = `FCNhaTre_QR_${transferSyntax.replace(/\s+/g, '_')}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
