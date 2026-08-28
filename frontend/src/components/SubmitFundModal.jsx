@@ -16,10 +16,11 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   useBodyScrollLock(isOpen);
 
   // Query live Fund & Bank configuration
-  const { data: configRes } = useQuery({
+  const { data: configRes, isLoading: isConfigLoading } = useQuery({
     queryKey: ['fund-config'],
     queryFn: () => api.get('/config/fund'),
-    enabled: isOpen
+    enabled: isOpen,
+    staleTime: 5 * 60 * 1000
   });
 
   const config = configRes?.data || {};
