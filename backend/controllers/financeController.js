@@ -354,7 +354,7 @@ async function getMyFundStatus(req, res, next) {
 
     // Get Fund Config for monthly fee
     const fundConfig = await TeamConfig.findOne({ key: 'fund_config' }).lean();
-    const requiredAmount = fundConfig?.monthlyFee || user.monthlyFund || 100000;
+    const requiredAmount = fundConfig?.monthlyFee || user.monthlyFund || 200000;
 
     // 1. Find user's MonthlyFund for this year
     let monthlyRecord = await MonthlyFund.findOne({ year: currentYear, userId: user._id }).lean();

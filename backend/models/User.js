@@ -41,7 +41,7 @@ const UserSchema = new mongoose.Schema({
   },
   monthlyFund: {
     type: Number,
-    default: 100000 // 100k VNĐ / tháng
+    default: 200000 // 200k VNĐ / tháng
   },
   phone: {
     type: String,

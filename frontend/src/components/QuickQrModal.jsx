@@ -19,7 +19,7 @@ export default function QuickQrModal({ isOpen, onClose }) {
   });
 
   const config = configRes?.data || {};
-  const fee = config.monthlyFee || 100000;
+  const fee = config.monthlyFee || 200000;
   const bankName = config.bankName || 'MB Bank';
   const bankCode = config.bankCode || 'MB';
   const accountNumber = config.accountNumber || '0352526868';

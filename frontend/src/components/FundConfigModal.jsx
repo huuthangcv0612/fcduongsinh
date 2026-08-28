@@ -40,7 +40,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
     bankCode: 'MB',
     accountNumber: '0352526868',
     accountName: 'TRAN DUC HOANG',
-    monthlyFee: 100000,
+    monthlyFee: 200000,
     customQrUrl: '',
     transferPrefix: 'FCNHATRE',
     note: ''
@@ -55,7 +55,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
         bankCode: config.bankCode || 'MB',
         accountNumber: config.accountNumber || '',
         accountName: config.accountName || '',
-        monthlyFee: config.monthlyFee || 100000,
+        monthlyFee: config.monthlyFee || 200000,
         customQrUrl: config.customQrUrl || '',
         transferPrefix: config.transferPrefix || 'FCNHATRE',
         note: config.note || ''

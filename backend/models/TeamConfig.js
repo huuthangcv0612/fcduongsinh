@@ -25,7 +25,7 @@ const TeamConfigSchema = new mongoose.Schema({
   },
   monthlyFee: {
     type: Number,
-    default: 100000 // 100k VNĐ / tháng
+    default: 200000 // 200k VNĐ / tháng
   },
   qrTemplate: {
     type: String,

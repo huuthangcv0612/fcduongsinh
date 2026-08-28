@@ -23,7 +23,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   });
 
   const config = configRes?.data || {};
-  const standardFeePerMonth = config.monthlyFee || user?.monthlyFund || 100000;
+  const standardFeePerMonth = config.monthlyFee || user?.monthlyFund || 200000;
   const bankName = config.bankName || 'MB Bank';
   const bankCode = config.bankCode || 'MB';
   const accountNumber = config.accountNumber || '0352526868';
