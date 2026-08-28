@@ -113,7 +113,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const previewQrUrl = formData.customQrUrl || `https://img.vietqr.io/image/${formData.bankCode}-${formData.accountNumber}-compact2.png?amount=${formData.monthlyFee}&addInfo=${encodeURIComponent(formData.transferPrefix + ' TEST T08')}&accountName=${encodeURIComponent(formData.accountName)}`;
+  const previewQrUrl = formData.customQrUrl;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 bg-slate-900/65 backdrop-blur-md animate-fade-in">

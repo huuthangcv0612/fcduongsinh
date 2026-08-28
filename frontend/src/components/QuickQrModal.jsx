@@ -12,10 +12,11 @@ export default function QuickQrModal({ isOpen, onClose }) {
 
   useBodyScrollLock(isOpen);
 
-  const { data: configRes } = useQuery({
+  const { data: configRes, isLoading } = useQuery({
     queryKey: ['fund-config'],
     queryFn: () => api.get('/config/fund'),
-    enabled: isOpen
+    enabled: isOpen,
+    staleTime: 5 * 60 * 1000
   });
 
   const config = configRes?.data || {};
@@ -33,7 +34,7 @@ export default function QuickQrModal({ isOpen, onClose }) {
     ? user.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase()
     : 'MEM';
   const transferSyntax = `${transferPrefix} ${safeUserName} T${currentMonthNum}`;
-  const qrUrl = customQrUrl || `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?amount=${fee}&addInfo=${encodeURIComponent(transferSyntax)}&accountName=${encodeURIComponent(accountName)}`;
+  const qrUrl = customQrUrl;
 
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -41,6 +42,7 @@ export default function QuickQrModal({ isOpen, onClose }) {
   };
 
   const handleDownloadQr = () => {
+    if (!qrUrl) return;
     const link = document.createElement('a');
     link.href = qrUrl;
     link.download = `FCNhaTre_QR_${bankCode}_${accountNumber}.png`;
@@ -82,12 +84,25 @@ export default function QuickQrModal({ isOpen, onClose }) {
         </div>
 
         {/* QR Frame */}
-        <div className="p-3.5 bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200 inline-block shadow-inner">
-          <img
-            src={qrUrl}
-            alt="Mã QR Chuyển Khoản"
-            className="w-60 h-60 sm:w-68 sm:h-68 object-contain rounded-xl mx-auto"
-          />
+        <div className="p-3.5 bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200 inline-block shadow-inner w-full flex items-center justify-center min-h-[260px]">
+          {isLoading ? (
+            <div className="w-60 h-60 rounded-xl bg-slate-200 animate-pulse flex flex-col items-center justify-center text-slate-400 gap-2">
+              <QrCode className="w-8 h-8 animate-bounce text-slate-400" />
+              <span className="text-xs font-bold">Đang tải mã QR...</span>
+            </div>
+          ) : qrUrl ? (
+            <img
+              src={qrUrl}
+              alt="Mã QR Chuyển Khoản"
+              className="w-60 h-60 sm:w-68 sm:h-68 object-contain rounded-xl mx-auto"
+            />
+          ) : (
+            <div className="w-60 h-60 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex flex-col items-center justify-center p-4 text-center">
+              <QrCode className="w-10 h-10 text-slate-400 mb-2" />
+              <p className="text-xs font-bold text-slate-600">Chưa có ảnh mã QR</p>
+              <p className="text-[10px] text-slate-400 mt-1">Vui lòng chuyển khoản theo thông tin số tài khoản bên dưới</p>
+            </div>
+          )}
         </div>
 
         {/* Info Grid */}

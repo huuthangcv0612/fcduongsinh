@@ -143,13 +143,13 @@ export default function SubmitFundModal({ isOpen, onClose }) {
 
   const [isQrZoomed, setIsQrZoomed] = useState(false);
 
-  // Build VietQR description
+  // Build transfer description
   const monthLabelsForQR = selectedMonths.map(m => m.split('-')[1]).join('-');
   const safeUserName = user?.name
     ? user.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase()
     : 'MEM';
   const transferSyntax = `${transferPrefix} ${safeUserName} T${monthLabelsForQR}`;
-  const qrUrl = customQrUrl || `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferSyntax)}&accountName=${encodeURIComponent(accountName)}`;
+  const qrUrl = customQrUrl;
 
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -157,6 +157,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   };
 
   const handleDownloadQr = () => {
+    if (!qrUrl) return;
     const link = document.createElement('a');
     link.href = qrUrl;
     link.download = `FCNhaTre_QR_${transferSyntax.replace(/\s+/g, '_')}.png`;
@@ -196,34 +197,49 @@ export default function SubmitFundModal({ isOpen, onClose }) {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           
-          {/* VietQR Bank Box */}
+          {/* Bank Transfer Box */}
           <div className="rounded-2xl p-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md flex flex-col sm:flex-row items-center gap-4">
             <div 
               className="bg-white p-2 rounded-xl shrink-0 shadow-sm relative group cursor-pointer"
-              onClick={() => setIsQrZoomed(true)}
-              title="Nhấn để xem phóng to mã QR"
+              onClick={() => qrUrl && setIsQrZoomed(true)}
+              title={qrUrl ? "Nhấn để xem phóng to mã QR" : "Thông tin chuyển khoản"}
             >
-              <img
-                src={qrUrl}
-                alt="QR Đóng Quỹ"
-                className="w-28 h-28 object-contain rounded-lg group-hover:opacity-90 transition"
-              />
-              <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-[10px] font-black gap-1">
-                <QrCode className="w-5 h-5" />
-                <span>Xem ảnh QR</span>
-              </div>
+              {isConfigLoading ? (
+                <div className="w-28 h-28 bg-slate-200 animate-pulse rounded-lg flex items-center justify-center">
+                  <QrCode className="w-6 h-6 text-slate-400 animate-bounce" />
+                </div>
+              ) : qrUrl ? (
+                <>
+                  <img
+                    src={qrUrl}
+                    alt="QR Đóng Quỹ"
+                    className="w-28 h-28 object-contain rounded-lg group-hover:opacity-90 transition"
+                  />
+                  <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-[10px] font-black gap-1">
+                    <QrCode className="w-5 h-5" />
+                    <span>Xem ảnh QR</span>
+                  </div>
+                </>
+              ) : (
+                <div className="w-28 h-28 bg-slate-100 rounded-lg flex flex-col items-center justify-center p-2 text-center text-slate-400">
+                  <QrCode className="w-6 h-6 mb-1 text-slate-400" />
+                  <span className="text-[9px] font-bold">Chuyển theo STK</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Thông Tin Thụ Hưởng {bankName}</span>
-                <button
-                  type="button"
-                  onClick={() => setIsQrZoomed(true)}
-                  className="text-[10px] font-black text-cyan-300 hover:text-cyan-200 underline hidden sm:inline"
-                >
-                  🔍 Phóng to QR
-                </button>
+                {qrUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setIsQrZoomed(true)}
+                    className="text-[10px] font-black text-cyan-300 hover:text-cyan-200 underline hidden sm:inline"
+                  >
+                    🔍 Phóng to QR
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-2 justify-center sm:justify-start">
                 <span className="font-mono text-base font-black text-white tracking-tight">{accountNumber}</span>
