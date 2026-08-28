@@ -33,5 +33,6 @@ const MonthlyFundSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 MonthlyFundSchema.index({ year: 1, memberName: 1 });
+MonthlyFundSchema.index({ year: 1, userId: 1 });
 
 module.exports = mongoose.model('MonthlyFund', MonthlyFundSchema);

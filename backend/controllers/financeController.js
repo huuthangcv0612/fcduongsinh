@@ -98,39 +98,40 @@ async function getFinances(req, res, next) {
 
 async function getBalance(req, res, next) {
   try {
-    const result = await Finance.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalIn: { $sum: { $cond: [{ $eq: ['$type', 'IN'] }, '$amount', 0] } },
-          totalOut: { $sum: { $cond: [{ $eq: ['$type', 'OUT'] }, '$amount', 0] } }
+    const [financeAgg, monthlyAgg] = await Promise.all([
+      Finance.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalIn: { $sum: { $cond: [{ $eq: ['$type', 'IN'] }, '$amount', 0] } },
+            totalOut: { $sum: { $cond: [{ $eq: ['$type', 'OUT'] }, '$amount', 0] } }
+          }
         }
-      },
-      {
-        $project: {
-          _id: 0,
-          totalIn: 1,
-          totalOut: 1,
-          balance: { $subtract: ['$totalIn', '$totalOut'] }
-        }
-      }
+      ]),
+      MonthlyFund.find().select('months').lean()
     ]);
 
-    const stats = result[0] || { totalIn: 0, totalOut: 0, balance: 0 };
+    const stats = financeAgg[0] ? {
+      totalIn: financeAgg[0].totalIn || 0,
+      totalOut: financeAgg[0].totalOut || 0,
+      balance: (financeAgg[0].totalIn || 0) - (financeAgg[0].totalOut || 0)
+    } : { totalIn: 0, totalOut: 0, balance: 0 };
 
-    // Bổ sung tổng quỹ tháng thu được từ bảng ma trận (MonthlyFund)
-    const monthlyFunds = await MonthlyFund.find().lean();
     let totalMonthlyFund = 0;
-    
-    monthlyFunds.forEach(fund => {
-      if (fund.months) {
-        Object.values(fund.months).forEach(amount => {
-          if (typeof amount === 'number' && amount > 0) {
-            totalMonthlyFund += amount;
+    if (Array.isArray(monthlyAgg)) {
+      for (let i = 0; i < monthlyAgg.length; i++) {
+        const fund = monthlyAgg[i];
+        if (fund.months) {
+          const values = Object.values(fund.months);
+          for (let j = 0; j < values.length; j++) {
+            const amount = values[j];
+            if (typeof amount === 'number' && amount > 0) {
+              totalMonthlyFund += amount;
+            }
           }
-        });
+        }
       }
-    });
+    }
 
     stats.totalIn += totalMonthlyFund;
     stats.balance += totalMonthlyFund;
@@ -168,14 +169,24 @@ async function deleteFinance(req, res, next) {
 
 async function getMonthlyGrid(req, res, next) {
   try {
-    const year = Number(req.query.year) || 2025;
+    const year = Number(req.query.year) || new Date().getFullYear();
 
-    // 1. Auto-sync active DB users into MonthlyFund table for this year
-    const activeUsers = await User.find({ isActive: true }).lean();
-    for (const u of activeUsers) {
-      const existing = await MonthlyFund.findOne({ year, userId: u._id });
-      if (!existing) {
-        await MonthlyFund.create({
+    // 1. Auto-sync active DB users into MonthlyFund table for this year in a single batch query
+    const [activeUsers, existingFunds] = await Promise.all([
+      User.find({ isActive: true }).select('name').lean(),
+      MonthlyFund.find({ year }).select('userId memberName').lean()
+    ]);
+
+    const existingUserIds = new Set(existingFunds.map(f => f.userId?.toString()).filter(Boolean));
+    const existingNames = new Set(existingFunds.map(f => (f.memberName || '').trim().toLowerCase()).filter(Boolean));
+
+    const toInsert = [];
+    for (let i = 0; i < activeUsers.length; i++) {
+      const u = activeUsers[i];
+      const uId = u._id.toString();
+      const uName = (u.name || '').trim().toLowerCase();
+      if (!existingUserIds.has(uId) && !existingNames.has(uName)) {
+        toInsert.push({
           year,
           userId: u._id,
           memberName: u.name,
@@ -184,8 +195,12 @@ async function getMonthlyGrid(req, res, next) {
       }
     }
 
-    // 2. Fetch and populate real User data
-    let list = await MonthlyFund.find({ year })
+    if (toInsert.length > 0) {
+      await MonthlyFund.insertMany(toInsert);
+    }
+
+    // 2. Fetch and populate real User data in one single fast query
+    const list = await MonthlyFund.find({ year })
       .populate('userId', 'name email avatar position role phone')
       .sort({ createdAt: 1 })
       .lean();

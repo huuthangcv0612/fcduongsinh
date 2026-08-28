@@ -62,19 +62,22 @@ export default function FinancesPage() {
   // Balance query
   const { data: balanceRes } = useQuery({
     queryKey: ['balance'],
-    queryFn: () => api.get('/finances/balance')
+    queryFn: () => api.get('/finances/balance'),
+    staleTime: 60000
   });
 
   // Finances list query
   const { data: financesRes } = useQuery({
     queryKey: ['finances'],
-    queryFn: () => api.get('/finances')
+    queryFn: () => api.get('/finances'),
+    staleTime: 60000
   });
 
   // Fund Submissions query
   const { data: submissionsRes } = useQuery({
     queryKey: ['fund-submissions'],
-    queryFn: () => api.get('/fund-submissions')
+    queryFn: () => api.get('/fund-submissions'),
+    staleTime: 30000
   });
 
   const submissions = Array.isArray(submissionsRes?.data) ? submissionsRes.data : [];

@@ -139,6 +139,7 @@ async function getFundSubmissions(req, res, next) {
     }
 
     const submissions = await FundSubmission.find(query)
+      .select('-proofImage')
       .populate('userId', 'name email avatar phone position')
       .populate('reviewedBy', 'name email avatar')
       .sort({ createdAt: -1 })

@@ -55,7 +55,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
   // Query Grid data (linked directly to real MongoDB User collection)
   const { data: gridRes, isLoading } = useQuery({
     queryKey: ['monthlyGrid', selectedYear],
-    queryFn: () => api.get(`/finances/monthly-grid?year=${selectedYear}`)
+    queryFn: () => api.get(`/finances/monthly-grid?year=${selectedYear}`),
+    staleTime: 60000
   });
 
   // Auto-scroll to current month
@@ -88,7 +89,8 @@ export default function MonthlyFundGrid({ isAdmin }) {
   // Query Expenses (Finances OUT) for monthly expense calculation
   const { data: financesRes } = useQuery({
     queryKey: ['finances'],
-    queryFn: () => api.get('/finances')
+    queryFn: () => api.get('/finances'),
+    staleTime: 60000
   });
 
   const gridData = Array.isArray(gridRes?.data) ? gridRes.data : [];
