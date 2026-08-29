@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const mongoose = require('mongoose');
@@ -19,6 +20,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet({
   contentSecurityPolicy: false
 }));
+app.use(compression());
 
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',

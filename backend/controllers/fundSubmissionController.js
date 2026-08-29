@@ -18,33 +18,37 @@ async function notifyTreasurersAndAdmins({ title, message, link, type = 'fund' }
       ]
     }).lean();
 
-    for (const manager of managers) {
-      // 1. Create in-app notification
-      await Notification.create({
-        recipient: manager._id,
+    if (managers.length === 0) return;
+
+    const managerIds = managers.map(m => m._id);
+
+    // 1. Create in-app notifications for all managers in one batch insert
+    await Notification.insertMany(
+      managerIds.map(recipient => ({
+        recipient,
         title,
         message,
         type,
         link: link || '/finances'
-      });
+      }))
+    );
 
-      // 2. Send Web Push Notification if subscribed
-      const subs = await PushSubscription.find({ userId: manager._id });
-      for (const sub of subs) {
-        try {
-          await sendNotification(sub.subscription, {
-            title,
-            body: message,
-            icon: '/icons/icon-192.png',
-            badge: '/icons/icon-96.png',
-            data: {
-              url: link || '/finances'
-            }
-          });
-        } catch (pushErr) {
-          if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
-            await PushSubscription.deleteOne({ _id: sub._id });
+    // 2. Send Web Push Notifications for all managers' subscriptions in one query
+    const subs = await PushSubscription.find({ userId: { $in: managerIds } });
+    for (const sub of subs) {
+      try {
+        await sendNotification(sub.subscription, {
+          title,
+          body: message,
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-96.png',
+          data: {
+            url: link || '/finances'
           }
+        });
+      } catch (pushErr) {
+        if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+          await PushSubscription.deleteOne({ _id: sub._id });
         }
       }
     }

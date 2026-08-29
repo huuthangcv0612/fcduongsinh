@@ -7,36 +7,51 @@ const Notification = require('../models/Notification');
 const PushSubscription = require('../models/PushSubscription');
 const { sendNotification } = require('../utils/webPush');
 async function recalculateUserStats() {
-  const users = await User.find({ isActive: true });
-  const matches = await Match.find({ status: 'completed' });
-  
-  for (const user of users) {
-    let goals = 0;
-    let assists = 0;
-    let motm = 0;
-    let appearances = 0;
+  const users = await User.find({ isActive: true }).select('_id name').lean();
+  const matches = await Match.find({ status: 'completed' }).select('checkInList motm scorers').lean();
 
-    for (const match of matches) {
-      // Appearances
-      const checkIn = match.checkInList.find(c => c.userId.toString() === user._id.toString());
-      if (checkIn && checkIn.status === 'joined') {
-        appearances++;
-      }
-      
-      // MOTM
-      if (match.motm === user.name) motm++;
-      
-      // Goals & Assists
-      if (match.scorers && match.scorers.length > 0) {
-        for (const s of match.scorers) {
-          if (s.playerName === user.name) goals += s.count;
-          if (s.assisterName === user.name) assists += s.count;
-        }
+  const statsByUserId = new Map();
+  for (const user of users) {
+    statsByUserId.set(String(user._id), { goals: 0, assists: 0, motm: 0, appearances: 0 });
+  }
+  const userIdByName = new Map();
+  for (const user of users) {
+    userIdByName.set(user.name, String(user._id));
+  }
+
+  for (const match of matches) {
+    // Appearances (one pass over checkInList per match, not per user)
+    for (const c of match.checkInList || []) {
+      if (c.status === 'joined') {
+        const stats = statsByUserId.get(String(c.userId));
+        if (stats) stats.appearances++;
       }
     }
 
-    user.stats = { goals, assists, motm, appearances };
-    await user.save();
+    // MOTM
+    if (match.motm) {
+      const motmUserId = userIdByName.get(match.motm);
+      if (motmUserId) statsByUserId.get(motmUserId).motm++;
+    }
+
+    // Goals & Assists
+    for (const s of match.scorers || []) {
+      const scorerId = userIdByName.get(s.playerName);
+      if (scorerId) statsByUserId.get(scorerId).goals += s.count;
+      const assisterId = userIdByName.get(s.assisterName);
+      if (assisterId) statsByUserId.get(assisterId).assists += s.count;
+    }
+  }
+
+  const bulkOps = users.map(user => ({
+    updateOne: {
+      filter: { _id: user._id },
+      update: { $set: { stats: statsByUserId.get(String(user._id)) } }
+    }
+  }));
+
+  if (bulkOps.length > 0) {
+    await User.bulkWrite(bulkOps);
   }
 }
 

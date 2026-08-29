@@ -10,7 +10,8 @@ async function getMedia(req, res, next) {
 
     const media = await Media.find(filter)
       .populate('uploadedBy', 'name avatar')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({ success: true, data: media });
   } catch (err) {

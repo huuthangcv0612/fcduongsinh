@@ -87,7 +87,7 @@ async function saveOpponent(req, res, next) {
 // Get Saved Opponents from DB
 async function getOpponents(req, res, next) {
   try {
-    const opponents = await Opponent.find({ isSaved: true }).sort({ scrapedAt: -1 }).limit(50);
+    const opponents = await Opponent.find({ isSaved: true }).sort({ scrapedAt: -1 }).limit(50).lean();
     res.json({
       success: true,
       data: opponents

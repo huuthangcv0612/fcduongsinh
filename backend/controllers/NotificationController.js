@@ -12,8 +12,8 @@ exports.getNotifications = async (req, res) => {
         { recipient: userId },
         { recipient: null }
       ]
-    }).sort({ createdAt: -1 }).limit(50);
-    
+    }).sort({ createdAt: -1 }).limit(50).lean();
+
     res.json({ success: true, notifications });
   } catch (error) {
     console.error('Error fetching notifications:', error);

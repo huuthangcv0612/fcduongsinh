@@ -26,4 +26,7 @@ const MediaSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+MediaSchema.index({ createdAt: -1 });
+MediaSchema.index({ matchId: 1 });
+
 module.exports = mongoose.model('Media', MediaSchema);
