@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -55,13 +55,15 @@ export default function MatchmakingPage() {
   // Query saved opponents from DB safely
   const { data: savedOpponentsRes } = useQuery({
     queryKey: ['savedOpponents'],
-    queryFn: () => api.get('/opponents')
+    queryFn: () => api.get('/opponents'),
+    staleTime: 30000
   });
 
   // Query Facebook Groups safely
   const { data: fbGroupsRes } = useQuery({
     queryKey: ['facebook-groups'],
-    queryFn: () => api.get('/facebook-groups')
+    queryFn: () => api.get('/facebook-groups'),
+    staleTime: 60000
   });
 
   // Safely extract arrays
@@ -202,7 +204,7 @@ export default function MatchmakingPage() {
   };
 
   // Filtering Logic Function (Type-safe)
-  const filterOpponentsList = (list) => {
+  const filterOpponentsList = useCallback((list) => {
     if (!Array.isArray(list)) return [];
     return list.filter(item => {
       if (!item) return false;
@@ -243,10 +245,10 @@ export default function MatchmakingPage() {
 
       return true;
     });
-  };
+  }, [filterDay, filterTime]);
 
   const rawList = activeTab === 'scraped' ? (Array.isArray(scrapedList) ? scrapedList : []) : savedOpponents;
-  const filteredList = filterOpponentsList(rawList);
+  const filteredList = useMemo(() => filterOpponentsList(rawList), [rawList, filterOpponentsList]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-16 md:pb-0">

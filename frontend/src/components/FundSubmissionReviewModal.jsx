@@ -191,7 +191,7 @@ export default function FundSubmissionReviewModal({ submission, isOpen, onClose 
             <img
               src={activeSubmission.proofImage}
               alt="Bill chuyển khoản phóng to"
-              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+              className="max-w-full max-h-[90dvh] object-contain rounded-2xl shadow-2xl"
             />
             <button
               onClick={() => setIsImageZoomed(false)}
@@ -213,7 +213,7 @@ export default function FundSubmissionReviewModal({ submission, isOpen, onClose 
               placeholder="VD: Không tìm thấy giao dịch chuyển khoản trên sao kê..."
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full bg-white border border-rose-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-rose-500"
+              className="w-full bg-white border border-rose-300 rounded-xl px-3.5 py-2.5 text-base text-slate-900 font-bold focus:outline-none focus:border-rose-500"
             />
             <div className="flex items-center justify-end gap-2">
               <button

@@ -83,7 +83,7 @@ export default function ForceMvpVoteModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in select-none overscroll-contain">
-      <div className="w-full max-w-xl glass-modal rounded-3xl p-5 sm:p-7 text-center relative overflow-hidden bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[90vh] overscroll-contain">
+      <div className="w-full max-w-xl glass-modal rounded-3xl p-5 sm:p-7 text-center relative overflow-hidden bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[90dvh] overscroll-contain">
         
         {/* Close Button */}
         <button

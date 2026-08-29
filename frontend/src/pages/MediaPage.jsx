@@ -23,7 +23,8 @@ export default function MediaPage() {
 
   const { data: mediaRes, isLoading } = useQuery({
     queryKey: ['media'],
-    queryFn: () => api.get('/media')
+    queryFn: () => api.get('/media'),
+    staleTime: 60000
   });
 
   const mediaList = Array.isArray(mediaRes?.data) ? mediaRes.data : [];
@@ -231,12 +232,12 @@ export default function MediaPage() {
                   
                   <div className="flex items-center gap-2">
                     {item.type !== 'link' && (
-                      <button onClick={(e) => handleDownload(item, e)} className="p-1.5 bg-white/20 hover:bg-white/40 rounded-lg text-white transition backdrop-blur-sm" title="Tải xuống">
+                      <button onClick={(e) => handleDownload(item, e)} className="p-2.5 bg-white/20 hover:bg-white/40 rounded-lg text-white transition backdrop-blur-sm" title="Tải xuống">
                         <Download className="w-4 h-4" />
                       </button>
                     )}
                     {(isAdmin || user._id === item.uploadedBy?._id) && (
-                      <button onClick={(e) => handleDelete(item, e)} className="p-1.5 bg-rose-500/80 hover:bg-rose-500 rounded-lg text-white transition backdrop-blur-sm" title="Xóa">
+                      <button onClick={(e) => handleDelete(item, e)} className="p-2.5 bg-rose-500/80 hover:bg-rose-500 rounded-lg text-white transition backdrop-blur-sm" title="Xóa">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
@@ -251,7 +252,7 @@ export default function MediaPage() {
       {/* Link Modal */}
       {showLinkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overscroll-contain">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-slate-200 max-h-[90vh] overflow-y-auto overscroll-contain">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl relative border border-slate-200 max-h-[90dvh] overflow-y-auto overscroll-contain">
             <h3 className="text-lg font-black text-slate-900 mb-4">{t('media.add_link_modal')}</h3>
             <form onSubmit={handleAddLink}>
               <div className="space-y-4">
@@ -298,9 +299,9 @@ export default function MediaPage() {
             <X className="w-6 h-6" />
           </button>
 
-          <div className="w-full max-w-5xl max-h-[90vh] p-4 flex flex-col items-center justify-center">
+          <div className="w-full max-w-5xl max-h-[90dvh] p-4 flex flex-col items-center justify-center">
             {selectedMedia.type === 'image' && (
-              <img src={selectedMedia.url} alt={selectedMedia.title} className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl" />
+              <img src={selectedMedia.url} alt={selectedMedia.title} className="max-w-full max-h-[80dvh] object-contain rounded-lg shadow-2xl" />
             )}
             
             <div className="mt-6 flex items-center gap-4 bg-white/10 px-6 py-3 rounded-full backdrop-blur-md">

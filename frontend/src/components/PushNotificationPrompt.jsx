@@ -84,7 +84,7 @@ export default function PushNotificationPrompt() {
         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 flex flex-col items-center justify-center text-center relative">
           <button 
             onClick={handleDismiss}
-            className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition"
+            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition"
           >
             <X className="w-4 h-4" />
           </button>

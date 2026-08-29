@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import api from './services/api';
 import { useAuth } from './context/AuthContext';
@@ -11,16 +11,17 @@ import UnpaidFundPromptModal from './components/UnpaidFundPromptModal';
 import { useTranslation } from 'react-i18next';
 
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import MatchesPage from './pages/MatchesPage';
-import FinancesPage from './pages/FinancesPage';
-import MatchmakingPage from './pages/MatchmakingPage';
-import MembersPage from './pages/MembersPage';
-import ProfilePage from './pages/ProfilePage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
-import StatsPage from './pages/StatsPage';
-import MediaPage from './pages/MediaPage';
-import AdminNotificationsPage from './pages/AdminNotificationsPage';
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const MatchesPage = lazy(() => import('./pages/MatchesPage'));
+const FinancesPage = lazy(() => import('./pages/FinancesPage'));
+const MatchmakingPage = lazy(() => import('./pages/MatchmakingPage'));
+const MembersPage = lazy(() => import('./pages/MembersPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const StatsPage = lazy(() => import('./pages/StatsPage'));
+const MediaPage = lazy(() => import('./pages/MediaPage'));
+const AdminNotificationsPage = lazy(() => import('./pages/AdminNotificationsPage'));
 
 function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -95,18 +96,20 @@ function ProtectedLayout() {
       <ForceMvpVoteModal />
       <PushNotificationPrompt />
       <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 pt-20 pb-28 md:pt-28 md:pb-12 lg:px-8 lg:pt-32 lg:pb-12">
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/matches" element={<MatchesPage />} />
-          <Route path="/finances" element={<FinancesPage />} />
-          <Route path="/matchmaking" element={<MatchmakingPage />} />
-          <Route path="/members" element={<MembersPage />} />
-          <Route path="/media" element={<MediaPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-slate-400">{t('app.loading')}</div>}>
+          <Routes>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/matches" element={<MatchesPage />} />
+            <Route path="/finances" element={<FinancesPage />} />
+            <Route path="/matchmaking" element={<MatchmakingPage />} />
+            <Route path="/members" element={<MembersPage />} />
+            <Route path="/media" element={<MediaPage />} />
+            <Route path="/stats" element={<StatsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </main>
       <MobileNav />
     </div>

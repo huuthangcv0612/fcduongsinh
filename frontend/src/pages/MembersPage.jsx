@@ -18,7 +18,8 @@ export default function MembersPage() {
 
   const { data: usersRes, isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn: () => api.get('/users')
+    queryFn: () => api.get('/users'),
+    staleTime: 30000
   });
 
   const updateUserMutation = useMutation({
@@ -221,7 +222,7 @@ export default function MembersPage() {
                   <button
                     onClick={() => setEditingMember(member)}
                     title="Chỉnh sửa thông tin & phân quyền"
-                    className="tactile-btn p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5"
+                    className="tactile-btn p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     {member._id === user?._id && <span className="text-[10px] font-black">Chỉnh sửa</span>}
@@ -253,7 +254,7 @@ export default function MembersPage() {
                           }
                         }}
                         title="Xóa thành viên"
-                        className="tactile-btn p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold border border-rose-200 transition"
+                        className="tactile-btn p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold border border-rose-200 transition"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

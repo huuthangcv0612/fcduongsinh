@@ -60,7 +60,7 @@ export default function QuickQrModal({ isOpen, onClose }) {
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center space-y-4 max-h-[90vh] overflow-y-auto overscroll-contain"
+        className="w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl relative text-center space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

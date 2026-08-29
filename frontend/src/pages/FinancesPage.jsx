@@ -520,7 +520,7 @@ export default function FinancesPage() {
                   min="1"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -532,7 +532,7 @@ export default function FinancesPage() {
                   placeholder={t('finances.desc_placeholder')}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-base text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -543,7 +543,7 @@ export default function FinancesPage() {
                   placeholder={t('finances.fund_month_placeholder')}
                   value={formData.fundMonth}
                   onChange={(e) => setFormData({ ...formData, fundMonth: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-base text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                 />
               </div>
 

@@ -79,7 +79,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overscroll-contain">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90dvh]">
         
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white flex justify-between items-start shrink-0">
@@ -137,7 +137,7 @@ export default function SendFundEmailModal({ isOpen, onClose }) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t('finances.message_placeholder')}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium text-slate-900 h-24 resize-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-base font-medium text-slate-900 h-24 resize-none"
             />
           </div>
 

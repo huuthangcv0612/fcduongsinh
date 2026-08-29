@@ -134,7 +134,7 @@ export default function ForceCheckInModal() {
                 setReason(e.target.value);
                 if (e.target.value.trim()) setErrorMsg('');
               }}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base sm:text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500"
             />
           </div>
         )}

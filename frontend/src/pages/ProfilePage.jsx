@@ -280,7 +280,7 @@ export default function ProfilePage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
@@ -294,7 +294,7 @@ export default function ProfilePage() {
                   placeholder="0901234567"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 pl-10"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 pl-10"
                 />
                 <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
@@ -307,7 +307,7 @@ export default function ProfilePage() {
               <select
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="Thủ môn" className="bg-white text-slate-900">{t('profile.pos_gk')}</option>
                 <option value="Hậu vệ" className="bg-white text-slate-900">{t('profile.pos_df')}</option>
@@ -328,7 +328,7 @@ export default function ProfilePage() {
                   placeholder="https://..."
                   value={formData.avatar}
                   onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 font-mono font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
                 <label className="tactile-btn px-4 py-3 rounded-xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-sm">
                   <Upload className="w-4 h-4" />

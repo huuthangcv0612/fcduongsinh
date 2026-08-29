@@ -72,31 +72,36 @@ export default function DashboardPage() {
   // Balance query
   const { data: balanceRes } = useQuery({
     queryKey: ['financeBalance'],
-    queryFn: () => api.get('/finances/balance')
+    queryFn: () => api.get('/finances/balance'),
+    staleTime: 60000
   });
 
   // Upcoming matches query
   const { data: matchesRes } = useQuery({
     queryKey: ['matches'],
-    queryFn: () => api.get('/matches')
+    queryFn: () => api.get('/matches'),
+    staleTime: 15000
   });
 
   // Recent finances query
   const { data: financesRes } = useQuery({
     queryKey: ['finances'],
-    queryFn: () => api.get('/finances')
+    queryFn: () => api.get('/finances'),
+    staleTime: 60000
   });
 
   // Members query
   const { data: usersRes } = useQuery({
     queryKey: ['users'],
-    queryFn: () => api.get('/users')
+    queryFn: () => api.get('/users'),
+    staleTime: 60000
   });
 
   // Media query for dashboard carousel
   const { data: mediaRes } = useQuery({
     queryKey: ['media'],
-    queryFn: () => api.get('/media')
+    queryFn: () => api.get('/media'),
+    staleTime: 60000
   });
 
   // Check-in mutation

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
@@ -56,7 +56,8 @@ export default function MatchesPage() {
 
   const { data: matchesRes } = useQuery({
     queryKey: ['matches'],
-    queryFn: () => api.get('/matches')
+    queryFn: () => api.get('/matches'),
+    staleTime: 15000
   });
 
   const createMutation = useMutation({
@@ -138,6 +139,12 @@ export default function MatchesPage() {
       toast.error(err.message || t('matches.push_fail'), t('profile.error_title'));
     }
   });
+
+  const handleCheckIn = useCallback((matchId, status, reason) => checkInMutation.mutate({ matchId, status, reason }), [checkInMutation]);
+  const handleClone = useCallback((id) => cloneMutation.mutate(id), [cloneMutation]);
+  const handleDelete = useCallback((id) => deleteMutation.mutate(id), [deleteMutation]);
+  const handleNotify = useCallback((id) => notifyMutation.mutate(id), [notifyMutation]);
+  const handleNotifyPush = useCallback((id) => notifyPushMutation.mutate(id), [notifyPushMutation]);
 
   const matches = matchesRes?.data || [];
 
@@ -265,11 +272,11 @@ export default function MatchesPage() {
           <MatchCard
             key={match._id}
             match={match}
-            onCheckIn={(matchId, status, reason) => checkInMutation.mutate({ matchId, status, reason })}
-            onClone={(id) => cloneMutation.mutate(id)}
-            onDelete={(id) => deleteMutation.mutate(id)}
-            onNotify={(id) => notifyMutation.mutate(id)}
-            onNotifyPush={(id) => notifyPushMutation.mutate(id)}
+            onCheckIn={handleCheckIn}
+            onClone={handleClone}
+            onDelete={handleDelete}
+            onNotify={handleNotify}
+            onNotifyPush={handleNotifyPush}
             isAdmin={isAdmin}
           />
         ))}

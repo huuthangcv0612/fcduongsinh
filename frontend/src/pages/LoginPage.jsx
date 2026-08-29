@@ -80,7 +80,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
+    <div className="min-h-[100dvh] flex flex-col md:flex-row bg-slate-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Cover Image Section (Desktop Only) */}
       <div className="hidden md:flex md:w-1/2 lg:w-3/5 bg-slate-900 relative overflow-hidden">
         <img src={coverImage} alt="FC Nhà Trẻ Cover" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-700" />

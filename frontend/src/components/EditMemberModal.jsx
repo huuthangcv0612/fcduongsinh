@@ -63,17 +63,17 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
   if (!isOpen || !member) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in overscroll-contain">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
-        <div className="bg-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm sm:p-4 animate-fade-in overscroll-contain">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col h-[100dvh] sm:h-auto sm:max-h-[88vh]">
+        <div className="bg-slate-900 p-5 text-white flex justify-between items-center shrink-0 pt-[max(1.25rem,env(safe-area-inset-top))]">
           <h2 className="font-black text-sm flex items-center gap-2">
             <span>✏️ {t('edit_member.title')}</span>
           </h2>
-          <button onClick={onClose} className="tactile-btn hover:bg-white/20 p-1.5 rounded-xl transition">
+          <button onClick={onClose} className="tactile-btn hover:bg-white/20 p-2.5 rounded-xl transition">
             <X className="w-4 h-4" />
           </button>
         </div>
-        
+
         <div className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
           <div>
             <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">{t('edit_member.player_name')}</label>
@@ -82,7 +82,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
               <input
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm font-bold text-slate-900"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-base font-bold text-slate-900"
               />
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
               <select
                 value={formData.position}
                 onChange={e => setFormData({ ...formData, position: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm font-bold text-slate-900"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-base font-bold text-slate-900"
               >
                 <option value="">{t('edit_member.select_position')}</option>
                 <option value="Tiền đạo">{t('edit_member.striker')}</option>
@@ -114,7 +114,7 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
                 value={formData.phone}
                 onChange={e => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="0901234567"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm font-bold text-slate-900"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-base font-bold text-slate-900"
               />
             </div>
           </div>
@@ -171,17 +171,17 @@ export default function EditMemberModal({ isOpen, onClose, member }) {
           )}
         </div>
 
-        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             onClick={onClose}
-            className="tactile-btn px-4 py-2 text-xs font-black text-slate-600 rounded-xl hover:bg-slate-200 transition"
+            className="tactile-btn px-4 py-2.5 text-xs font-black text-slate-600 rounded-xl hover:bg-slate-200 transition"
           >
             {t('edit_member.cancel')}
           </button>
-          <button 
+          <button
             onClick={() => updateMutation.mutate(formData)}
             disabled={updateMutation.isPending}
-            className="tactile-btn px-5 py-2 bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white text-xs font-black rounded-xl flex items-center gap-2 shadow-md transition disabled:opacity-50"
+            className="tactile-btn px-5 py-2.5 bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white text-xs font-black rounded-xl flex items-center gap-2 shadow-md transition disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{updateMutation.isPending ? 'Đang lưu...' : t('edit_member.save')}</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import { Trophy, Flame, Star, Activity, Award, Crown, Sparkles } from 'lucide-react';
@@ -10,20 +10,19 @@ export default function StatsPage() {
 
   const { data: usersRes, isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn: () => api.get('/users')
+    queryFn: () => api.get('/users'),
+    staleTime: 60000
   });
 
   const users = Array.isArray(usersRes?.data) ? usersRes.data : [];
 
-  const getSortedUsers = () => {
+  const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
       const aVal = a.stats?.[activeTab] || 0;
       const bVal = b.stats?.[activeTab] || 0;
       return bVal - aVal;
     }).filter(u => (u.stats?.[activeTab] || 0) > 0);
-  };
-
-  const sortedUsers = getSortedUsers();
+  }, [users, activeTab]);
 
   const tabs = [
     { id: 'goals', label: t('stats.goals'), icon: Trophy, color: 'text-rose-600', activeBg: 'bg-rose-50 border-rose-500 text-rose-700', badgeColor: 'bg-rose-500' },

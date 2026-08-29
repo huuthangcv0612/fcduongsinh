@@ -211,7 +211,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
                       <button
                         onClick={() => onDelete(row._id)}
                         title="Xóa phiếu thu/chi này"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                        className="p-2.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -268,7 +268,7 @@ export default function DataGridTable({ data, onBulkSave, onDelete, isAdmin }) {
                 {isAdmin && (
                   <button
                     onClick={() => onDelete(row._id)}
-                    className="p-1 text-slate-400 hover:text-rose-600"
+                    className="p-2.5 text-slate-400 hover:text-rose-600"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

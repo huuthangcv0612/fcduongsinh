@@ -411,7 +411,7 @@ export default function MatchLineupModal({ match, isOpen, onClose, isAdmin }) {
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
               title="Đóng"
             >
               <X className="w-5 h-5" />

@@ -14,7 +14,8 @@ export default function AdminNotificationsPage() {
 
   const { data: usersRes } = useQuery({
     queryKey: ['users'],
-    queryFn: () => api.get('/users')
+    queryFn: () => api.get('/users'),
+    staleTime: 30000
   });
   const users = usersRes?.data || [];
 
@@ -120,7 +121,7 @@ export default function AdminNotificationsPage() {
           </label>
           <input
             type="text"
-            className="w-full px-4 py-2 bg-white text-slate-900 font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition text-sm"
+            className="w-full px-4 py-2 bg-white text-slate-900 font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2c3ec4] focus:border-[#2c3ec4] outline-none transition text-base"
             placeholder="Ví dụ: /matches (hoặc để trống)"
             value={link}
             onChange={e => setLink(e.target.value)}

@@ -154,7 +154,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
               <select
                 value={formData.bankCode}
                 onChange={(e) => handleBankChange(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-bold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
               >
                 {POPULAR_BANKS.map((b) => (
                   <option key={b.code} value={b.code}>
@@ -176,7 +176,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
                   value={formData.accountNumber}
                   onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
                   placeholder="VD: 0352526868"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-black font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 />
               </div>
 
@@ -190,7 +190,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
                   value={formData.accountName}
                   onChange={(e) => setFormData({ ...formData, accountName: e.target.value.toUpperCase() })}
                   placeholder="VD: TRAN DUC HOANG"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-black uppercase focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black uppercase focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 />
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
                   step="1000"
                   value={formData.monthlyFee}
                   onChange={(e) => setFormData({ ...formData, monthlyFee: Number(e.target.value) })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-black font-mono-numbers focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black font-mono-numbers focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 />
               </div>
 
@@ -222,7 +222,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
                   value={formData.transferPrefix}
                   onChange={(e) => setFormData({ ...formData, transferPrefix: e.target.value.toUpperCase() })}
                   placeholder="VD: FCNHATRE"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-black font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 />
               </div>
             </div>

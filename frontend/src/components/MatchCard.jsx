@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import MatchLineupModal from './MatchLineupModal';
 
-export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush, isAdmin }) {
+function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush, isAdmin }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -1491,3 +1491,5 @@ export default function MatchCard({ match, onCheckIn, onClone, onDelete, onNotif
     </div>
   );
 }
+
+export default React.memo(MatchCard);
