@@ -423,9 +423,9 @@
     "unit_times": "Times",
     "unit_assists": "Assists",
     "unit_goals": "Goals",
-    "mistakes": "Errors (Blunders)",
+    "mistakes": "Errors",
     "unit_mistakes": "Errors",
-    "top_mistakes_title": "TOP 3 BLUNDER MASTERS"
+    "top_mistakes_title": "TOP 3 PLAYERS WITH ERRORS"
   },
   "members": {
     "title": "Members List",
