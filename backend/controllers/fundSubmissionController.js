@@ -7,6 +7,7 @@ const PushSubscription = require('../models/PushSubscription');
 const { sendNotification } = require('../utils/webPush');
 const { AppError } = require('../middlewares/authMiddleware');
 const { isUserTreasurer, isUserAdmin } = require('../middlewares/adminMiddleware');
+const { uploadProofImage } = require('../services/cloudinaryService');
 
 // Helper to notify all Treasurers and Admins
 async function notifyTreasurersAndAdmins({ title, message, link, type = 'fund' }) {
@@ -91,12 +92,21 @@ async function submitFundPayment(req, res, next) {
       );
     }
 
+    let finalProofImage = proofImage;
+    if (proofImage.startsWith('data:image')) {
+      try {
+        finalProofImage = await uploadProofImage(proofImage, 'fc_nhatre_bills');
+      } catch (uploadErr) {
+        console.warn('⚠️ Cloudinary proof upload failed, falling back to direct image data:', uploadErr.message);
+      }
+    }
+
     const submission = await FundSubmission.create({
       userId,
       memberName,
       months,
       amount: Number(amount),
-      proofImage,
+      proofImage: finalProofImage,
       note: note || '',
       status: 'pending'
     });
@@ -120,11 +130,11 @@ async function submitFundPayment(req, res, next) {
   }
 }
 
-// 2. Get fund submissions list
+// 2. Get fund submissions list with filtering, search, and pagination
 async function getFundSubmissions(req, res, next) {
   try {
     const isManager = isUserTreasurer(req.user) || isUserAdmin(req.user);
-    const { status, month, userId } = req.query;
+    const { status, month, userId, search, hasProof, page, limit } = req.query;
 
     const query = {};
     if (!isManager) {
@@ -134,24 +144,85 @@ async function getFundSubmissions(req, res, next) {
       query.userId = userId;
     }
 
-    if (status) {
+    if (status && status !== 'all') {
       query.status = status;
     }
 
-    if (month) {
+    if (month && month !== 'all') {
       query.months = month;
     }
 
-    const submissions = await FundSubmission.find(query)
+    if (hasProof === 'true') {
+      query.proofImage = { $exists: true, $ne: '' };
+    }
+
+    if (search && search.trim()) {
+      const regex = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      query.$or = [
+        { memberName: regex },
+        { note: regex }
+      ];
+    }
+
+    // Counts across statuses for badge counts
+    const baseFilter = {};
+    if (!isManager) {
+      baseFilter.userId = req.user._id;
+    } else if (userId) {
+      baseFilter.userId = userId;
+    }
+    if (month && month !== 'all') {
+      baseFilter.months = month;
+    }
+
+    const [totalCount, pendingCount, approvedCount, rejectedCount] = await Promise.all([
+      FundSubmission.countDocuments(baseFilter),
+      FundSubmission.countDocuments({ ...baseFilter, status: 'pending' }),
+      FundSubmission.countDocuments({ ...baseFilter, status: 'approved' }),
+      FundSubmission.countDocuments({ ...baseFilter, status: 'rejected' })
+    ]);
+
+    const counts = {
+      all: totalCount,
+      pending: pendingCount,
+      approved: approvedCount,
+      rejected: rejectedCount
+    };
+
+    const filteredTotal = await FundSubmission.countDocuments(query);
+
+    let queryBuilder = FundSubmission.find(query)
       .select('-proofImage')
       .populate('userId', 'name email avatar phone position')
       .populate('reviewedBy', 'name email avatar')
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
+
+    let pagination = null;
+    if (page !== undefined || limit !== undefined) {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
+      const totalPages = Math.ceil(filteredTotal / limitNum) || 1;
+      queryBuilder = queryBuilder.skip((pageNum - 1) * limitNum).limit(limitNum);
+      pagination = {
+        page: pageNum,
+        limit: limitNum,
+        total: filteredTotal,
+        totalPages
+      };
+    }
+
+    const submissions = await queryBuilder.lean();
 
     res.json({
       success: true,
-      data: submissions
+      data: submissions,
+      pagination: pagination || {
+        page: 1,
+        limit: submissions.length,
+        total: filteredTotal,
+        totalPages: 1
+      },
+      counts
     });
   } catch (err) {
     next(err);

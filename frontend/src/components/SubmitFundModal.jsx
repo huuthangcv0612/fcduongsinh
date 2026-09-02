@@ -53,6 +53,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   const [selectedMonths, setSelectedMonths] = useState([currentMonthStr]);
   const [amount, setAmount] = useState(standardFeePerMonth);
   const [proofImage, setProofImage] = useState('');
+  const [imageSizeInfo, setImageSizeInfo] = useState('');
   const [note, setNote] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -78,27 +79,96 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     setAmount(newMonths.length * standardFeePerMonth);
   };
 
-  // Handle bill image upload
-  const handleImageUpload = (e) => {
+  // Helper to compress bill image using canvas before uploading
+  const compressBillImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const MAX_DIMENSION = 1400; // Keep sharp resolution for bank receipt text/digits
+      const TARGET_MAX_BYTES = 700 * 1024; // ~700KB max target
+
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
+
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        let { width, height } = img;
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIMENSION) / width);
+            width = MAX_DIMENSION;
+          } else {
+            width = Math.round((width * MAX_DIMENSION) / height);
+            height = MAX_DIMENSION;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let quality = 0.85;
+        let base64 = canvas.toDataURL('image/jpeg', quality);
+
+        // Progressively lower quality if still above target
+        while (base64.length > TARGET_MAX_BYTES * 1.37 && quality > 0.45) {
+          quality -= 0.1;
+          base64 = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        resolve(base64);
+      };
+
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectUrl);
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      };
+    });
+  };
+
+  // Handle bill image upload with automatic client-side compression
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error('Kích thước ảnh tối đa là 8MB', 'Ảnh quá lớn');
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('Kích thước ảnh tối đa là 20MB', 'Ảnh quá lớn');
       return;
     }
 
     setUploadingImage(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setProofImage(event.target?.result);
+    try {
+      const compressedBase64 = await compressBillImage(file);
+      setProofImage(compressedBase64);
+
+      const originalMB = (file.size / (1024 * 1024)).toFixed(1);
+      const compressedKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
+      if (file.size > 800 * 1024) {
+        setImageSizeInfo(`Đã tối ưu: ${originalMB}MB → ${compressedKB}KB`);
+      } else {
+        setImageSizeInfo(`Dung lượng tối ưu: ${compressedKB}KB`);
+      }
+    } catch (err) {
+      toast.error('Lỗi khi đọc file ảnh. Vui lòng thử lại!', 'Lỗi');
+      console.error(err);
+    } finally {
       setUploadingImage(false);
-    };
-    reader.onerror = () => {
-      toast.error('Lỗi khi đọc file ảnh', 'Lỗi');
-      setUploadingImage(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const submitMutation = useMutation({
@@ -112,6 +182,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
       setSelectedMonths([currentMonthStr]);
       setAmount(standardFeePerMonth);
       setProofImage('');
+      setImageSizeInfo('');
       setNote('');
     },
     onError: (err) => {
@@ -385,31 +456,39 @@ export default function SubmitFundModal({ isOpen, onClose }) {
           <div>
             <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
               <span>3. Ảnh chụp bill chuyển khoản <span className="text-rose-500">*</span></span>
-              {uploadingImage && <span className="text-blue-600 text-xs font-bold animate-pulse">Đang tải ảnh...</span>}
+              {uploadingImage && <span className="text-blue-600 text-xs font-bold animate-pulse">⚡ Đang nén & tối ưu ảnh...</span>}
             </label>
 
             {proofImage ? (
-              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 bg-slate-900 max-h-48 group flex items-center justify-center">
-                <img src={proofImage} alt="Bill chuyển khoản" className="max-h-48 w-auto object-contain" />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
-                  <label className="tactile-btn px-3 py-1.5 rounded-xl bg-white text-slate-900 text-xs font-black cursor-pointer shadow-md">
-                    Đổi ảnh khác
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setProofImage('')}
-                    className="tactile-btn px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-black shadow-md"
-                  >
-                    Xóa
-                  </button>
+              <div className="space-y-2">
+                <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 bg-slate-900 max-h-48 group flex items-center justify-center">
+                  <img src={proofImage} alt="Bill chuyển khoản" className="max-h-48 w-auto object-contain" />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+                    <label className="tactile-btn px-3 py-1.5 rounded-xl bg-white text-slate-900 text-xs font-black cursor-pointer shadow-md">
+                      Đổi ảnh khác
+                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => { setProofImage(''); setImageSizeInfo(''); }}
+                      className="tactile-btn px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-black shadow-md"
+                    >
+                      Xóa
+                    </button>
+                  </div>
                 </div>
+                {imageSizeInfo && (
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{imageSizeInfo} - Đã nén nhẹ mượt mà, chữ số sắc nét</span>
+                  </div>
+                )}
               </div>
             ) : (
               <label className="tactile-btn border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition text-center">
                 <UploadCloud className="w-8 h-8 text-blue-600 mb-2" />
                 <span className="text-xs font-black text-slate-800">Nhấn để chọn hoặc kéo thả ảnh bill</span>
-                <span className="text-[10px] text-slate-400 font-bold mt-1">Hỗ trợ JPG, PNG, WEBP (Tối đa 8MB)</span>
+                <span className="text-[10px] text-slate-400 font-bold mt-1">Tự động nén tối ưu (Hỗ trợ JPG, PNG, WEBP lên đến 20MB)</span>
                 <input
                   type="file"
                   accept="image/*"

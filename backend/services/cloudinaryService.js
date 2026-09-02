@@ -38,7 +38,24 @@ async function uploadMedia(fileData, folder = 'fc_nhatre_media') {
   }
 }
 
+async function uploadProofImage(fileData, folder = 'fc_nhatre_bills') {
+  try {
+    const result = await cloudinary.uploader.upload(fileData, {
+      folder,
+      resource_type: 'image',
+      transformation: [
+        { quality: 'auto', fetch_format: 'auto' }
+      ]
+    });
+    return result.secure_url;
+  } catch (err) {
+    console.error('❌ Cloudinary Proof Upload Error:', err.message);
+    throw err;
+  }
+}
+
 module.exports = {
   uploadImage,
-  uploadMedia
+  uploadMedia,
+  uploadProofImage
 };

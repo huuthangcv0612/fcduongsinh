@@ -80,16 +80,86 @@ async function bulkUpdateFinances(req, res, next) {
 
 async function getFinances(req, res, next) {
   try {
-    const finances = await Finance.find()
+    const { type, category, fundMonth, search, userId, page, limit } = req.query;
+
+    const query = {};
+
+    if (type && type !== 'all') {
+      query.type = type;
+    }
+
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+
+    if (fundMonth && fundMonth !== 'all') {
+      query.fundMonth = fundMonth;
+    }
+
+    if (userId) {
+      query.userId = userId;
+    }
+
+    if (search && search.trim()) {
+      const regex = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      query.$or = [
+        { description: regex },
+        { fundMonth: regex }
+      ];
+    }
+
+    const filteredTotal = await Finance.countDocuments(query);
+
+    // Calculate aggregated stats for the current filter
+    const statsAgg = await Finance.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalIn: { $sum: { $cond: [{ $eq: ['$type', 'IN'] }, '$amount', 0] } },
+          totalOut: { $sum: { $cond: [{ $eq: ['$type', 'OUT'] }, '$amount', 0] } }
+        }
+      }
+    ]);
+
+    const stats = statsAgg[0] ? {
+      totalIn: statsAgg[0].totalIn || 0,
+      totalOut: statsAgg[0].totalOut || 0,
+      balance: (statsAgg[0].totalIn || 0) - (statsAgg[0].totalOut || 0)
+    } : { totalIn: 0, totalOut: 0, balance: 0 };
+
+    let queryBuilder = Finance.find(query)
       .sort({ createdAt: -1 })
       .populate('userId', 'name email avatar')
       .populate('matchId', 'date time stadium opponent')
-      .populate('createdBy', 'name')
-      .lean();
+      .populate('createdBy', 'name');
+
+    let pagination = null;
+    if (page !== undefined || limit !== undefined) {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
+      const totalPages = Math.ceil(filteredTotal / limitNum) || 1;
+      queryBuilder = queryBuilder.skip((pageNum - 1) * limitNum).limit(limitNum);
+      pagination = {
+        page: pageNum,
+        limit: limitNum,
+        total: filteredTotal,
+        totalPages
+      };
+    }
+
+    const finances = await queryBuilder.lean();
 
     res.json({
       success: true,
-      data: finances
+      data: finances,
+      pagination: pagination || {
+        page: 1,
+        limit: finances.length,
+        total: filteredTotal,
+        totalPages: 1
+      },
+      stats
     });
   } catch (err) {
     next(err);
