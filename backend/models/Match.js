@@ -40,6 +40,11 @@ const ScorerSchema = new mongoose.Schema({
   count: {
     type: Number,
     default: 1
+  },
+  team: {
+    type: String,
+    enum: ['home', 'away', 'teamA', 'teamB'],
+    default: 'teamA'
   }
 }, { _id: false });
 
@@ -128,6 +133,33 @@ const MatchSchema = new mongoose.Schema({
   motm: {
     type: String,
     default: ''
+  },
+  matchType: {
+    type: String,
+    enum: ['friendly', 'internal'],
+    default: 'friendly'
+  },
+  internalTeams: {
+    teamA: {
+      name: { type: String, default: 'Đội A' },
+      kitColor: { type: String, default: 'xanh dương' },
+      players: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }],
+      formation: { type: String, default: '3-2-1' },
+      starters: [StarterSchema]
+    },
+    teamB: {
+      name: { type: String, default: 'Đội B' },
+      kitColor: { type: String, default: 'cam' },
+      players: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }],
+      formation: { type: String, default: '3-2-1' },
+      starters: [StarterSchema]
+    }
   },
   date: {
     type: String, // Format: YYYY-MM-DD

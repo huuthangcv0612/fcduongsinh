@@ -42,6 +42,8 @@ router.post('/matches/:id/notify-push', authMiddleware, adminMiddleware, matchCo
 router.get('/matches/:id/lineup', authMiddleware, matchController.getMatchLineup);
 router.put('/matches/:id/lineup', authMiddleware, adminMiddleware, matchController.updateMatchLineup);
 router.post('/matches/:id/lineup/notify', authMiddleware, adminMiddleware, matchController.notifyLineupPush);
+router.post('/matches/:id/split-teams', authMiddleware, adminMiddleware, matchController.splitInternalTeams);
+router.put('/matches/:id/internal-teams', authMiddleware, adminMiddleware, matchController.updateInternalTeams);
 
 // --- Finance Routes ---
 router.get('/finances', authMiddleware, financeController.getFinances);

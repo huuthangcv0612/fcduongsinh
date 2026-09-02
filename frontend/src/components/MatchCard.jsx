@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import MatchLineupModal from './MatchLineupModal';
+import InternalMatchModal from './InternalMatchModal';
 
 function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush, isAdmin }) {
   const { user } = useAuth();
@@ -69,6 +70,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [showLineupModal, setShowLineupModal] = useState(false);
+  const [showInternalSplitModal, setShowInternalSplitModal] = useState(false);
 
   // Reason Modal State for 'uncertain' and 'absent'
   const [showReasonModal, setShowReasonModal] = useState(false);
@@ -85,7 +87,8 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     showDeleteModal ||
     showNotifyModal ||
     showReasonModal ||
-    showLineupModal
+    showLineupModal ||
+    showInternalSplitModal
   );
   useBodyScrollLock(isAnyModalOpen);
 
@@ -144,10 +147,11 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     stadiumLink: match.stadiumLink || '',
     pitchCost: match.pitchCost || 0,
     deal: match.deal || '5-5',
-    kitColor: match.kitColor || '',
-    opponentName: match.opponent?.teamName || '',
-    opponentPhone: match.opponent?.phone || '',
-    opponentFbLink: match.opponent?.fbLink || '',
+    matchType: match.matchType || 'friendly',
+    internalTeamAName: match.internalTeams?.teamA?.name || 'Đội A',
+    internalTeamAKit: match.internalTeams?.teamA?.kitColor || 'xanh dương',
+    internalTeamBName: match.internalTeams?.teamB?.name || 'Đội B',
+    internalTeamBKit: match.internalTeams?.teamB?.kitColor || 'cam',
     status: match.status || 'upcoming',
     notes: match.notes || ''
   });
@@ -207,6 +211,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     e.preventDefault();
     try {
       await api.put(`/matches/${match._id}`, {
+        matchType: editForm.matchType,
         date: editForm.date,
         time: editForm.time,
         stadium: editForm.stadium,
@@ -214,11 +219,23 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         pitchCost: Number(editForm.pitchCost),
         deal: editForm.deal,
         kitColor: editForm.kitColor,
-        opponent: {
+        opponent: editForm.matchType === 'friendly' ? {
           teamName: editForm.opponentName,
           phone: editForm.opponentPhone,
           fbLink: editForm.opponentFbLink
-        },
+        } : undefined,
+        internalTeams: editForm.matchType === 'internal' ? {
+          teamA: {
+            name: editForm.internalTeamAName,
+            kitColor: editForm.internalTeamAKit,
+            players: match.internalTeams?.teamA?.players?.map(p => p._id || p) || []
+          },
+          teamB: {
+            name: editForm.internalTeamBName,
+            kitColor: editForm.internalTeamBKit,
+            players: match.internalTeams?.teamB?.players?.map(p => p._id || p) || []
+          }
+        } : undefined,
         status: editForm.status,
         notes: editForm.notes
       });
@@ -328,13 +345,21 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         {/* Match Header */}
         <div className="flex items-start sm:items-center justify-between border-b border-slate-100 pb-3 mb-3 text-xs flex-col sm:flex-row gap-3 sm:gap-2">
           <div className="flex items-start sm:items-center gap-2 flex-1 pr-2 w-full">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#374df5] shrink-0 mt-1 sm:mt-0" />
+            <span className={`w-2.5 h-2.5 rounded-full ${match.matchType === 'internal' ? 'bg-amber-500' : 'bg-[#374df5]'} shrink-0 mt-1 sm:mt-0`} />
             <span className="font-extrabold text-slate-700 uppercase tracking-wider text-[11px] break-words line-clamp-2">
-              ⚽ {match.stadium ? `${t('matchcard.friendly')} • ${match.stadium}` : t('matchcard.friendly')}
+              {match.matchType === 'internal'
+                ? `⚔️ ${t('matches.internal_match_badge')} • ${match.stadium}`
+                : `⚽ ${match.stadium ? `${t('matchcard.friendly')} • ${match.stadium}` : t('matchcard.friendly')}`}
             </span>
           </div>
 
           <div className="flex items-center justify-end gap-1.5 shrink-0 flex-wrap w-full sm:w-auto">
+            {match.matchType === 'internal' && (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 border border-amber-400">
+                {t('matches.internal_match_badge')}
+              </span>
+            )}
+
             {match.status === 'live' && (
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse flex items-center gap-1">
                 <Zap className="w-3 h-3 fill-white" /> {t('matchcard.live')}
@@ -408,21 +433,37 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         </div>
 
         {/* Scoreboard Grid */}
-        <div className="p-2 md:p-4 bg-blue-50/50 rounded-2xl border border-blue-100 mb-4">
+        <div className={`p-2 md:p-4 rounded-2xl border mb-4 ${match.matchType === 'internal' ? 'bg-amber-50/40 border-amber-200' : 'bg-blue-50/50 border-blue-100'}`}>
           <div className="flex items-center justify-between gap-2">
-            {/* Home Team */}
+            {/* Home Team / Team A */}
             <div className="flex-1 flex flex-col items-center text-center w-0">
-              <div className="w-12 h-12 rounded-2xl shadow-md mb-1.5 overflow-hidden border-2 border-white shrink-0">
-                <img src={teamLogo} alt="FC Nhà Trẻ" className="w-full h-full object-cover" />
+              <div className="w-12 h-12 rounded-2xl shadow-md mb-1.5 overflow-hidden border-2 border-white shrink-0 flex items-center justify-center">
+                {match.matchType === 'internal' ? (
+                  <div className={`w-full h-full flex items-center justify-center font-black text-sm text-white ${
+                    match.internalTeams?.teamA?.kitColor === 'cam' ? 'bg-orange-500' :
+                    match.internalTeams?.teamA?.kitColor === 'đỏ' ? 'bg-rose-600' :
+                    match.internalTeams?.teamA?.kitColor === 'đen' ? 'bg-slate-900' : 'bg-blue-600'
+                  }`}>
+                    A
+                  </div>
+                ) : (
+                  <img src={teamLogo} alt="FC Nhà Trẻ" className="w-full h-full object-cover" />
+                )}
               </div>
-              <span className="font-black text-sm text-slate-900 line-clamp-1 w-full px-1">FC Nhà Trẻ</span>
-              <span className="text-[10px] font-bold text-slate-500">{t('matchcard.home_team')}</span>
+              <span className="font-black text-sm text-slate-900 line-clamp-1 w-full px-1">
+                {match.matchType === 'internal' ? (match.internalTeams?.teamA?.name || 'Đội A') : 'FC Nhà Trẻ'}
+              </span>
+              <span className="text-[10px] font-bold text-slate-500">
+                {match.matchType === 'internal' ? `Áo ${match.internalTeams?.teamA?.kitColor || 'Xanh'}` : t('matchcard.home_team')}
+              </span>
             </div>
 
             {/* Score Display */}
             <div className="flex flex-col items-center justify-center px-4">
               {match.status === 'completed' || match.status === 'live' ? (
-                <div className="flex items-center gap-2 bg-[#2c3ec4] text-white px-4 py-1.5 rounded-2xl shadow-md font-mono font-black text-2xl">
+                <div className={`flex items-center gap-2 text-white px-4 py-1.5 rounded-2xl shadow-md font-mono font-black text-2xl ${
+                  match.matchType === 'internal' ? 'bg-slate-900' : 'bg-[#2c3ec4]'
+                }`}>
                   <span>{match.score?.homeScore ?? 0}</span>
                   <span className="text-white/60 text-sm">-</span>
                   <span>{match.score?.awayScore ?? 0}</span>
@@ -435,17 +476,35 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
               <span className="text-[11px] font-black text-slate-600 mt-1">{match.time}</span>
             </div>
 
-            {/* Away Team */}
+            {/* Away Team / Team B */}
             <div className="flex-1 flex flex-col items-center text-center w-0">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-400 to-rose-500 text-white flex items-center justify-center font-black text-xl shadow-md mb-1.5 shrink-0">
-                ⚔️
+              <div className="w-12 h-12 rounded-2xl text-white flex items-center justify-center font-black text-sm shadow-md mb-1.5 shrink-0 overflow-hidden">
+                {match.matchType === 'internal' ? (
+                  <div className={`w-full h-full flex items-center justify-center font-black text-sm text-white ${
+                    match.internalTeams?.teamB?.kitColor === 'xanh dương' ? 'bg-blue-600' :
+                    match.internalTeams?.teamB?.kitColor === 'đỏ' ? 'bg-rose-600' :
+                    match.internalTeams?.teamB?.kitColor === 'đen' ? 'bg-slate-900' : 'bg-orange-500'
+                  }`}>
+                    B
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-tr from-orange-400 to-rose-500 flex items-center justify-center text-xl">
+                    ⚔️
+                  </div>
+                )}
               </div>
-              <span className="font-black text-sm text-slate-900 line-clamp-1 w-full px-1">{match.opponent?.teamName || t('matchcard.awaiting_opponent')}</span>
-              {match.opponent?.fbLink ? (
-                <a href={match.opponent.fbLink} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-500 hover:underline line-clamp-1 px-1">{t('matchcard.opponent_fb')}</a>
-              ) : (
-                <span className="text-[10px] font-bold text-slate-500">{t('matchcard.opponent')}</span>
-              )}
+              <span className="font-black text-sm text-slate-900 line-clamp-1 w-full px-1">
+                {match.matchType === 'internal'
+                  ? (match.internalTeams?.teamB?.name || 'Đội B')
+                  : (match.opponent?.teamName || t('matchcard.awaiting_opponent'))}
+              </span>
+              <span className="text-[10px] font-bold text-slate-500">
+                {match.matchType === 'internal'
+                  ? `Áo ${match.internalTeams?.teamB?.kitColor || 'Cam'}`
+                  : (match.opponent?.fbLink ? (
+                      <a href={match.opponent.fbLink} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-500 hover:underline line-clamp-1 px-1">{t('matchcard.opponent_fb')}</a>
+                    ) : t('matchcard.opponent'))}
+              </span>
             </div>
           </div>
 
@@ -638,15 +697,32 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
           </div>
         </div>
 
-        {/* Action Buttons: Lineup & Attendance */}
-        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2.5">
+        {/* Action Buttons: Lineup / Internal Teams & Attendance */}
+        <div className={`grid ${match.matchType === 'internal' ? 'grid-cols-3' : 'grid-cols-2'} gap-2 border-t border-slate-100 pt-2.5`}>
+          {match.matchType === 'internal' ? (
+            <button
+              type="button"
+              onClick={() => setShowInternalSplitModal(true)}
+              className="py-1.5 px-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black transition flex items-center justify-center gap-1 shadow-2xs group"
+            >
+              <Users className="w-3.5 h-3.5 text-amber-600 group-hover:scale-110 transition-transform" />
+              <span>Chia 2 Đội</span>
+            </button>
+          ) : null}
+
           <button
             type="button"
-            onClick={() => setShowLineupModal(true)}
+            onClick={() => {
+              if (match.matchType === 'internal') {
+                setShowInternalSplitModal(true);
+              } else {
+                setShowLineupModal(true);
+              }
+            }}
             className="py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black transition flex items-center justify-center gap-1.5 shadow-2xs group"
           >
             <Shield className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
-            <span>Đội hình ra sân</span>
+            <span>{match.matchType === 'internal' ? 'Sa bàn 2 đội' : 'Đội hình ra sân'}</span>
             {match.lineup?.isPublished && (
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Đã có đội hình" />
             )}
@@ -894,39 +970,89 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_name')}</label>
-                  <input
-                    type="text"
-                    placeholder="VD: FC Thăng Long"
-                    value={editForm.opponentName}
-                    onChange={(e) => setEditForm({ ...editForm, opponentName: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_phone')}</label>
-                  <input
-                    type="text"
-                    placeholder="0987654321"
-                    value={editForm.opponentPhone}
-                    onChange={(e) => setEditForm({ ...editForm, opponentPhone: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
-                  />
-                </div>
-              </div>
+              {editForm.matchType === 'friendly' ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_name')}</label>
+                      <input
+                        type="text"
+                        placeholder="VD: FC Thăng Long"
+                        value={editForm.opponentName}
+                        onChange={(e) => setEditForm({ ...editForm, opponentName: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_phone')}</label>
+                      <input
+                        type="text"
+                        placeholder="0987654321"
+                        value={editForm.opponentPhone}
+                        onChange={(e) => setEditForm({ ...editForm, opponentPhone: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_fb')}</label>
-                <input
-                  type="text"
-                  placeholder="https://facebook.com/..."
-                  value={editForm.opponentFbLink || ''}
-                  onChange={(e) => setEditForm({ ...editForm, opponentFbLink: e.target.value })}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_fb')}</label>
+                    <input
+                      type="text"
+                      placeholder="https://facebook.com/..."
+                      value={editForm.opponentFbLink || ''}
+                      onChange={(e) => setEditForm({ ...editForm, opponentFbLink: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2.5">
+                  <div className="text-xs font-black text-emerald-900 uppercase">
+                    ⚔️ Cấu hình 2 Đội Giao Lưu Nội Bộ
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Tên Đội A</label>
+                      <input
+                        type="text"
+                        value={editForm.internalTeamAName}
+                        onChange={(e) => setEditForm({ ...editForm, internalTeamAName: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Màu áo Đội A</label>
+                      <input
+                        type="text"
+                        value={editForm.internalTeamAKit}
+                        onChange={(e) => setEditForm({ ...editForm, internalTeamAKit: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Tên Đội B</label>
+                      <input
+                        type="text"
+                        value={editForm.internalTeamBName}
+                        onChange={(e) => setEditForm({ ...editForm, internalTeamBName: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Màu áo Đội B</label>
+                      <input
+                        type="text"
+                        value={editForm.internalTeamBKit}
+                        onChange={(e) => setEditForm({ ...editForm, internalTeamBKit: e.target.value })}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -1019,10 +1145,12 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
             <form onSubmit={handleSaveResult} className="space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain pr-1">
               {/* Ultra High-Contrast Score Input Box with Stepper Buttons */}
               <div className="bg-[#1f2ca3] text-white p-3.5 sm:p-4 rounded-2xl border border-[#2c3ec4] flex items-center justify-between sm:justify-around shadow-lg gap-2">
-                {/* Home Team (FC Nhà Trẻ) */}
+                {/* Home Team (FC Nhà Trẻ / Team A) */}
                 <div className="flex flex-col items-center min-w-0">
                   <div className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1 truncate">
-                    🏠 FC Nhà Trẻ
+                    {match.matchType === 'internal'
+                      ? `🔵 ${match.internalTeams?.teamA?.name || 'Đội A'}`
+                      : '🏠 FC Nhà Trẻ'}
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
@@ -1058,10 +1186,12 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   VS
                 </div>
 
-                {/* Away Team (Opponent) */}
+                {/* Away Team (Opponent / Team B) */}
                 <div className="flex flex-col items-center min-w-0">
-                  <div className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider mb-2 truncate max-w-[100px] sm:max-w-[130px]" title={match.opponent?.teamName || t('matchcard.opponent')}>
-                    🛡️ {match.opponent?.teamName || t('matchcard.opponent')}
+                  <div className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider mb-2 truncate max-w-[100px] sm:max-w-[130px]" title={match.matchType === 'internal' ? match.internalTeams?.teamB?.name : (match.opponent?.teamName || t('matchcard.opponent'))}>
+                    {match.matchType === 'internal'
+                      ? `🟠 ${match.internalTeams?.teamB?.name || 'Đội B'}`
+                      : `🛡️ ${match.opponent?.teamName || t('matchcard.opponent')}`}
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
@@ -1713,6 +1843,16 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         onClose={() => setShowLineupModal(false)}
         isAdmin={isAdmin}
       />
+
+      {/* ⚔️ MODAL: INTERNAL MATCH TEAM SPLIT (Chia đội giao lưu nội bộ) */}
+      {match.matchType === 'internal' && (
+        <InternalMatchModal
+          match={match}
+          isOpen={showInternalSplitModal}
+          onClose={() => setShowInternalSplitModal(false)}
+          isAdmin={isAdmin}
+        />
+      )}
 
     </div>
   );

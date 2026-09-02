@@ -8,17 +8,30 @@ const GoogleAuthSchema = z.object({
 });
 
 const CreateMatchSchema = z.object({
+  matchType: z.enum(['friendly', 'internal']).optional().default('friendly'),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày phải theo định dạng YYYY-MM-DD'),
   time: z.string().regex(/^\d{2}:\d{2}$/, 'Giờ phải theo định dạng HH:mm'),
   stadium: z.string().min(1, 'Tên sân không được để trống'),
   stadiumLink: z.string().optional(),
   pitchCost: z.number().min(0, 'Tiền sân không được âm'),
   deal: z.string().optional().default('5-5'),
-  kitColor: z.enum(['xanh dương', 'xanh', 'đỏ', 'đen', '']).optional(),
+  kitColor: z.string().optional(),
   opponent: z.object({
     teamName: z.string().optional(),
     phone: z.string().optional(),
     fbLink: z.string().optional()
+  }).optional(),
+  internalTeams: z.object({
+    teamA: z.object({
+      name: z.string().optional(),
+      kitColor: z.string().optional(),
+      players: z.array(z.string()).optional()
+    }).optional(),
+    teamB: z.object({
+      name: z.string().optional(),
+      kitColor: z.string().optional(),
+      players: z.array(z.string()).optional()
+    }).optional()
   }).optional(),
   notes: z.string().optional()
 });

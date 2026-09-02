@@ -115,6 +115,10 @@ async function getMatches(req, res, next) {
       .populate('checkInList.userId', 'name email avatar position number phone')
       .populate('lineup.starters.userId', 'name avatar number position')
       .populate('lineup.substitutes', 'name avatar number position')
+      .populate('internalTeams.teamA.players', 'name avatar number position phone stats')
+      .populate('internalTeams.teamB.players', 'name avatar number position phone stats')
+      .populate('internalTeams.teamA.starters.userId', 'name avatar number position')
+      .populate('internalTeams.teamB.starters.userId', 'name avatar number position')
       .lean();
 
     const formatted = matches.map(match => {
@@ -244,13 +248,15 @@ async function updateCheckIn(req, res, next) {
 async function updateMatch(req, res, next) {
   try {
     const { id } = req.params;
-    const { date, time, stadium, stadiumLink, pitchCost, deal, kitColor, opponent, status, notes } = req.body;
+    const { date, time, stadium, stadiumLink, pitchCost, deal, kitColor, opponent, status, notes, matchType, internalTeams } = req.body;
 
     const match = await Match.findById(id);
     if (!match) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu cần sửa', 404);
     }
 
+    if (matchType) match.matchType = matchType;
+    if (internalTeams) match.internalTeams = { ...match.internalTeams, ...internalTeams };
     if (date) match.date = date;
     if (time) match.time = time;
     if (stadium) match.stadium = stadium;
@@ -578,9 +584,14 @@ async function notifyMatch(req, res, next) {
       console.error('Non-blocking mail error:', err.message);
     });
 
+    const isInternal = match.matchType === 'internal';
+    const teamAName = match.internalTeams?.teamA?.name || 'Đội A';
+    const teamBName = match.internalTeams?.teamB?.name || 'Đội B';
+    const oppOrTeams = isInternal ? `${teamAName} vs ${teamBName}` : (match.opponent?.teamName || match.opponent?.name || 'Đối thủ');
+
     // Create in-app notification
-    const title = 'Trận bóng mới sắp diễn ra!';
-    const message = `Trận đấu với ${match.opponent?.name || 'Đối thủ'} vào lúc ${match.time} ngày ${match.date} tại ${match.stadium}. Hãy vào điểm danh nhé!`;
+    const title = isInternal ? '⚔️ Trận giao lưu nội bộ mới!' : 'Trận bóng mới sắp diễn ra!';
+    const message = `Trận đấu ${oppOrTeams} vào lúc ${match.time} ngày ${match.date} tại ${match.stadium}. Hãy vào điểm danh nhé!`;
     const link = `/matches`;
     
     await Notification.create({
@@ -626,9 +637,14 @@ async function notifyMatchPush(req, res, next) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
     }
 
+    const isInternal = match.matchType === 'internal';
+    const teamAName = match.internalTeams?.teamA?.name || 'Đội A';
+    const teamBName = match.internalTeams?.teamB?.name || 'Đội B';
+    const oppOrTeams = isInternal ? `${teamAName} vs ${teamBName}` : (match.opponent?.teamName || 'Đối thủ');
+
     // Create in-app notification
-    const title = 'Nhắc nhở: Trận bóng sắp diễn ra!';
-    const message = `Trận đấu với ${match.opponent?.teamName || 'Đối thủ'} vào lúc ${match.time} ngày ${match.date} tại ${match.stadium}. Hãy nhanh tay vào điểm danh nhé!`;
+    const title = isInternal ? '⚔️ Nhắc nhở: Trận giao lưu nội bộ sắp tới!' : 'Nhắc nhở: Trận bóng sắp diễn ra!';
+    const message = `Trận đấu ${oppOrTeams} vào lúc ${match.time} ngày ${match.date} tại ${match.stadium}. Hãy nhanh tay vào điểm danh nhé!`;
     const link = `/matches`;
     
     await Notification.create({
@@ -1157,6 +1173,187 @@ async function notifyLineupPush(req, res, next) {
   }
 }
 
+// ⚔️ BALANCE / SPLIT TEAMS LOGIC FOR INTERNAL MATCH
+async function splitInternalTeams(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { mode = 'balanced' } = req.body; // 'balanced' | 'random'
+
+    const match = await Match.findById(id).populate('checkInList.userId', 'name avatar number position phone stats');
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    // Lấy các thành viên đã tham gia ('joined')
+    const joinedPlayers = (match.checkInList || [])
+      .filter(item => item.status === 'joined' && item.userId)
+      .map(item => item.userId);
+
+    if (joinedPlayers.length < 2) {
+      throw new AppError('BAD_REQUEST', 'Cần ít nhất 2 thành viên điểm danh Tham gia để chia đội', 400);
+    }
+
+    let teamAPlayers = [];
+    let teamBPlayers = [];
+
+    if (mode === 'random') {
+      // Xáo trộn ngẫu nhiên Fisher-Yates
+      const shuffled = [...joinedPlayers].sort(() => Math.random() - 0.5);
+      shuffled.forEach((player, idx) => {
+        if (idx % 2 === 0) teamAPlayers.push(player._id);
+        else teamBPlayers.push(player._id);
+      });
+    } else {
+      // Phân nhóm theo vị trí thi đấu: GK, DF, MF, FW, Tự do
+      const groups = {
+        'Thủ môn': [],
+        'Hậu vệ': [],
+        'Tiền vệ': [],
+        'Tiền đạo': [],
+        'Tự do': []
+      };
+
+      joinedPlayers.forEach(p => {
+        const pos = p.position || 'Tự do';
+        if (groups[pos]) groups[pos].push(p);
+        else groups['Tự do'].push(p);
+      });
+
+      // Hàm tính điểm kinh nghiệm / chỉ số của cầu thủ để xếp hạng
+      const getPlayerRating = (p) => {
+        const stats = p.stats || {};
+        return (stats.goals || 0) * 3 + (stats.assists || 0) * 2 + (stats.appearances || 0) * 1 + (stats.motm || 0) * 5;
+      };
+
+      let flip = false; // Snake draft switcher
+
+      // Duyệt qua từng vị trí ưu tiên: GK -> DF -> MF -> FW -> Tự do
+      ['Thủ môn', 'Hậu vệ', 'Tiền vệ', 'Tiền đạo', 'Tự do'].forEach(posGroup => {
+        // Sắp xếp các cầu thủ trong vị trí theo rating giảm dần
+        const sortedInGroup = groups[posGroup].sort((a, b) => getPlayerRating(b) - getPlayerRating(a));
+
+        sortedInGroup.forEach(player => {
+          if (!flip) {
+            teamAPlayers.push(player._id);
+          } else {
+            teamBPlayers.push(player._id);
+          }
+          flip = !flip; // Đảo lượt chọn để cân bằng đều 2 bên
+        });
+      });
+    }
+
+    match.internalTeams = {
+      teamA: {
+        name: match.internalTeams?.teamA?.name || 'Đội Xanh',
+        kitColor: match.internalTeams?.teamA?.kitColor || 'xanh dương',
+        players: teamAPlayers,
+        formation: match.internalTeams?.teamA?.formation || '3-2-1',
+        starters: []
+      },
+      teamB: {
+        name: match.internalTeams?.teamB?.name || 'Đội Cam',
+        kitColor: match.internalTeams?.teamB?.kitColor || 'cam',
+        players: teamBPlayers,
+        formation: match.internalTeams?.teamB?.formation || '3-2-1',
+        starters: []
+      }
+    };
+
+    await match.save();
+    await match.populate('internalTeams.teamA.players', 'name avatar number position phone stats');
+    await match.populate('internalTeams.teamB.players', 'name avatar number position phone stats');
+
+    res.json({
+      success: true,
+      data: match.internalTeams,
+      message: mode === 'balanced' ? 'Đã tự động chia đội cân bằng theo vị trí!' : 'Đã chia đội ngẫu nhiên thành công!'
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ⚔️ UPDATE INTERNAL TEAMS ROSTER MANUALLY
+async function updateInternalTeams(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { teamA, teamB, sendPush } = req.body;
+
+    const match = await Match.findById(id);
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    if (teamA) {
+      match.internalTeams.teamA = {
+        name: teamA.name || match.internalTeams.teamA.name,
+        kitColor: teamA.kitColor || match.internalTeams.teamA.kitColor,
+        players: teamA.players || match.internalTeams.teamA.players,
+        formation: teamA.formation || match.internalTeams.teamA.formation,
+        starters: teamA.starters || match.internalTeams.teamA.starters
+      };
+    }
+
+    if (teamB) {
+      match.internalTeams.teamB = {
+        name: teamB.name || match.internalTeams.teamB.name,
+        kitColor: teamB.kitColor || match.internalTeams.teamB.kitColor,
+        players: teamB.players || match.internalTeams.teamB.players,
+        formation: teamB.formation || match.internalTeams.teamB.formation,
+        starters: teamB.starters || match.internalTeams.teamB.starters
+      };
+    }
+
+    await match.save();
+    await match.populate('internalTeams.teamA.players', 'name avatar number position phone stats');
+    await match.populate('internalTeams.teamB.players', 'name avatar number position phone stats');
+
+    if (sendPush) {
+      const targetCheckIns = (match.checkInList || []).filter(
+        item => item.status === 'joined' || item.status === 'uncertain'
+      );
+      const targetUserIds = targetCheckIns.map(item => (item.userId?._id || item.userId)?.toString()).filter(Boolean);
+
+      const title = '⚔️ Đội hình chia 2 bên trận giao lưu nội bộ đã có!';
+      const message = `${match.internalTeams.teamA.name} (${match.internalTeams.teamA.kitColor}) vs ${match.internalTeams.teamB.name} (${match.internalTeams.teamB.kitColor}). Xem bạn thuộc đội nào ngay!`;
+      const link = `/matches`;
+
+      if (targetUserIds.length > 0) {
+        const notiDocs = targetUserIds.map(uid => ({
+          recipient: uid,
+          title,
+          message,
+          type: 'match',
+          link
+        }));
+        await Notification.insertMany(notiDocs);
+
+        const subscriptions = await PushSubscription.find({ userId: { $in: targetUserIds } });
+        const pushPayload = { title, body: message, url: link, type: 'match' };
+
+        subscriptions.forEach(async (sub) => {
+          try {
+            await sendNotification(sub.subscription, pushPayload);
+          } catch (error) {
+            if (error.message === 'SubscriptionExpired') {
+              await PushSubscription.findByIdAndDelete(sub._id);
+            }
+          }
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: match.internalTeams,
+      message: 'Cập nhật danh sách 2 đội thành công!'
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createMatch,
   getMatches,
@@ -1174,6 +1371,8 @@ module.exports = {
   notifyMatchPush,
   getMatchLineup,
   updateMatchLineup,
-  notifyLineupPush
+  notifyLineupPush,
+  splitInternalTeams,
+  updateInternalTeams
 };
 

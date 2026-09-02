@@ -23,6 +23,7 @@ export default function MatchesPage() {
   useBodyScrollLock(showModal);
 
   const [formData, setFormData] = useState({
+    matchType: 'friendly', // 'friendly' | 'internal'
     date: new Date().toISOString().slice(0, 10),
     time: '19:15', // Default team prime time 19h-19h30!
     stadium: '',
@@ -33,6 +34,10 @@ export default function MatchesPage() {
     opponentTeamName: '',
     opponentPhone: '',
     opponentFbLink: '',
+    internalTeamAName: 'Đội Xanh',
+    internalTeamAKit: 'xanh dương',
+    internalTeamBName: 'Đội Cam',
+    internalTeamBKit: 'cam',
     notes: ''
   });
 
@@ -41,6 +46,7 @@ export default function MatchesPage() {
       const opp = location.state.createMatchFromOpponent;
       setFormData(prev => ({
         ...prev,
+        matchType: 'friendly',
         opponentTeamName: opp.teamName || '',
         opponentPhone: opp.contactPhone || '',
         opponentFbLink: opp.sourceUrl || '',
@@ -62,6 +68,7 @@ export default function MatchesPage() {
 
   const createMutation = useMutation({
     mutationFn: (data) => api.post('/matches', {
+      matchType: data.matchType,
       date: data.date,
       time: data.time,
       stadium: data.stadium,
@@ -69,11 +76,23 @@ export default function MatchesPage() {
       pitchCost: Number(data.pitchCost),
       deal: data.deal,
       kitColor: data.kitColor,
-      opponent: {
+      opponent: data.matchType === 'friendly' ? {
         teamName: data.opponentTeamName,
         phone: data.opponentPhone,
         fbLink: data.opponentFbLink
-      },
+      } : undefined,
+      internalTeams: data.matchType === 'internal' ? {
+        teamA: {
+          name: data.internalTeamAName || 'Đội Xanh',
+          kitColor: data.internalTeamAKit || 'xanh dương',
+          players: []
+        },
+        teamB: {
+          name: data.internalTeamBName || 'Đội Cam',
+          kitColor: data.internalTeamBKit || 'cam',
+          players: []
+        }
+      } : undefined,
       notes: data.notes
     }),
     onSuccess: () => {
@@ -309,6 +328,35 @@ export default function MatchesPage() {
             </div>
 
             <form id="create-match-form" onSubmit={handleSubmit} className="space-y-3.5 px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+              {/* Match Type Selector */}
+              <div>
+                <label className="block text-xs font-black text-slate-800 mb-1.5">{t('matches.match_type')}</label>
+                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, matchType: 'friendly' })}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-black transition flex items-center justify-center text-center ${
+                      formData.matchType === 'friendly'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {t('matches.type_friendly')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, matchType: 'internal' })}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-black transition flex items-center justify-center text-center ${
+                      formData.matchType === 'internal'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {t('matches.type_internal')}
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.match_date')}</label>
@@ -381,44 +429,148 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.select_old_opponent')}</label>
-                  <select
-                    onChange={handleSelectOldOpponent}
-                    className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5 text-sm text-blue-900 font-bold focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="">{t('matches.select_old_opponent_placeholder')}</option>
-                    {uniqueOpponents.map((opp, idx) => (
-                      <option key={idx} value={opp.teamName}>{opp.teamName}</option>
-                    ))}
-                  </select>
+              {formData.matchType === 'friendly' ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.select_old_opponent')}</label>
+                      <select
+                        onChange={handleSelectOldOpponent}
+                        className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5 text-sm text-blue-900 font-bold focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">{t('matches.select_old_opponent_placeholder')}</option>
+                        {uniqueOpponents.map((opp, idx) => (
+                          <option key={idx} value={opp.teamName}>{opp.teamName}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_name')}</label>
+                      <input
+                        type="text"
+                        placeholder="FC Thăng Long"
+                        value={formData.opponentTeamName}
+                        onChange={(e) => setFormData({ ...formData, opponentTeamName: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.kit_color')}</label>
+                      <select
+                        value={formData.kitColor}
+                        onChange={(e) => setFormData({ ...formData, kitColor: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="">{t('matches.kit_unselected')}</option>
+                        <option value="xanh dương">{t('matches.kit_blue')}</option>
+                        <option value="đỏ">{t('matches.kit_red')}</option>
+                        <option value="đen">{t('matches.kit_black')}</option>
+                        <option value="cam">{t('matches.kit_orange')}</option>
+                        <option value="trắng">{t('matches.kit_white')}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_phone')}</label>
+                      <input
+                        type="text"
+                        placeholder="098..."
+                        value={formData.opponentPhone}
+                        onChange={(e) => setFormData({ ...formData, opponentPhone: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_fb')}</label>
+                      <input
+                        type="text"
+                        placeholder="https://facebook.com/..."
+                        value={formData.opponentFbLink}
+                        onChange={(e) => setFormData({ ...formData, opponentFbLink: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Internal Match: Setup 2 Teams & Kits */
+                <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-black text-emerald-900 uppercase tracking-wider">
+                    <span>⚔️</span> {t('matches.internal_teams_setup')}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Team A */}
+                    <div className="bg-white p-3 rounded-xl border border-emerald-200 shadow-xs space-y-2">
+                      <div className="text-[11px] font-black text-blue-600 uppercase flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                        ĐỘI A
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_a_name')}</label>
+                        <input
+                          type="text"
+                          value={formData.internalTeamAName}
+                          onChange={(e) => setFormData({ ...formData, internalTeamAName: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_a_kit')}</label>
+                        <select
+                          value={formData.internalTeamAKit}
+                          onChange={(e) => setFormData({ ...formData, internalTeamAKit: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="xanh dương">{t('matches.kit_blue')}</option>
+                          <option value="đỏ">{t('matches.kit_red')}</option>
+                          <option value="đen">{t('matches.kit_black')}</option>
+                          <option value="cam">{t('matches.kit_orange')}</option>
+                          <option value="trắng">{t('matches.kit_white')}</option>
+                          <option value="vàng">{t('matches.kit_yellow')}</option>
+                          <option value="xanh lá">{t('matches.kit_green')}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Team B */}
+                    <div className="bg-white p-3 rounded-xl border border-emerald-200 shadow-xs space-y-2">
+                      <div className="text-[11px] font-black text-orange-600 uppercase flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" />
+                        ĐỘI B
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_b_name')}</label>
+                        <input
+                          type="text"
+                          value={formData.internalTeamBName}
+                          onChange={(e) => setFormData({ ...formData, internalTeamBName: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_b_kit')}</label>
+                        <select
+                          value={formData.internalTeamBKit}
+                          onChange={(e) => setFormData({ ...formData, internalTeamBKit: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                        >
+                          <option value="cam">{t('matches.kit_orange')}</option>
+                          <option value="đỏ">{t('matches.kit_red')}</option>
+                          <option value="xanh dương">{t('matches.kit_blue')}</option>
+                          <option value="đen">{t('matches.kit_black')}</option>
+                          <option value="trắng">{t('matches.kit_white')}</option>
+                          <option value="vàng">{t('matches.kit_yellow')}</option>
+                          <option value="xanh lá">{t('matches.kit_green')}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.opponent_name')}</label>
-                  <input
-                    type="text"
-                    placeholder="FC Thăng Long"
-                    value={formData.opponentTeamName}
-                    onChange={(e) => setFormData({ ...formData, opponentTeamName: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.kit_color')}</label>
-                  <select
-                    value={formData.kitColor}
-                    onChange={(e) => setFormData({ ...formData, kitColor: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="">{t('matches.kit_unselected')}</option>
-                    <option value="xanh dương">{t('matches.kit_blue')}</option>
-                    <option value="đỏ">{t('matches.kit_red')}</option>
-                    <option value="đen">{t('matches.kit_black')}</option>
-                  </select>
-                </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>

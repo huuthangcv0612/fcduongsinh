@@ -24,20 +24,39 @@ async function sendMatchNotification(users, match) {
     }
   } catch (e) {}
 
+  const isInternal = match.matchType === 'internal';
+  const teamAName = match.internalTeams?.teamA?.name || 'Đội A';
+  const teamBName = match.internalTeams?.teamB?.name || 'Đội B';
+  const teamAKit = match.internalTeams?.teamA?.kitColor || 'Xanh dương';
+  const teamBKit = match.internalTeams?.teamB?.kitColor || 'Cam';
+
+  const subjectTitle = isInternal
+    ? `⚔️ [FC Nhà Trẻ] GIAO LƯU NỘI BỘ (${teamAName} vs ${teamBName}) - ${formattedDate} lúc ${match.time}`
+    : `⚽ [FC Nhà Trẻ] THÔNG BÁO TRẬN ĐẤU MỚI - ${formattedDate} lúc ${match.time}`;
+
+  const headingText = isInternal
+    ? `⚔️ TRẬN ĐẤU GIAO LƯU NỘI BỘ!`
+    : `⚽ TRẬN ĐẤU MỚI ĐÃ ĐƯỢC TẠO!`;
+
+  const opponentOrTeamsInfo = isInternal
+    ? `<li><b>⚔️ Thể thức:</b> Giao lưu nội bộ (${teamAName} vs ${teamBName})</li>
+       <li><b>👕 Màu áo 2 bên:</b> ${teamAName} (Áo ${teamAKit}) ⚔️ ${teamBName} (Áo ${teamBKit})</li>`
+    : `<li><b>👕 Màu áo thi đấu:</b> ${match.kitColor ? `Áo ${match.kitColor}` : 'Chưa chốt'}</li>
+       <li><b>🤝 Đối thủ:</b> ${match.opponent?.teamName || 'Đang cập nhật'}</li>`;
+
   const mailOptions = {
     from: `"FC Nhà Trẻ" <${process.env.GMAIL_USER || 'team.fc.nhatre@gmail.com'}>`,
     to: emails.join(','),
-    subject: `⚽ [FC Nhà Trẻ] THÔNG BÁO TRẬN ĐẤU MỚI - ${formattedDate} lúc ${match.time}`,
+    subject: subjectTitle,
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #f8fafc; border-radius: 10px;">
-        <h2 style="color: #38bdf8;">⚽ TRẬN ĐẤU MỚI ĐÃ ĐƯỢC TẠO!</h2>
+        <h2 style="color: #38bdf8;">${headingText}</h2>
         <p>Thành viên FC Nhà Trẻ lưu ý trận đấu tiếp theo:</p>
         <ul style="line-height: 1.8;">
           <li><b>📅 Ngày thi đấu:</b> ${formattedDate}</li>
           <li><b>⏰ Giờ đá:</b> ${match.time}</li>
           <li><b>🏟️ Sân bóng:</b> ${match.stadiumLink ? `<a href="${match.stadiumLink}" target="_blank" style="color: #38bdf8; text-decoration: underline;">${match.stadium} (Xem Bản Đồ)</a>` : match.stadium}</li>
-          <li><b>👕 Màu áo thi đấu:</b> ${match.kitColor ? `Áo ${match.kitColor}` : 'Chưa chốt'}</li>
-          <li><b>🤝 Đối thủ:</b> ${match.opponent?.teamName || 'Đang cập nhật'}</li>
+          ${opponentOrTeamsInfo}
           <li><b>💵 Tiền sân / Keo:</b> ${match.pitchCost?.toLocaleString('vi-VN')} VNĐ (${match.deal})</li>
         </ul>
         <div style="margin-top: 20px; padding: 15px; background: #1e293b; border-left: 4px solid #10b981; border-radius: 4px; text-align: center;">
