@@ -43,6 +43,34 @@ const ScorerSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+const ConcededGoalSchema = new mongoose.Schema({
+  playerName: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  errorType: {
+    type: String,
+    enum: ['mat_bong', 'chuyen_hong', 'phan_luoi', 'bat_hut', 'kem_nguoi', 'khong_loi', 'khac'],
+    default: 'mat_bong'
+  },
+  minute: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  note: {
+    type: String,
+    default: '',
+    trim: true
+  }
+}, { _id: false });
+
 const StarterSchema = new mongoose.Schema({
   positionKey: {
     type: String,
@@ -149,6 +177,7 @@ const MatchSchema = new mongoose.Schema({
     awayScore: { type: Number, default: 0 }
   },
   scorers: [ScorerSchema],
+  concededGoals: [ConcededGoalSchema],
   checkInList: [CheckInItemSchema],
   lineup: {
     type: LineupSchema,

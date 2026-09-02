@@ -131,7 +131,7 @@ export default function MembersPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {filteredUsers.map((member) => {
           const posBadge = getPositionBadge(member.position);
-          const stats = member.stats || { goals: 0, assists: 0, motm: 0, appearances: 0 };
+          const stats = member.stats || { goals: 0, assists: 0, motm: 0, appearances: 0, mistakes: 0 };
 
           return (
             <div
@@ -182,22 +182,26 @@ export default function MembersPage() {
                 </div>
 
                 {/* Player Mini Stats Pill Row */}
-                <div className="grid grid-cols-4 gap-1 p-2 rounded-2xl bg-slate-50 border border-slate-100 text-center mb-3 font-mono-numbers">
-                  <div>
-                    <div className="text-[9px] font-bold text-slate-400 uppercase">Trận</div>
+                <div className="grid grid-cols-5 gap-1 p-1.5 sm:p-2 rounded-2xl bg-slate-50 border border-slate-100 text-center mb-3 font-mono-numbers overflow-hidden">
+                  <div className="min-w-0">
+                    <div className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase truncate">Trận</div>
                     <div className="text-xs font-black text-slate-700">{stats.appearances || 0}</div>
                   </div>
-                  <div>
-                    <div className="text-[9px] font-bold text-rose-500 uppercase">Bàn</div>
+                  <div className="min-w-0">
+                    <div className="text-[8px] sm:text-[9px] font-bold text-rose-500 uppercase truncate">Bàn</div>
                     <div className="text-xs font-black text-rose-600">{stats.goals || 0}</div>
                   </div>
-                  <div>
-                    <div className="text-[9px] font-bold text-amber-500 uppercase">Kiến tạo</div>
+                  <div className="min-w-0">
+                    <div className="text-[8px] sm:text-[9px] font-bold text-amber-500 uppercase truncate">K.tạo</div>
                     <div className="text-xs font-black text-amber-600">{stats.assists || 0}</div>
                   </div>
-                  <div>
-                    <div className="text-[9px] font-bold text-yellow-600 uppercase">MVP</div>
+                  <div className="min-w-0">
+                    <div className="text-[8px] sm:text-[9px] font-bold text-yellow-600 uppercase truncate">MVP</div>
                     <div className="text-xs font-black text-yellow-600">{stats.motm || 0}</div>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[8px] sm:text-[9px] font-bold text-orange-600 uppercase truncate">Lỗi</div>
+                    <div className="text-xs font-black text-orange-600">{stats.mistakes || 0}</div>
                   </div>
                 </div>
 

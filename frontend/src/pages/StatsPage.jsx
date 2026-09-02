@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
-import { Trophy, Flame, Star, Activity, Award, Crown, Sparkles } from 'lucide-react';
+import { Trophy, Flame, Star, Activity, Award, Crown, Sparkles, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function StatsPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('goals'); // goals, assists, motm, appearances
+  const [activeTab, setActiveTab] = useState('goals'); // goals, assists, motm, appearances, mistakes
 
   const { data: usersRes, isLoading } = useQuery({
     queryKey: ['users'],
@@ -28,7 +28,8 @@ export default function StatsPage() {
     { id: 'goals', label: t('stats.goals'), icon: Trophy, color: 'text-rose-600', activeBg: 'bg-rose-50 border-rose-500 text-rose-700', badgeColor: 'bg-rose-500' },
     { id: 'assists', label: t('stats.assists'), icon: Flame, color: 'text-amber-600', activeBg: 'bg-amber-50 border-amber-500 text-amber-700', badgeColor: 'bg-amber-500' },
     { id: 'motm', label: t('stats.motm'), icon: Star, color: 'text-yellow-600', activeBg: 'bg-yellow-50 border-yellow-500 text-yellow-700', badgeColor: 'bg-yellow-500' },
-    { id: 'appearances', label: t('stats.appearances'), icon: Activity, color: 'text-blue-600', activeBg: 'bg-blue-50 border-blue-500 text-blue-700', badgeColor: 'bg-blue-500' }
+    { id: 'appearances', label: t('stats.appearances'), icon: Activity, color: 'text-blue-600', activeBg: 'bg-blue-50 border-blue-500 text-blue-700', badgeColor: 'bg-blue-500' },
+    { id: 'mistakes', label: t('stats.mistakes'), icon: AlertTriangle, color: 'text-orange-600', activeBg: 'bg-orange-50 border-orange-500 text-orange-700', badgeColor: 'bg-orange-500' }
   ];
 
   const activeTabData = tabs.find(t => t.id === activeTab) || tabs[0];
@@ -42,6 +43,7 @@ export default function StatsPage() {
       case 'appearances': return t('stats.unit_match');
       case 'motm': return t('stats.unit_times');
       case 'assists': return t('stats.unit_assists');
+      case 'mistakes': return t('stats.unit_mistakes');
       default: return t('stats.unit_goals');
     }
   };
@@ -66,7 +68,7 @@ export default function StatsPage() {
       </div>
 
       {/* Modern Filter Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -75,6 +77,8 @@ export default function StatsPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`tactile-btn min-w-0 flex items-center justify-center gap-2 px-3 py-2.5 rounded-2xl transition-all border font-black text-xs sm:text-sm shadow-sm text-center leading-tight ${
+                tab.id === 'mistakes' ? 'col-span-2 sm:col-span-1' : ''
+              } ${
                 isActive 
                   ? `${tab.activeBg} border-2 shadow-md`
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
@@ -93,7 +97,7 @@ export default function StatsPage() {
           <div className="text-center mb-4 sm:mb-6">
             <span className="text-[11px] font-black uppercase tracking-widest text-amber-400 inline-flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              TOP 3 CAO THỦ {activeTabData.label.toUpperCase()}
+              {activeTab === 'mistakes' ? t('stats.top_mistakes_title') : `TOP 3 CAO THỦ ${activeTabData.label.toUpperCase()}`}
             </span>
           </div>
 

@@ -8,11 +8,11 @@ const PushSubscription = require('../models/PushSubscription');
 const { sendNotification } = require('../utils/webPush');
 async function recalculateUserStats() {
   const users = await User.find({ isActive: true }).select('_id name').lean();
-  const matches = await Match.find({ status: 'completed' }).select('checkInList motm scorers').lean();
+  const matches = await Match.find({ status: 'completed' }).select('checkInList motm scorers concededGoals').lean();
 
   const statsByUserId = new Map();
   for (const user of users) {
-    statsByUserId.set(String(user._id), { goals: 0, assists: 0, motm: 0, appearances: 0 });
+    statsByUserId.set(String(user._id), { goals: 0, assists: 0, motm: 0, appearances: 0, mistakes: 0 });
   }
   const userIdByName = new Map();
   for (const user of users) {
@@ -31,15 +31,29 @@ async function recalculateUserStats() {
     // MOTM
     if (match.motm) {
       const motmUserId = userIdByName.get(match.motm);
-      if (motmUserId) statsByUserId.get(motmUserId).motm++;
+      if (motmUserId && statsByUserId.has(motmUserId)) {
+        statsByUserId.get(motmUserId).motm++;
+      }
     }
 
     // Goals & Assists
     for (const s of match.scorers || []) {
       const scorerId = userIdByName.get(s.playerName);
-      if (scorerId) statsByUserId.get(scorerId).goals += s.count;
+      if (scorerId && statsByUserId.has(scorerId)) statsByUserId.get(scorerId).goals += (s.count || 1);
       const assisterId = userIdByName.get(s.assisterName);
-      if (assisterId) statsByUserId.get(assisterId).assists += s.count;
+      if (assisterId && statsByUserId.has(assisterId)) statsByUserId.get(assisterId).assists += (s.count || 1);
+    }
+
+    // Mistakes leading to conceded goals
+    for (const cg of match.concededGoals || []) {
+      if (cg.errorType === 'khong_loi') continue;
+      let mUserId = cg.userId ? String(cg.userId) : null;
+      if (!mUserId && cg.playerName) {
+        mUserId = userIdByName.get(cg.playerName);
+      }
+      if (mUserId && statsByUserId.has(mUserId)) {
+        statsByUserId.get(mUserId).mistakes++;
+      }
     }
   }
 
@@ -391,7 +405,7 @@ async function calculateMatchMvp(match) {
 async function updateMatchResult(req, res, next) {
   try {
     const { id } = req.params;
-    const { homeScore, awayScore, scorers, status } = req.body;
+    const { homeScore, awayScore, scorers, concededGoals, status } = req.body;
 
     const match = await Match.findById(id);
     if (!match) {
@@ -409,6 +423,16 @@ async function updateMatchResult(req, res, next) {
         assisterName: s.assisterName || '',
         minute: s.minute || '',
         count: Number(s.count) || 1
+      }));
+    }
+
+    if (Array.isArray(concededGoals)) {
+      match.concededGoals = concededGoals.map(cg => ({
+        playerName: cg.playerName || '',
+        userId: cg.userId || null,
+        errorType: cg.errorType || 'mat_bong',
+        minute: cg.minute || '',
+        note: cg.note || ''
       }));
     }
 

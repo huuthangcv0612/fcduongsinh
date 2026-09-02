@@ -211,9 +211,26 @@
     "lineup_manage_btn": "Manage Lineup 📋",
     "lineup_view_btn": "View Lineup 📋",
     "clone_match_btn": "Clone Match",
-    "delete_match_action": "Delete Match",
     "notify_email_action": "Send Email",
-    "notify_push_action": "Send Push"
+    "notify_push_action": "Send Push",
+    "conceded_goals_title": "Conceded Goals & Errors:",
+    "conceded_modal_title": "Conceded Goals & Individual Errors",
+    "add_conceded_goal_btn": "Add Conceded Goal / Error",
+    "select_mistake_player_placeholder": "-- Select player at fault --",
+    "no_individual_mistake": "🛡️ No individual error (Great goal / Team error)",
+    "custom_mistake_player": "✏️ Enter custom player name...",
+    "custom_mistake_placeholder": "Enter player name...",
+    "error_type_label": "Error Type:",
+    "error_mat_bong": "Dangerous turnover",
+    "error_chuyen_hong": "Bad pass / backpass",
+    "error_bat_hut": "Goalkeeper fumble",
+    "error_phan_luoi": "Own goal (OG)",
+    "error_kem_nguoi": "Lost marking / out of position",
+    "error_khong_loi": "No individual error",
+    "error_khac": "Other error",
+    "mistake_note_placeholder": "Notes (e.g. nutmegged, slipped...)",
+    "conceded_list_title": "Recorded Conceded Goals & Errors:",
+    "delete_conceded_tooltip": "Delete this conceded goal"
   },
   "fund_prompt": {
     "badge": "Monthly Fund Reminder",
@@ -405,7 +422,10 @@
     "unit_match": "Matches",
     "unit_times": "Times",
     "unit_assists": "Assists",
-    "unit_goals": "Goals"
+    "unit_goals": "Goals",
+    "mistakes": "Errors (Blunders)",
+    "unit_mistakes": "Errors",
+    "top_mistakes_title": "TOP 3 BLUNDER MASTERS"
   },
   "members": {
     "title": "Members List",

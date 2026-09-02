@@ -211,9 +211,26 @@
     "lineup_manage_btn": "Xếp Đội Hình 📋",
     "lineup_view_btn": "Xem Đội Hình 📋",
     "clone_match_btn": "Nhân bản trận",
-    "delete_match_action": "Xóa trận",
     "notify_email_action": "Gửi Email",
-    "notify_push_action": "Gửi Push"
+    "notify_push_action": "Gửi Push",
+    "conceded_goals_title": "Bàn thua & Lỗi cá nhân:",
+    "conceded_modal_title": "Chi tiết bàn thua & Lỗi cá nhân",
+    "add_conceded_goal_btn": "Thêm bàn thua / lỗi",
+    "select_mistake_player_placeholder": "-- Chọn cầu thủ mắc lỗi --",
+    "no_individual_mistake": "🛡️ Không lỗi cá nhân (Đối thủ sút hay / Lỗi tập thể)",
+    "custom_mistake_player": "✏️ Tự nhập tên cầu thủ khác...",
+    "custom_mistake_placeholder": "Nhập tên cầu thủ mắc lỗi...",
+    "error_type_label": "Loại lỗi:",
+    "error_mat_bong": "Mất bóng",
+    "error_chuyen_hong": "Chuyền hỏng",
+    "error_bat_hut": "Bắt hụt",
+    "error_phan_luoi": "Phản lưới (OG)",
+    "error_kem_nguoi": "Bỏ vị trí / kèm người",
+    "error_khong_loi": "Không lỗi cá nhân",
+    "error_khac": "Lỗi khác",
+    "mistake_note_placeholder": "Ghi chú (VD: Bị xâu kim, trượt chân...)",
+    "conceded_list_title": "Danh sách bàn thua & lỗi đã ghi nhận:",
+    "delete_conceded_tooltip": "Xóa bàn thua này"
   },
   "fund_prompt": {
     "badge": "Nhắc Nhở Quỹ Tháng",
@@ -405,7 +422,10 @@
     "unit_match": "Trận",
     "unit_times": "Lần",
     "unit_assists": "Kiến tạo",
-    "unit_goals": "Bàn"
+    "unit_goals": "Bàn",
+    "mistakes": "Báo thủ (Mắc lỗi)",
+    "unit_mistakes": "Lỗi",
+    "top_mistakes_title": "TOP 3 CHIẾN THẦN ĐÓNG HỌC PHÍ"
   },
   "members": {
     "title": "Danh Sách Thành Viên",

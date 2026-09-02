@@ -56,7 +56,8 @@ const UserSchema = new mongoose.Schema({
     goals: { type: Number, default: 0 },
     assists: { type: Number, default: 0 },
     motm: { type: Number, default: 0 },
-    appearances: { type: Number, default: 0 }
+    appearances: { type: Number, default: 0 },
+    mistakes: { type: Number, default: 0 }
   }
 }, { timestamps: true });
 

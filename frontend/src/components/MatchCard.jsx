@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, Clock, MapPin, DollarSign, Users, Copy, CheckCircle2, XCircle, HelpCircle, Edit3, Trophy, Plus, Minus, Trash2, X, Zap, Send, Shirt, Bell, Star, Award, Crown, Flame, Shield } from 'lucide-react';
+import { Calendar, Clock, MapPin, DollarSign, Users, Copy, CheckCircle2, XCircle, HelpCircle, Edit3, Trophy, Plus, Minus, Trash2, X, Zap, Send, Shirt, Bell, Star, Award, Crown, Flame, Shield, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import teamLogo from '../asset/logo.png';
@@ -26,6 +26,19 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         return 'text-slate-800';
       default:
         return 'text-slate-500';
+    }
+  };
+
+  const getErrorTypeLabel = (type) => {
+    switch (type) {
+      case 'mat_bong': return t('matchcard.error_mat_bong') || 'Mất bóng';
+      case 'chuyen_hong': return t('matchcard.error_chuyen_hong') || 'Chuyền hỏng';
+      case 'bat_hut': return t('matchcard.error_bat_hut') || 'Bắt hụt';
+      case 'phan_luoi': return t('matchcard.error_phan_luoi') || 'Phản lưới (OG)';
+      case 'kem_nguoi': return t('matchcard.error_kem_nguoi') || 'Bỏ vị trí/kèm người';
+      case 'khong_loi': return t('matchcard.error_khong_loi') || 'Không lỗi cá nhân';
+      case 'khac': return t('matchcard.error_khac') || 'Lỗi khác';
+      default: return type;
     }
   };
   const toast = useToast();
@@ -145,6 +158,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     awayScore: match.score?.awayScore ?? 0,
     status: match.status === 'upcoming' ? 'completed' : match.status,
     scorers: match.scorers || [],
+    concededGoals: match.concededGoals || [],
     motm: match.motm || ''
   });
 
@@ -153,6 +167,13 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
   const [selectedAssister, setSelectedAssister] = useState('');
   const [customAssisterName, setCustomAssisterName] = useState('');
   const [newScorer, setNewScorer] = useState({ minute: '', count: 1 });
+
+  // Conceded Goal / Mistake State
+  const [selectedMistakePlayer, setSelectedMistakePlayer] = useState('');
+  const [customMistakePlayerName, setCustomMistakePlayerName] = useState('');
+  const [selectedErrorType, setSelectedErrorType] = useState('mat_bong');
+  const [mistakeMinute, setMistakeMinute] = useState('');
+  const [mistakeNote, setMistakeNote] = useState('');
 
   const summary = match.checkInSummary || { joined: 0, uncertain: 0, absent: 0, pending: 0 };
   const totalCheckIn = summary.joined + summary.uncertain + summary.absent + summary.pending || 1;
@@ -217,11 +238,12 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         homeScore: Number(resultForm.homeScore),
         awayScore: Number(resultForm.awayScore),
         scorers: resultForm.scorers,
+        concededGoals: resultForm.concededGoals || [],
         motm: resultForm.motm,
         status: resultForm.status
       });
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã cập nhật tỉ số và danh sách cầu thủ ghi bàn!', 'Tỉ Số Realtime');
+      toast.success('Đã cập nhật tỉ số, danh sách ghi bàn & lỗi bàn thua!', 'Tỉ Số Realtime');
       setShowResultModal(false);
     } catch (err) {
       toast.error(err.message || 'Lỗi khi cập nhật tỉ số', 'Lỗi');
@@ -254,6 +276,50 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     const updated = [...resultForm.scorers];
     updated.splice(index, 1);
     setResultForm({ ...resultForm, scorers: updated });
+  };
+
+  // Add Conceded Goal / Mistake to list
+  const handleAddConcededGoal = () => {
+    let finalPlayerName = '';
+    let foundUserId = null;
+
+    if (selectedErrorType === 'khong_loi' || selectedMistakePlayer === 'NONE') {
+      finalPlayerName = 'Không có lỗi cá nhân';
+    } else if (selectedMistakePlayer === 'CUSTOM') {
+      finalPlayerName = customMistakePlayerName.trim();
+    } else if (selectedMistakePlayer) {
+      finalPlayerName = selectedMistakePlayer.trim();
+      const u = memberList.find(m => m.name === selectedMistakePlayer);
+      if (u) foundUserId = u._id;
+    }
+
+    if (!finalPlayerName && selectedErrorType !== 'khong_loi') return;
+
+    setResultForm({
+      ...resultForm,
+      concededGoals: [
+        ...(resultForm.concededGoals || []),
+        {
+          playerName: finalPlayerName || 'Không rõ',
+          userId: foundUserId,
+          errorType: selectedErrorType,
+          minute: mistakeMinute.trim(),
+          note: mistakeNote.trim()
+        }
+      ]
+    });
+    setSelectedMistakePlayer('');
+    setCustomMistakePlayerName('');
+    setSelectedErrorType('mat_bong');
+    setMistakeMinute('');
+    setMistakeNote('');
+  };
+
+  // Remove Conceded Goal from list
+  const handleRemoveConcededGoal = (index) => {
+    const updated = [...(resultForm.concededGoals || [])];
+    updated.splice(index, 1);
+    setResultForm({ ...resultForm, concededGoals: updated });
   };
 
   return (
@@ -396,6 +462,37 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                     <span>{sc.playerName}</span>
                     {sc.minute && <span className="text-slate-500">({sc.minute})</span>}
                     {sc.count > 1 && <span className="text-rose-600 font-black">x{sc.count}</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Conceded Goals / Mistakes List */}
+          {match.concededGoals && match.concededGoals.length > 0 && (
+            <div className="mt-2.5 pt-2 border-t border-slate-200/80 text-xs">
+              <div className="text-[11px] font-extrabold text-amber-700 mb-1.5 flex items-center gap-1">
+                ⚠️ {t('matchcard.conceded_goals_title')}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {match.concededGoals.map((cg, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-bold text-[11px] shadow-2xs ${
+                      cg.errorType === 'khong_loi'
+                        ? 'bg-slate-100 border-slate-300 text-slate-700'
+                        : 'bg-amber-50 border-amber-300 text-amber-900'
+                    }`}
+                  >
+                    <span>{cg.errorType === 'khong_loi' ? '🛡️' : '⚠️'}</span>
+                    <span>{cg.playerName || 'Không rõ'}</span>
+                    {cg.errorType && cg.errorType !== 'khong_loi' && (
+                      <span className="text-[10px] font-black text-rose-600 bg-rose-100/80 px-1.5 py-0.5 rounded-md">
+                        {getErrorTypeLabel(cg.errorType)}
+                      </span>
+                    )}
+                    {cg.minute && <span className="text-slate-500 font-normal">({cg.minute})</span>}
+                    {cg.note && <span className="text-slate-500 italic font-normal text-[10px]">"{cg.note}"</span>}
                   </span>
                 ))}
               </div>
@@ -1137,6 +1234,135 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   ))}
                 </div>
               )}
+
+              {/* Conceded Goals & Mistakes Box */}
+              <div className="border-t border-slate-200 pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-black text-slate-800 flex items-center gap-1">
+                    ⚠️ {t('matchcard.conceded_modal_title')}
+                  </label>
+                  <span className="text-[10px] font-bold text-slate-500">
+                    ({t('matchcard.opponent')}: {resultForm.awayScore} bàn)
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    {/* Member Dropdown */}
+                    <div className="sm:col-span-6">
+                      <select
+                        value={selectedMistakePlayer}
+                        onChange={(e) => setSelectedMistakePlayer(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                      >
+                        <option value="">{t('matchcard.select_mistake_player_placeholder')}</option>
+                        <option value="NONE">{t('matchcard.no_individual_mistake')}</option>
+                        {memberList.map((u) => (
+                          <option key={u._id} value={u.name}>
+                            👤 {u.name} ({u.position || 'Cầu thủ'})
+                          </option>
+                        ))}
+                        <option value="CUSTOM">{t('matchcard.custom_mistake_player')}</option>
+                      </select>
+                    </div>
+
+                    {/* Error Type Selector */}
+                    <div className="sm:col-span-6">
+                      <select
+                        value={selectedErrorType}
+                        onChange={(e) => setSelectedErrorType(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none focus:border-[#374df5]"
+                      >
+                        <option value="mat_bong">⚡ {t('matchcard.error_mat_bong')}</option>
+                        <option value="chuyen_hong">👟 {t('matchcard.error_chuyen_hong')}</option>
+                        <option value="bat_hut">🧤 {t('matchcard.error_bat_hut')}</option>
+                        <option value="phan_luoi">💥 {t('matchcard.error_phan_luoi')}</option>
+                        <option value="kem_nguoi">🏃 {t('matchcard.error_kem_nguoi')}</option>
+                        <option value="khong_loi">🛡️ {t('matchcard.error_khong_loi')}</option>
+                        <option value="khac">❓ {t('matchcard.error_khac')}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Custom Player Name if selected */}
+                  {selectedMistakePlayer === 'CUSTOM' && (
+                    <input
+                      type="text"
+                      placeholder={t('matchcard.custom_mistake_placeholder')}
+                      value={customMistakePlayerName}
+                      onChange={(e) => setCustomMistakePlayerName(e.target.value)}
+                      className="w-full bg-amber-50 border border-amber-400 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none"
+                    />
+                  )}
+
+                  {/* Minute & Note row */}
+                  <div className="grid grid-cols-12 gap-2">
+                    <input
+                      type="text"
+                      placeholder={t('matchcard.minute_placeholder')}
+                      value={mistakeMinute}
+                      onChange={(e) => setMistakeMinute(e.target.value)}
+                      className="col-span-3 sm:col-span-3 bg-white border border-slate-300 text-slate-950 placeholder:text-slate-400 font-bold rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:border-[#374df5]"
+                    />
+
+                    <input
+                      type="text"
+                      placeholder={t('matchcard.mistake_note_placeholder')}
+                      value={mistakeNote}
+                      onChange={(e) => setMistakeNote(e.target.value)}
+                      className="col-span-6 sm:col-span-6 bg-white border border-slate-300 text-slate-950 placeholder:text-slate-400 font-bold rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:border-[#374df5]"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleAddConcededGoal}
+                      className="col-span-3 sm:col-span-3 min-h-[36px] bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-xs shadow-md transition flex items-center justify-center gap-1 active:scale-95"
+                      title={t('matchcard.add_conceded_goal_btn')}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{t('matchcard.add_conceded_goal_btn')}</span>
+                      <span className="sm:hidden">+ Thêm</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* List of Conceded Goals Added */}
+                {resultForm.concededGoals && resultForm.concededGoals.length > 0 && (
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto border-t border-slate-100 pt-2 mt-2.5 overscroll-contain">
+                    <div className="text-[11px] font-bold text-slate-500 mb-1">
+                      {t('matchcard.conceded_list_title')}
+                    </div>
+                    {resultForm.concededGoals.map((cg, i) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold gap-2">
+                        <div className="flex flex-col min-w-0">
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            <span className="p-1 rounded-lg bg-amber-100 text-amber-900 text-[10px] shrink-0">
+                              {cg.errorType === 'khong_loi' ? '🛡️' : '⚠️'} {getErrorTypeLabel(cg.errorType)}
+                            </span>
+                            <span className="font-black text-slate-900 truncate">
+                              {cg.playerName || 'Không có lỗi cá nhân'}
+                            </span>
+                            {cg.minute && <span className="text-slate-500">({cg.minute})</span>}
+                          </span>
+                          {cg.note && (
+                            <span className="text-[10px] text-slate-500 mt-0.5 ml-1 italic truncate">
+                              "{cg.note}"
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveConcededGoal(i)}
+                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0"
+                          title={t('matchcard.delete_conceded_tooltip')}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* MOTM Selector */}
               <div className="border-t border-slate-200 pt-3">
