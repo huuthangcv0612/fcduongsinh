@@ -573,7 +573,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         {/* ⭐ MVP SECTION (For completed matches) */}
         {match.status === 'completed' && (
           <div className="mb-4">
-            {match.motm ? (
+            {match.motm || match.isMvpFinalized ? (
               <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-yellow-500/20 to-amber-500/10 border-2 border-amber-400 shadow-xs flex items-center justify-between gap-2.5 relative overflow-hidden">
                 <div className="flex items-center gap-2.5 overflow-hidden">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-yellow-300 text-amber-950 flex items-center justify-center font-black text-xl shadow-sm shrink-0 border border-amber-300">
@@ -582,7 +582,8 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   <div className="overflow-hidden">
                     <div className="text-[10px] font-black uppercase tracking-wider text-amber-800 flex items-center gap-1">
                       <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                      {t('matchcard.mvp_winner')}
+                      <span>{t('matchcard.mvp_winner')}</span>
+                      <span className="text-[9px] bg-amber-200 text-amber-900 font-extrabold px-1.5 py-0.2 rounded-full ml-1">Đã chốt</span>
                     </div>
                     <div className="text-sm font-black text-slate-900 truncate">
                       {match.motm}
@@ -604,7 +605,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   <span>{t('matchcard.mvp_view_votes')}</span>
                 </button>
               </div>
-            ) : match.isMvpVotingOpen ? (
+            ) : (match.isMvpVotingOpen && !match.isMvpFinalized) ? (
               <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border border-amber-300 shadow-xs flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 overflow-hidden">
                   <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg shrink-0 animate-pulse">
@@ -634,10 +635,10 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                     <button
                       type="button"
                       onClick={() => setShowFinalizeConfirm(true)}
-                      title={t('matchcard.mvp_finalize_early')}
-                      className="p-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-black text-xs transition border border-amber-300"
+                      title="Chốt kết quả MVP"
+                      className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs transition border border-amber-300 flex items-center gap-1 shadow-sm"
                     >
-                      👑
+                      👑 <span>Chốt</span>
                     </button>
                   )}
                 </div>
@@ -1608,7 +1609,9 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
       )}
 
       {/* 🏆 CUSTOM MVP DETAILS & VOTING MODAL */}
-      {showMvpModal && createPortal(
+      {showMvpModal && (() => {
+        const isMvpFinalized = Boolean(match.isMvpFinalized || match.motm || mvpStats?.isMvpFinalized || mvpStats?.isFinalized);
+        return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in select-none overscroll-contain">
           <div className="w-full max-w-lg glass-modal rounded-3xl p-5 sm:p-7 relative bg-white border-2 border-amber-400 shadow-2xl flex flex-col max-h-[88vh] overscroll-contain">
             
@@ -1634,7 +1637,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
             </p>
 
             {/* If winner finalized */}
-            {mvpStats?.motm && (
+            {(mvpStats?.motm || match.motm) && (
               <div className="mb-3.5 p-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 shadow-sm flex items-center gap-3 shrink-0">
                 <div className="w-11 h-11 rounded-xl bg-white/90 text-amber-900 flex items-center justify-center font-black text-2xl shadow-xs shrink-0">
                   👑
@@ -1644,14 +1647,20 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                     🏆 {t('mvp.winner_badge')}
                   </div>
                   <div className="text-base font-black truncate">
-                    {mvpStats.motm}
+                    {mvpStats?.motm || match.motm}
                   </div>
-                  {mvpStats.motmReason && (
+                  {(mvpStats?.motmReason || match.motmReason) && (
                     <div className="text-xs font-bold text-amber-950/80">
-                      {mvpStats.motmReason}
+                      {mvpStats?.motmReason || match.motmReason}
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {isMvpFinalized && (
+              <div className="mb-3 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-1.5 shrink-0">
+                <span>🔒 Admin đã chốt kết quả MVP (Đã đóng bình chọn)</span>
               </div>
             )}
 
@@ -1748,7 +1757,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                         </div>
 
                         {/* If MVP not finalized yet, show Vote button */}
-                        {!mvpStats?.isFinalized && (
+                        {!isMvpFinalized && (
                           <button
                             type="button"
                             onClick={() => voteMvpMutation.mutate(cand._id)}
@@ -1781,7 +1790,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                 Đóng
               </button>
 
-              {isAdmin && !mvpStats?.isFinalized && (
+              {isAdmin && !isMvpFinalized && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1791,15 +1800,15 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition active:scale-95"
                 >
                   <Crown className="w-4 h-4" />
-                  <span>Chốt Kết Quả MVP Sớm</span>
+                  <span>Chốt Kết Quả MVP</span>
                 </button>
               )}
             </div>
 
           </div>
-        </div>,
-        document.body
-      )}
+        </div>
+        );
+      })()}
 
       {/* 👑 CUSTOM MODAL: CONFIRM FINALIZE MVP EARLY (Admin) */}
       {showFinalizeConfirm && createPortal(
@@ -1809,9 +1818,9 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
               👑
             </div>
             
-            <h3 className="text-xl font-black text-slate-900 mb-2">Chốt kết quả MVP sớm?</h3>
+            <h3 className="text-xl font-black text-slate-900 mb-2">Chốt kết quả MVP?</h3>
             <p className="text-sm text-slate-600 font-bold mb-6">
-              Hệ thống sẽ tính toán MVP ngay dựa trên số phiếu hiện tại (kèm xét bàn thắng/kiến tạo và random nếu hòa phiếu) và gửi thông báo vinh danh tới toàn đội!
+              Hệ thống sẽ tính toán MVP ngay dựa trên số phiếu hiện tại, khóa cổng bình chọn và gửi thông báo vinh danh MVP tới toàn đội!
             </p>
 
             <div className="flex items-center gap-3">
@@ -1828,7 +1837,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                 disabled={finalizeMvpMutation.isPending}
                 className="flex-1 py-2.5 rounded-xl text-sm font-black text-slate-950 bg-amber-400 hover:bg-amber-500 shadow-md transition disabled:opacity-50"
               >
-                {finalizeMvpMutation.isPending ? 'Đang tính...' : 'Chốt MVP Ngay'}
+                {finalizeMvpMutation.isPending ? 'Đang tính...' : 'Chốt MVP & Thông Báo'}
               </button>
             </div>
           </div>

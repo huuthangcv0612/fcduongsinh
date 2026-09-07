@@ -20,8 +20,9 @@ export default function ForceMvpVoteModal() {
   });
 
   const pendingMatch = forceRes?.data;
+  const isFinalized = Boolean(pendingMatch?.isMvpFinalized || pendingMatch?.motm);
 
-  const isOpen = !isLoading && Boolean(pendingMatch) && !isDismissed;
+  const isOpen = !isLoading && Boolean(pendingMatch) && !isFinalized && !isDismissed;
   useBodyScrollLock(isOpen);
 
   const voteMutation = useMutation({

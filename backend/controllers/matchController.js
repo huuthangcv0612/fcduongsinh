@@ -280,7 +280,9 @@ async function updateMatch(req, res, next) {
 }
 
 // 🏆 HELPER: CALCULATE MVP WINNER & TIE-BREAKER
-async function calculateMatchMvp(match) {
+async function calculateMatchMvp(match, options = {}) {
+  const { sendAnnouncement = false } = options;
+
   if (!match.populated('checkInList.userId')) {
     await match.populate('checkInList.userId', 'name email avatar position');
   }
@@ -288,6 +290,7 @@ async function calculateMatchMvp(match) {
   const joinedItems = (match.checkInList || []).filter(c => c.status === 'joined' && c.userId);
   if (joinedItems.length === 0) {
     match.isMvpFinalized = true;
+    match.isMvpVotingOpen = false;
     await match.save();
     return null;
   }
@@ -369,38 +372,41 @@ async function calculateMatchMvp(match) {
     match.motm = winnerItem.userId.name;
     match.motmReason = motmReason;
     match.isMvpFinalized = true;
+    match.isMvpVotingOpen = false;
     await match.save();
 
     // Recalculate stats for all users
     await recalculateUserStats();
 
-    // Send MVP Announcement Notification (in-app & web push)
-    try {
-      const title = '🎉 Vinh danh MVP Trận Đấu!';
-      const message = `Chúc mừng ${winnerItem.userId.name} đã trở thành Cầu thủ xuất sắc nhất (MVP) trận ngày ${match.date}! (${motmReason})`;
-      const link = '/matches';
+    // Send MVP Announcement Notification (in-app & web push) ONLY when admin triggers finalization
+    if (sendAnnouncement) {
+      try {
+        const title = '🎉 Vinh danh MVP Trận Đấu!';
+        const message = `Chúc mừng ${winnerItem.userId.name} đã trở thành Cầu thủ xuất sắc nhất (MVP) trận ngày ${match.date}! (${motmReason})`;
+        const link = '/matches';
 
-      await Notification.create({
-        recipient: null,
-        title,
-        message,
-        type: 'match',
-        link
-      });
+        await Notification.create({
+          recipient: null,
+          title,
+          message,
+          type: 'match',
+          link
+        });
 
-      const subscriptions = await PushSubscription.find();
-      const pushPayload = { title, body: message, url: link, type: 'match' };
-      subscriptions.forEach(async (sub) => {
-        try {
-          await sendNotification(sub.subscription, pushPayload);
-        } catch (err) {
-          if (err.message === 'SubscriptionExpired') {
-            await PushSubscription.findByIdAndDelete(sub._id);
+        const subscriptions = await PushSubscription.find();
+        const pushPayload = { title, body: message, url: link, type: 'match' };
+        subscriptions.forEach(async (sub) => {
+          try {
+            await sendNotification(sub.subscription, pushPayload);
+          } catch (err) {
+            if (err.message === 'SubscriptionExpired') {
+              await PushSubscription.findByIdAndDelete(sub._id);
+            }
           }
-        }
-      });
-    } catch (pushErr) {
-      console.error('Failed to send MVP push notification:', pushErr);
+        });
+      } catch (pushErr) {
+        console.error('Failed to send MVP push notification:', pushErr);
+      }
     }
   }
 
@@ -450,7 +456,9 @@ async function updateMatchResult(req, res, next) {
     match.status = newStatus;
 
     if (newStatus === 'completed') {
-      match.isMvpVotingOpen = true;
+      if (!match.isMvpFinalized && !match.motm) {
+        match.isMvpVotingOpen = true;
+      }
 
       // Dispatch Result & MVP Vote Notification if not notified yet
       if (!match.resultNotified) {
@@ -683,10 +691,12 @@ async function getForceMvpVoteMatch(req, res, next) {
   try {
     const userId = req.user._id.toString();
 
-    // Find completed matches where voting is open
+    // Find completed matches where voting is open and NOT finalized
     const matches = await Match.find({
       status: 'completed',
       isMvpVotingOpen: true,
+      isMvpFinalized: { $ne: true },
+      motm: { $in: [null, ''] },
       'checkInList': {
         $elemMatch: {
           userId: req.user._id,
@@ -745,34 +755,24 @@ async function getForceMvpVoteMatch(req, res, next) {
       const votes = voteCounts[c._id.toString()] || 0;
       const pct = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
       
-      // Calculate goals & assists in this match
-      let goals = 0;
-      let assists = 0;
-      (pendingMatch.scorers || []).forEach(s => {
-        if (s.playerName?.trim().toLowerCase() === c.name?.trim().toLowerCase()) {
-          goals += Number(s.count) || 1;
-        }
-        if (s.assisterName?.trim().toLowerCase() === c.name?.trim().toLowerCase()) {
-          assists += Number(s.count) || 1;
-        }
-      });
-
       return {
         ...c,
         voteCount: votes,
-        votePercentage: pct,
-        goals,
-        assists
+        votePercentage: pct
       };
     });
 
     res.json({
       success: true,
       data: {
-        ...pendingMatch,
-        candidates: candidatesWithStats,
+        _id: pendingMatch._id,
+        date: pendingMatch.date,
+        time: pendingMatch.time,
+        stadium: pendingMatch.stadium,
+        score: pendingMatch.score,
         totalVotes,
-        totalJoined
+        totalJoined,
+        candidates: candidatesWithStats
       }
     });
   } catch (err) {
@@ -799,8 +799,9 @@ async function voteMvp(req, res, next) {
       throw new AppError('CONFLICT', 'Trận đấu chưa kết thúc, không thể bình chọn MVP', 409);
     }
 
-    if (!match.isMvpVotingOpen) {
-      throw new AppError('CONFLICT', 'Cổng bình chọn MVP cho trận đấu này đã đóng', 409);
+    // Do not allow voting if admin has finalized MVP or voting is closed
+    if (match.isMvpFinalized || !match.isMvpVotingOpen || match.motm) {
+      throw new AppError('CONFLICT', 'Admin đã chốt kết quả MVP cho trận đấu này, không thể bình chọn thêm nữa', 409);
     }
 
     const userIdStr = req.user._id.toString();
@@ -835,22 +836,18 @@ async function voteMvp(req, res, next) {
       votedAt: new Date()
     });
 
-    const joinedCount = match.checkInList.filter(c => c.status === 'joined').length;
+    // Voting only records the vote; ONLY Admin chốt MVP can finalize and trigger the announcement notification
+    await match.save();
 
-    // If 100% of joined members have voted, finalize MVP
-    if (match.mvpVotes.length >= joinedCount) {
-      await calculateMatchMvp(match);
-    } else {
-      await match.save();
-    }
+    const joinedCount = match.checkInList.filter(c => c.status === 'joined').length;
 
     res.json({
       success: true,
-      message: 'Bình chọn MVP thành công!',
+      message: 'Bình chọn MVP thành công! Đang chờ Admin chốt kết quả.',
       data: {
-        isFinalized: match.isMvpFinalized,
-        motm: match.motm,
-        motmReason: match.motmReason,
+        isFinalized: false,
+        motm: match.motm || null,
+        motmReason: match.motmReason || '',
         totalVotes: match.mvpVotes.length,
         totalJoined: joinedCount
       }
@@ -869,7 +866,16 @@ async function finalizeMvp(req, res, next) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
     }
 
-    const winner = await calculateMatchMvp(match);
+    if (match.isMvpFinalized) {
+      throw new AppError('CONFLICT', 'Trận đấu này đã được chốt kết quả MVP rồi', 409);
+    }
+
+    // Only sending notification when admin clicks Chốt MVP!
+    const winner = await calculateMatchMvp(match, { sendAnnouncement: true });
+
+    match.isMvpFinalized = true;
+    match.isMvpVotingOpen = false;
+    await match.save();
 
     res.json({
       success: true,
@@ -963,6 +969,8 @@ async function getMatchMvpStats(req, res, next) {
       v => (v.voterId?._id || v.voterId)?.toString() === req.user._id.toString()
     );
 
+    const isFinalized = Boolean(match.isMvpFinalized || match.motm);
+
     res.json({
       success: true,
       data: {
@@ -973,8 +981,9 @@ async function getMatchMvpStats(req, res, next) {
         score: match.score,
         motm: match.motm,
         motmReason: match.motmReason,
-        isMvpVotingOpen: match.isMvpVotingOpen,
-        isMvpFinalized: match.isMvpFinalized,
+        isMvpVotingOpen: match.isMvpVotingOpen && !isFinalized,
+        isMvpFinalized: isFinalized,
+        isFinalized: isFinalized,
         totalVotes,
         totalJoined,
         hasUserVoted: !!userVote,
