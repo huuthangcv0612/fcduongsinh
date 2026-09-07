@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCheck, X, ExternalLink, Clock, Sparkles } from 'lucide-react';
+import { Bell, CheckCheck, X, ExternalLink, Clock, Sparkles, Loader2 } from 'lucide-react';
 import api from '../services/api';
 
 export default function NotificationBell() {
@@ -8,21 +8,80 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNotif, setSelectedNotif] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   const dropdownRef = useRef(null);
+  const listContainerRef = useRef(null);
+  const sentinelRef = useRef(null);
   const navigate = useNavigate();
 
+  const fetchInitialNotifications = useCallback(async (silent = false) => {
+    if (!silent) setIsLoadingInitial(true);
+    try {
+      const res = await api.get('/notifications?page=1&limit=15');
+      if (res.success) {
+        setNotifications(res.notifications || []);
+        if (typeof res.unreadCount === 'number') {
+          setUnreadCount(res.unreadCount);
+        } else {
+          setUnreadCount((res.notifications || []).filter(n => !n.read).length);
+        }
+        setPage(1);
+        setHasMore(res.hasMore ?? ((res.notifications || []).length >= 15));
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications', error);
+    } finally {
+      if (!silent) setIsLoadingInitial(false);
+    }
+  }, []);
+
+  const loadMoreNotifications = useCallback(async () => {
+    if (isLoadingMore || !hasMore || isLoadingInitial) return;
+
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+    try {
+      const res = await api.get(`/notifications?page=${nextPage}&limit=15`);
+      if (res.success) {
+        const newItems = res.notifications || [];
+        if (newItems.length > 0) {
+          setNotifications(prev => {
+            const existingIds = new Set(prev.map(n => n._id));
+            const uniqueItems = newItems.filter(n => !existingIds.has(n._id));
+            return [...prev, ...uniqueItems];
+          });
+          setPage(nextPage);
+        }
+        setHasMore(res.hasMore ?? (newItems.length >= 15));
+        if (typeof res.unreadCount === 'number') {
+          setUnreadCount(res.unreadCount);
+        }
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('Failed to load more notifications', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [page, hasMore, isLoadingMore, isLoadingInitial]);
+
   useEffect(() => {
-    fetchNotifications();
+    fetchInitialNotifications();
 
     // Auto refresh notifications every 30 seconds
     const interval = setInterval(() => {
-      fetchNotifications();
+      fetchInitialNotifications(true);
     }, 30000);
 
     // Listen for new push notifications from Service Worker
     const handleMessage = (event) => {
       if (event.data && event.data.type === 'NEW_NOTIFICATION') {
-        fetchNotifications();
+        fetchInitialNotifications(true);
       }
     };
     
@@ -46,17 +105,39 @@ export default function NotificationBell() {
         navigator.serviceWorker.removeEventListener('message', handleMessage);
       }
     };
-  }, []);
+  }, [fetchInitialNotifications]);
 
-  const fetchNotifications = async () => {
-    try {
-      const res = await api.get('/notifications');
-      if (res.success) {
-        setNotifications(res.notifications || []);
-        setUnreadCount((res.notifications || []).filter(n => !n.read).length);
+  // IntersectionObserver for infinite scroll / lazy loading as user scrolls down
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const target = sentinelRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoadingInitial) {
+          loadMoreNotifications();
+        }
+      },
+      {
+        root: listContainerRef.current,
+        rootMargin: '100px',
+        threshold: 0.05
       }
-    } catch (error) {
-      console.error('Failed to fetch notifications', error);
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [isOpen, hasMore, isLoadingMore, isLoadingInitial, loadMoreNotifications]);
+
+  // Scroll event fallback for touch swipes & fast scrolling
+  const handleContainerScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 100) {
+      if (hasMore && !isLoadingMore && !isLoadingInitial) {
+        loadMoreNotifications();
+      }
     }
   };
 
@@ -158,7 +239,13 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       {/* Bell Trigger Button */}
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const next = !isOpen;
+          setIsOpen(next);
+          if (next && notifications.length === 0) {
+            fetchInitialNotifications();
+          }
+        }}
         className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-white/90 hover:text-white hover:bg-white/10 active:bg-white/20 relative rounded-full transition-colors focus:outline-none touch-manipulation"
         title="Thông báo"
         type="button"
@@ -220,8 +307,25 @@ export default function NotificationBell() {
             </div>
             
             {/* List */}
-            <div className="overflow-y-auto flex-1 divide-y divide-slate-100 overscroll-contain">
-              {notifications.length === 0 ? (
+            <div 
+              ref={listContainerRef}
+              onScroll={handleContainerScroll}
+              className="overflow-y-auto flex-1 divide-y divide-slate-100 overscroll-contain"
+            >
+              {isLoadingInitial && notifications.length === 0 ? (
+                <div className="p-4 space-y-3.5">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex gap-3 items-start animate-pulse">
+                      <div className="w-9 h-9 rounded-xl bg-slate-200 shrink-0" />
+                      <div className="flex-1 space-y-2 py-0.5">
+                        <div className="h-3.5 bg-slate-200 rounded w-4/5" />
+                        <div className="h-3 bg-slate-100 rounded w-full" />
+                        <div className="h-2.5 bg-slate-100 rounded w-1/3 mt-1" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : notifications.length === 0 ? (
                 <div className="px-4 py-12 text-center flex flex-col items-center justify-center">
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2 text-slate-400">
                     <Bell className="w-5 h-5 text-slate-400" />
@@ -230,59 +334,79 @@ export default function NotificationBell() {
                   <p className="text-xs text-slate-400 mt-0.5">Các thông báo trận đấu, quỹ, MVP sẽ xuất hiện ở đây.</p>
                 </div>
               ) : (
-                notifications.map(notif => {
-                  const typeInfo = getNotificationTypeInfo(notif.type);
-                  return (
-                    <button
-                      key={notif._id}
-                      type="button"
-                      onClick={() => handleNotificationClick(notif)}
-                      className={`w-full text-left px-3.5 py-3 sm:px-4 sm:py-3.5 hover:bg-slate-50/90 active:bg-slate-100 transition-colors flex gap-3 items-start group touch-manipulation ${
-                        notif.read ? 'bg-white' : 'bg-blue-50/40 hover:bg-blue-50/70'
-                      }`}
-                    >
-                      {/* Notification Type Icon */}
-                      <div className={`mt-0.5 flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center border shadow-2xs ${
-                        notif.read
-                          ? 'bg-slate-100 border-slate-200 text-slate-500'
-                          : 'bg-blue-100/80 border-blue-200 text-blue-600'
-                      }`}>
-                        {typeInfo.icon}
-                      </div>
+                <>
+                  {notifications.map(notif => {
+                    const typeInfo = getNotificationTypeInfo(notif.type);
+                    return (
+                      <button
+                        key={notif._id}
+                        type="button"
+                        onClick={() => handleNotificationClick(notif)}
+                        className={`w-full text-left px-3.5 py-3 sm:px-4 sm:py-3.5 hover:bg-slate-50/90 active:bg-slate-100 transition-colors flex gap-3 items-start group touch-manipulation ${
+                          notif.read ? 'bg-white' : 'bg-blue-50/40 hover:bg-blue-50/70'
+                        }`}
+                      >
+                        {/* Notification Type Icon */}
+                        <div className={`mt-0.5 flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center border shadow-2xs ${
+                          notif.read
+                            ? 'bg-slate-100 border-slate-200 text-slate-500'
+                            : 'bg-blue-100/80 border-blue-200 text-blue-600'
+                        }`}>
+                          {typeInfo.icon}
+                        </div>
 
-                      {/* Notification Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-1.5">
-                          <p className={`text-xs sm:text-sm leading-snug line-clamp-2 break-words ${notif.read ? 'text-slate-700 font-semibold' : 'text-slate-950 font-black'}`}>
-                            {notif.title}
+                        {/* Notification Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-1.5">
+                            <p className={`text-xs sm:text-sm leading-snug line-clamp-2 break-words ${notif.read ? 'text-slate-700 font-semibold' : 'text-slate-950 font-black'}`}>
+                              {notif.title}
+                            </p>
+                            {!notif.read && (
+                              <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0 mt-1 shadow-sm" />
+                            )}
+                          </div>
+
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed break-words">
+                            {notif.message}
                           </p>
-                          {!notif.read && (
-                            <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0 mt-1 shadow-sm" />
-                          )}
+
+                          <div className="flex items-center justify-between mt-1.5 pt-0.5">
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              {new Date(notif.createdAt).toLocaleString('vi-VN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                day: '2-digit',
+                                month: '2-digit'
+                              })}
+                            </span>
+
+                            <span className="text-[10px] font-bold text-blue-600 group-hover:underline flex items-center gap-0.5">
+                              Xem chi tiết ➔
+                            </span>
+                          </div>
                         </div>
+                      </button>
+                    );
+                  })}
 
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed break-words">
-                          {notif.message}
-                        </p>
+                  {/* Sentinel element for infinite scroll / lazy loading */}
+                  <div ref={sentinelRef} className="h-4 w-full" />
 
-                        <div className="flex items-center justify-between mt-1.5 pt-0.5">
-                          <span className="text-[10px] text-slate-400 font-medium">
-                            {new Date(notif.createdAt).toLocaleString('vi-VN', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              day: '2-digit',
-                              month: '2-digit'
-                            })}
-                          </span>
+                  {/* Loading more indicator */}
+                  {isLoadingMore && (
+                    <div className="py-3 px-4 flex items-center justify-center gap-2 text-xs font-bold text-blue-600 bg-slate-50/70 border-t border-slate-100">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                      <span>Đang tải thêm thông báo...</span>
+                    </div>
+                  )}
 
-                          <span className="text-[10px] font-bold text-blue-600 group-hover:underline flex items-center gap-0.5">
-                            Xem chi tiết ➔
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })
+                  {/* End of list indicator */}
+                  {!hasMore && notifications.length > 0 && (
+                    <div className="py-2.5 px-4 text-center text-[11px] font-semibold text-slate-400 bg-slate-50/40 border-t border-slate-100">
+                      Đã hiển thị tất cả thông báo
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

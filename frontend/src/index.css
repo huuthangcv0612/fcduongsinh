@@ -17,6 +17,11 @@
     --sal: env(safe-area-inset-left, 0px);
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     background-color: #f8fafc;
     color: rgb(15, 23, 42);
@@ -32,6 +37,24 @@
 
   input, textarea, select {
     @apply text-slate-900;
+  }
+
+  /* Prevent automatic camera zoom on mobile (iOS/Android) when tapping any input, select or textarea */
+  @media screen and (max-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Prevent double-tap zoom and touch delay on interactive elements */
+  button,
+  input,
+  select,
+  textarea,
+  a {
+    touch-action: manipulation;
   }
 }
 

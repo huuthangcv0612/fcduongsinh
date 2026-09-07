@@ -2,19 +2,45 @@ const Notification = require('../models/Notification');
 const PushSubscription = require('../models/PushSubscription');
 const { sendNotification } = require('../utils/webPush');
 
-// Get notifications for current user
+// Get notifications for current user with pagination / lazy loading
 exports.getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    // Get notifications sent to this user specifically, or sent to all users (recipient = null)
-    const notifications = await Notification.find({
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, Math.min(50, parseInt(req.query.limit) || 15));
+    const skip = (page - 1) * limit;
+
+    const filter = {
       $or: [
         { recipient: userId },
         { recipient: null }
       ]
-    }).sort({ createdAt: -1 }).limit(50).lean();
+    };
 
-    res.json({ success: true, notifications });
+    const [notifications, total, unreadCount] = await Promise.all([
+      Notification.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Notification.countDocuments(filter),
+      Notification.countDocuments({
+        ...filter,
+        read: false
+      })
+    ]);
+
+    const hasMore = skip + notifications.length < total;
+
+    res.json({
+      success: true,
+      notifications,
+      unreadCount,
+      page,
+      limit,
+      total,
+      hasMore
+    });
   } catch (error) {
     console.error('Error fetching notifications:', error);
     res.status(500).json({ success: false, message: 'Server error' });
