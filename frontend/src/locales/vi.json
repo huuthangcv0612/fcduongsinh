@@ -305,6 +305,8 @@
     "assists": "kiến tạo",
     "congrats_title": "Vinh danh MVP Trận Đấu 🎉",
     "winner_badge": "MVP XUẤT SẮC NHẤT",
+    "voted_badge": "Đã bầu",
+    "vote_action": "Bình chọn",
     "vote_success": "Đã lưu lượt bình chọn MVP của bạn thành công!",
     "vote_fail": "Lỗi khi lưu bình chọn MVP",
     "finalize_confirm": "Bạn có chắc chắn muốn chốt MVP trận này ngay bây giờ không?",

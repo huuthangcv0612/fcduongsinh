@@ -305,6 +305,8 @@
     "assists": "assists",
     "congrats_title": "Match MVP Honors 🎉",
     "winner_badge": "BEST MVP",
+    "voted_badge": "Voted",
+    "vote_action": "Vote",
     "vote_success": "MVP vote recorded successfully!",
     "vote_fail": "Failed to record MVP vote",
     "finalize_confirm": "Are you sure you want to finalize MVP for this match now?",

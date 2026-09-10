@@ -93,7 +93,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
   useBodyScrollLock(isAnyModalOpen);
 
   // Query MVP stats for this match
-  const { data: mvpStatsRes } = useQuery({
+  const { data: mvpStatsRes, isLoading: isMvpStatsLoading } = useQuery({
     queryKey: ['matchMvpStats', match._id],
     queryFn: () => api.get(`/matches/${match._id}/mvp-stats`),
     enabled: showMvpModal || match.status === 'completed'
@@ -1633,7 +1633,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
               </h3>
             </div>
             <p className="text-xs font-bold text-slate-500 mb-3 shrink-0">
-              Trận ngày {match.date} • FC Nhà Trẻ ({match.score?.homeScore ?? 0}) - ({match.score?.awayScore ?? 0}) {match.opponent?.teamName || 'Đối thủ'}
+              Trận ngày {match.date || ''} • FC Nhà Trẻ ({match.score?.homeScore ?? 0}) - ({match.score?.awayScore ?? 0}) {match.opponent?.teamName || 'Đối thủ'}
             </p>
 
             {/* If winner finalized */}
@@ -1688,96 +1688,109 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 space-y-2 mb-3 overscroll-contain">
-              {(mvpStats?.candidates || []).sort((a, b) => (b.voteCount - a.voteCount) || ((b.goals + b.assists) - (a.goals + a.assists))).map((cand, idx) => {
-                const isUserVotedThis = mvpStats?.userVotedCandidateId === cand._id;
-                const isWinner = cand.isWinner;
+              {isMvpStatsLoading && !mvpStats ? (
+                <div className="py-8 text-center text-xs font-bold text-slate-400">
+                  <div className="inline-block w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-2" />
+                  <div>Đang tải bảng xếp hạng MVP...</div>
+                </div>
+              ) : (mvpStats?.candidates || []).length === 0 ? (
+                <div className="py-8 text-center text-xs font-bold text-slate-400">
+                  Chưa có danh sách ứng viên bình chọn nào cho trận này.
+                </div>
+              ) : (
+                [...(mvpStats?.candidates || [])]
+                  .sort((a, b) => ((b.voteCount || 0) - (a.voteCount || 0)) || (((b.goals || 0) + (b.assists || 0)) - ((a.goals || 0) + (a.assists || 0))))
+                  .map((cand, idx) => {
+                    const isUserVotedThis = mvpStats?.userVotedCandidateId === cand._id;
+                    const isWinner = cand.isWinner;
 
-                return (
-                  <div
-                    key={cand._id}
-                    className={`p-2.5 sm:p-3 rounded-2xl border transition-all ${
-                      isWinner
-                        ? 'border-amber-400 bg-amber-50/60 shadow-xs ring-1 ring-amber-300'
-                        : isUserVotedThis
-                        ? 'border-blue-400 bg-blue-50/50'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        {/* Rank Badge */}
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-mono font-black text-xs shrink-0 ${
-                          idx === 0 ? 'bg-amber-400 text-slate-950 font-extrabold' :
-                          idx === 1 ? 'bg-slate-300 text-slate-800' :
-                          idx === 2 ? 'bg-amber-700/20 text-amber-900' :
-                          'bg-slate-100 text-slate-500'
-                        }`}>
-                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
-                        </div>
-
-                        {/* Avatar */}
-                        <div className="w-8 h-8 rounded-xl bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
-                          {cand.avatar ? (
-                            <img src={cand.avatar} alt={cand.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center font-bold text-xs text-slate-500">
-                              {cand.name.charAt(0)}
+                    return (
+                      <div
+                        key={cand._id}
+                        className={`p-2.5 sm:p-3 rounded-2xl border transition-all ${
+                          isWinner
+                            ? 'border-amber-400 bg-amber-50/60 shadow-xs ring-1 ring-amber-300'
+                            : isUserVotedThis
+                            ? 'border-blue-400 bg-blue-50/50'
+                            : 'border-slate-200 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {/* Rank Badge */}
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-mono font-black text-xs shrink-0 ${
+                              idx === 0 ? 'bg-amber-400 text-slate-950 font-extrabold' :
+                              idx === 1 ? 'bg-slate-300 text-slate-800' :
+                              idx === 2 ? 'bg-amber-700/20 text-amber-900' :
+                              'bg-slate-100 text-slate-500'
+                            }`}>
+                              {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
                             </div>
-                          )}
-                        </div>
 
-                        {/* Name & Match contribution */}
-                        <div className="min-w-0">
-                          <div className="text-xs font-black text-slate-900 flex items-center gap-1.5 truncate">
-                            <span className="truncate">{cand.name}</span>
-                            {isWinner && <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />}
-                            {isUserVotedThis && (
-                              <span className="px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 text-[10px] font-bold shrink-0">
-                                {t('mvp.voted_badge')}
-                              </span>
-                            )}
+                            {/* Avatar */}
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
+                              {cand.avatar ? (
+                                <img src={cand.avatar} alt={cand.name || 'Cầu thủ'} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center font-bold text-xs text-slate-500">
+                                  {cand.name ? cand.name.charAt(0) : '?'}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Name & Match contribution */}
+                            <div className="min-w-0">
+                              <div className="text-xs font-black text-slate-900 flex items-center gap-1.5 truncate">
+                                <span className="truncate">{cand.name}</span>
+                                {isWinner && <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />}
+                                {isUserVotedThis && (
+                                  <span className="px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 text-[10px] font-bold shrink-0">
+                                    {t('mvp.voted_badge')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-bold flex items-center gap-2">
+                                <span>{cand.position || 'Cầu thủ'}</span>
+                                {((cand.goals || 0) > 0 || (cand.assists || 0) > 0) && (
+                                  <span className="text-amber-600 font-black">
+                                    • {(cand.goals || 0) > 0 ? `⚽ ${cand.goals}` : ''} {(cand.assists || 0) > 0 ? `👟 ${cand.assists}` : ''}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-[10px] text-slate-500 font-bold flex items-center gap-2">
-                            <span>{cand.position || 'Cầu thủ'}</span>
-                            {(cand.goals > 0 || cand.assists > 0) && (
-                              <span className="text-amber-600 font-black">
-                                • {cand.goals > 0 ? `⚽ ${cand.goals}` : ''} {cand.assists > 0 ? `👟 ${cand.assists}` : ''}
-                              </span>
+
+                          {/* Vote Count & Action Button */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="text-right">
+                              <div className="font-mono font-black text-sm text-slate-900">
+                                {cand.voteCount || 0} <span className="text-[10px] font-bold text-slate-500">{t('mvp.votes')}</span>
+                              </div>
+                            </div>
+
+                            {/* If MVP not finalized yet, show Vote button */}
+                            {!isMvpFinalized && (
+                              <button
+                                type="button"
+                                onClick={() => voteMvpMutation.mutate(cand._id)}
+                                disabled={voteMvpMutation.isPending}
+                                className={`p-2 rounded-xl text-xs font-black transition flex items-center gap-1 ${
+                                  isUserVotedThis
+                                    ? 'bg-blue-600 text-white shadow-xs'
+                                    : 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-800'
+                                }`}
+                                title={isUserVotedThis ? 'Đã bỏ phiếu cho cầu thủ này' : 'Bình chọn MVP cho cầu thủ này'}
+                              >
+                                <Star className={`w-3.5 h-3.5 ${isUserVotedThis ? 'fill-white' : ''}`} />
+                                <span className="hidden sm:inline">{isUserVotedThis ? t('mvp.voted_badge') : t('mvp.vote_action')}</span>
+                              </button>
                             )}
                           </div>
                         </div>
                       </div>
-
-                      {/* Vote Count & Action Button */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="text-right">
-                          <div className="font-mono font-black text-sm text-slate-900">
-                            {cand.voteCount} <span className="text-[10px] font-bold text-slate-500">{t('mvp.votes')}</span>
-                          </div>
-                        </div>
-
-                        {/* If MVP not finalized yet, show Vote button */}
-                        {!isMvpFinalized && (
-                          <button
-                            type="button"
-                            onClick={() => voteMvpMutation.mutate(cand._id)}
-                            disabled={voteMvpMutation.isPending}
-                            className={`p-2 rounded-xl text-xs font-black transition flex items-center gap-1 ${
-                              isUserVotedThis
-                                ? 'bg-blue-600 text-white shadow-xs'
-                                : 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-800'
-                            }`}
-                            title={isUserVotedThis ? 'Đã bỏ phiếu cho cầu thủ này' : 'Bình chọn MVP cho cầu thủ này'}
-                          >
-                            <Star className={`w-3.5 h-3.5 ${isUserVotedThis ? 'fill-white' : ''}`} />
-                            <span className="hidden sm:inline">{isUserVotedThis ? t('mvp.voted_badge') : t('mvp.vote_action')}</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })
+              )}
             </div>
 
             {/* Bottom Actions for Admin (Chốt MVP thủ công sớm) */}
@@ -1806,7 +1819,8 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
         );
       })()}
 
