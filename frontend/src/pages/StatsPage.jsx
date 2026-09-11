@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import { Trophy, Flame, Star, Activity, Award, Crown, Sparkles, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import Loading3D from '../components/Loading3D';
 
 export default function StatsPage() {
   const { t } = useTranslation();
@@ -48,7 +49,7 @@ export default function StatsPage() {
     }
   };
 
-  if (isLoading) return <div className="text-center p-8 text-slate-500 font-bold animate-pulse">{t('stats.loading')}</div>;
+  if (isLoading) return <Loading3D variant="section" text={t('stats.loading')} />;
 
   return (
     <div className="space-y-6 animate-fade-in pb-28 md:pb-0">

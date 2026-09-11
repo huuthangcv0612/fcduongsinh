@@ -8,6 +8,7 @@ import ForceCheckInModal from './components/ForceCheckInModal';
 import ForceMvpVoteModal from './components/ForceMvpVoteModal';
 import PushNotificationPrompt from './components/PushNotificationPrompt';
 import UnpaidFundPromptModal from './components/UnpaidFundPromptModal';
+import Loading3D from './components/Loading3D';
 import { useTranslation } from 'react-i18next';
 
 import LoginPage from './pages/LoginPage';
@@ -74,8 +75,8 @@ function ProtectedLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        {t('app.loading')}
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading3D variant="fullscreen" text={t('app.loading')} />
       </div>
     );
   }
@@ -96,7 +97,7 @@ function ProtectedLayout() {
       <ForceMvpVoteModal />
       <PushNotificationPrompt />
       <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 pt-20 pb-28 md:pt-28 md:pb-12 lg:px-8 lg:pt-32 lg:pb-12">
-        <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-slate-400">{t('app.loading')}</div>}>
+        <Suspense fallback={<Loading3D variant="section" text={t('app.loading')} />}>
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/matches" element={<MatchesPage />} />
@@ -121,6 +122,33 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/loading-preview" element={
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-4xl space-y-8">
+            <div className="text-center space-y-1">
+              <h1 className="text-2xl font-black text-white tracking-wide">3Dviz Pro Max Loading Preview</h1>
+              <p className="text-sm text-slate-400">Kiểm thử hiệu ứng 3D Loading Soccer Ball của FC Nhà Trẻ</p>
+            </div>
+            
+            {/* Fullscreen style preview */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-2xl backdrop-blur-md">
+              <Loading3D variant="fullscreen" text="Đang đồng bộ dữ liệu FC Nhà Trẻ..." subtext="Chiến thuật 7 người • Đội hình ra sân" />
+            </div>
+
+            {/* Section & Card previews */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 text-center">
+                <h3 className="text-sm font-bold text-slate-400 mb-2">Section Variant (Trong Bảng Xếp Hạng)</h3>
+                <Loading3D variant="section" text="Đang tải danh sách cầu thủ..." />
+              </div>
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 text-center">
+                <h3 className="text-sm font-bold text-slate-400 mb-2">Card Variant (Trong Modal / Thẻ trận)</h3>
+                <Loading3D variant="card" text="Đang tính điểm MVP..." />
+              </div>
+            </div>
+          </div>
+        </div>
+      } />
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
