@@ -168,7 +168,15 @@ async function getFinances(req, res, next) {
 
 async function getBalance(req, res, next) {
   try {
-    const [financeAgg, monthlyAgg] = await Promise.all([
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const currentMonthKey = `m${currentMonth}`;
+    const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+    const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
+    const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+
+    const [financeAgg, monthlyAgg, currentYearFunds, currentMonthFinances] = await Promise.all([
       Finance.aggregate([
         {
           $group: {
@@ -178,7 +186,19 @@ async function getBalance(req, res, next) {
           }
         }
       ]),
-      MonthlyFund.find().select('months').lean()
+      MonthlyFund.find().select('months').lean(),
+      MonthlyFund.find({ year: currentYear }).select(`months.${currentMonthKey}`).lean(),
+      Finance.find({
+        $or: [
+          { fundMonth: currentMonthStr },
+          {
+            $and: [
+              { $or: [{ fundMonth: null }, { fundMonth: '' }] },
+              { createdAt: { $gte: startOfMonth, $lte: endOfMonth } }
+            ]
+          }
+        ]
+      }).select('type category amount fundMonth createdAt').lean()
     ]);
 
     const stats = financeAgg[0] ? {
@@ -205,6 +225,36 @@ async function getBalance(req, res, next) {
 
     stats.totalIn += totalMonthlyFund;
     stats.balance += totalMonthlyFund;
+
+    // Monthly fund dues in current month
+    let monthFundIn = 0;
+    if (Array.isArray(currentYearFunds)) {
+      for (let i = 0; i < currentYearFunds.length; i++) {
+        const amt = currentYearFunds[i]?.months?.[currentMonthKey];
+        if (typeof amt === 'number' && amt > 0) {
+          monthFundIn += amt;
+        }
+      }
+    }
+
+    // Monthly expenses and other non-fund income in current month
+    let monthOtherIn = 0;
+    let monthOut = 0;
+    if (Array.isArray(currentMonthFinances)) {
+      for (let i = 0; i < currentMonthFinances.length; i++) {
+        const f = currentMonthFinances[i];
+        if (f.type === 'OUT') {
+          monthOut += Number(f.amount) || 0;
+        } else if (f.type === 'IN' && f.category !== 'quy_thang') {
+          monthOtherIn += Number(f.amount) || 0;
+        }
+      }
+    }
+
+    stats.monthIn = monthFundIn + monthOtherIn;
+    stats.monthOut = monthOut;
+    stats.currentMonth = currentMonth;
+    stats.currentYear = currentYear;
 
     res.json({
       success: true,

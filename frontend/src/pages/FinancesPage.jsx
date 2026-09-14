@@ -294,17 +294,17 @@ export default function FinancesPage() {
         />
 
         <StatCard
-          title={t('finances.total_in')}
-          value={`${balanceData.totalIn?.toLocaleString('vi-VN')} đ`}
-          subtext={t('finances.total_in_sub')}
+          title={t('finances.month_in', { month: balanceData.currentMonth || (new Date().getMonth() + 1) })}
+          value={`${(balanceData.monthIn ?? balanceData.totalIn)?.toLocaleString('vi-VN')} đ`}
+          subtext={t('finances.month_in_sub', { month: balanceData.currentMonth || (new Date().getMonth() + 1) })}
           icon={ArrowUpRight}
           color="cyan"
         />
 
         <StatCard
-          title={t('finances.total_out')}
-          value={`${balanceData.totalOut?.toLocaleString('vi-VN')} đ`}
-          subtext={t('finances.total_out_sub')}
+          title={t('finances.month_out', { month: balanceData.currentMonth || (new Date().getMonth() + 1) })}
+          value={`${(balanceData.monthOut ?? balanceData.totalOut)?.toLocaleString('vi-VN')} đ`}
+          subtext={t('finances.month_out_sub', { month: balanceData.currentMonth || (new Date().getMonth() + 1) })}
           icon={ArrowDownRight}
           color="rose"
         />

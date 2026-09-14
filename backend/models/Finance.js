@@ -49,5 +49,7 @@ const FinanceSchema = new mongoose.Schema({
 FinanceSchema.index({ type: 1, createdAt: -1 });
 FinanceSchema.index({ matchId: 1 });
 FinanceSchema.index({ fundMonth: 1 });
+FinanceSchema.index({ createdAt: -1 });
+FinanceSchema.index({ fundMonth: 1, type: 1 });
 
 module.exports = mongoose.model('Finance', FinanceSchema);

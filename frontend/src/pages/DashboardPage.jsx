@@ -347,12 +347,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Total In */}
+        {/* Month In */}
         <div className="p-3.5 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-xs hover:shadow-md transition-shadow overflow-hidden gap-2">
           <div className="min-w-0 flex-1">
-            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">{t('dashboard.total_in')}</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">
+              {t('dashboard.month_in', { month: balanceData.currentMonth || (new Date().getMonth() + 1) })}
+            </span>
             <span className="text-base sm:text-2xl font-black font-mono-numbers text-emerald-600 block truncate">
-              +{balanceData.totalIn?.toLocaleString('vi-VN')}đ
+              +{(balanceData.monthIn ?? balanceData.totalIn)?.toLocaleString('vi-VN')}đ
             </span>
           </div>
           <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0">
@@ -360,12 +362,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Total Out */}
+        {/* Month Out */}
         <div className="p-3.5 sm:p-5 rounded-3xl border border-slate-200/80 bg-white flex items-center justify-between shadow-xs hover:shadow-md transition-shadow overflow-hidden gap-2">
           <div className="min-w-0 flex-1">
-            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">{t('dashboard.total_out')}</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 truncate">
+              {t('dashboard.month_out', { month: balanceData.currentMonth || (new Date().getMonth() + 1) })}
+            </span>
             <span className="text-base sm:text-2xl font-black font-mono-numbers text-rose-600 block truncate">
-              -{balanceData.totalOut?.toLocaleString('vi-VN')}đ
+              -{(balanceData.monthOut ?? balanceData.totalOut)?.toLocaleString('vi-VN')}đ
             </span>
           </div>
           <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0">

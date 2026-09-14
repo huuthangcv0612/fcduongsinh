@@ -56,5 +56,6 @@ const FundSubmissionSchema = new mongoose.Schema({
 
 FundSubmissionSchema.index({ userId: 1, createdAt: -1 });
 FundSubmissionSchema.index({ status: 1, createdAt: -1 });
+FundSubmissionSchema.index({ userId: 1, status: 1 });
 
 module.exports = mongoose.model('FundSubmission', FundSubmissionSchema);
