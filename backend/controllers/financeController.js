@@ -177,18 +177,14 @@ async function getBalance(req, res, next) {
     const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
     const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
 
-    const [financeAgg, monthlyAgg, currentYearFunds, currentMonthFinances] = await Promise.all([
-      Finance.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalIn: { $sum: { $cond: [{ $eq: ['$type', 'IN'] }, '$amount', 0] } },
-            totalOut: { $sum: { $cond: [{ $eq: ['$type', 'OUT'] }, '$amount', 0] } }
-          }
-        }
-      ]),
+    const [monthlyAgg, allFinances, currentYearFunds, currentMonthFinances] = await Promise.all([
+      // 1. All monthly funds for cumulative member contributions
       MonthlyFund.find().select('months').lean(),
+      // 2. All finance records (for OUT expenses and non-member-fund IN)
+      Finance.find().select('type category amount userId createdAt').lean(),
+      // 3. Current year monthly fund records for current month
       MonthlyFund.find({ year: currentYear }).select(`months.${currentMonthKey}`).lean(),
+      // 4. Current month finance transactions
       Finance.find({
         $or: [
           { fundMonth: currentMonthStr },
@@ -199,15 +195,10 @@ async function getBalance(req, res, next) {
             ]
           }
         ]
-      }).select('type category amount fundMonth createdAt').lean()
+      }).select('type category amount userId fundMonth createdAt').lean()
     ]);
 
-    const stats = financeAgg[0] ? {
-      totalIn: financeAgg[0].totalIn || 0,
-      totalOut: financeAgg[0].totalOut || 0,
-      balance: (financeAgg[0].totalIn || 0) - (financeAgg[0].totalOut || 0)
-    } : { totalIn: 0, totalOut: 0, balance: 0 };
-
+    // 1. Calculate MonthlyFund contributions across all years
     let totalMonthlyFund = 0;
     if (Array.isArray(monthlyAgg)) {
       for (let i = 0; i < monthlyAgg.length; i++) {
@@ -224,10 +215,28 @@ async function getBalance(req, res, next) {
       }
     }
 
-    stats.totalIn += totalMonthlyFund;
-    stats.balance += totalMonthlyFund;
+    // 2. Calculate expenses (OUT) and other non-member-fund income (IN) from Finance
+    // Avoid double counting member monthly fund dues (category === 'quy_thang' AND userId !== null)
+    let totalOut = 0;
+    let totalOtherIn = 0;
+    if (Array.isArray(allFinances)) {
+      for (let i = 0; i < allFinances.length; i++) {
+        const f = allFinances[i];
+        if (f.type === 'OUT') {
+          totalOut += Number(f.amount) || 0;
+        } else if (f.type === 'IN') {
+          const isMemberFundDuplication = f.category === 'quy_thang' && Boolean(f.userId);
+          if (!isMemberFundDuplication) {
+            totalOtherIn += Number(f.amount) || 0;
+          }
+        }
+      }
+    }
 
-    // Monthly fund dues in current month
+    const totalIn = totalMonthlyFund + totalOtherIn;
+    const balance = totalIn - totalOut;
+
+    // 3. Monthly fund dues in current month
     let monthFundIn = 0;
     if (Array.isArray(currentYearFunds)) {
       for (let i = 0; i < currentYearFunds.length; i++) {
@@ -238,7 +247,7 @@ async function getBalance(req, res, next) {
       }
     }
 
-    // Monthly expenses and other non-fund income in current month
+    // 4. Monthly expenses and other non-fund income in current month
     let monthOtherIn = 0;
     let monthOut = 0;
     if (Array.isArray(currentMonthFinances)) {
@@ -246,16 +255,24 @@ async function getBalance(req, res, next) {
         const f = currentMonthFinances[i];
         if (f.type === 'OUT') {
           monthOut += Number(f.amount) || 0;
-        } else if (f.type === 'IN' && f.category !== 'quy_thang') {
-          monthOtherIn += Number(f.amount) || 0;
+        } else if (f.type === 'IN') {
+          const isMemberFundDuplication = f.category === 'quy_thang' && Boolean(f.userId);
+          if (!isMemberFundDuplication) {
+            monthOtherIn += Number(f.amount) || 0;
+          }
         }
       }
     }
 
-    stats.monthIn = monthFundIn + monthOtherIn;
-    stats.monthOut = monthOut;
-    stats.currentMonth = currentMonth;
-    stats.currentYear = currentYear;
+    const stats = {
+      totalIn,
+      totalOut,
+      balance,
+      monthIn: monthFundIn + monthOtherIn,
+      monthOut,
+      currentMonth,
+      currentYear
+    };
 
     res.json({
       success: true,
