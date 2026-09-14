@@ -192,11 +192,11 @@ export default function MonthlyFundGrid({ isAdmin }) {
   }, {});
 
   // Calculate Monthly Expenses (Tổng chi từng tháng từ Finance)
-  const monthlyExpenses = MONTH_KEYS.reduce((acc, m, idx) => {
+  const monthlyExpenses = gridRes?.expenses || MONTH_KEYS.reduce((acc, m, idx) => {
     const mNum = (idx + 1).toString().padStart(2, '0');
     const monthStr = `${selectedYear}-${mNum}`;
     const spent = financesList
-      .filter(f => f.type === 'OUT' && f.fundMonth === monthStr)
+      .filter(f => f.type === 'OUT' && (f.fundMonth === monthStr || (!f.fundMonth && f.createdAt && f.createdAt.startsWith(monthStr))))
       .reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
     acc[m.key] = spent;
     return acc;
@@ -370,7 +370,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {/* Row 1: TỔNG THU THEO THÁNG */}
               <tr className="bg-emerald-100 text-emerald-950">
                 <td colSpan={2} className="py-3 px-4 sticky left-0 z-10 bg-emerald-200 border-r border-emerald-300 font-black uppercase tracking-wider text-xs shadow-sm">
-                  🟢 {t('finances.total_in_month')}
+                  {t('finances.total_in_month')}
                 </td>
                 {MONTH_KEYS.map((m) => (
                   <td key={m.key} className="py-3 px-3 text-center border-r border-emerald-200 font-black text-xs">
@@ -386,7 +386,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {/* Row 2: CHI TIÊU THEO THÁNG */}
               <tr className="bg-rose-50 text-rose-950">
                 <td colSpan={2} className="py-2.5 px-4 sticky left-0 z-10 bg-rose-100 border-r border-rose-200 font-black uppercase text-[11px] shadow-sm">
-                  🔴 {t('finances.total_out_month')}
+                  {t('finances.total_out_month')}
                 </td>
                 {MONTH_KEYS.map((m) => (
                   <td key={m.key} className="py-2.5 px-3 text-center border-r border-rose-200 font-extrabold text-xs text-rose-700">
@@ -402,7 +402,7 @@ export default function MonthlyFundGrid({ isAdmin }) {
               {/* Row 3: TỔNG DƯ THÁNG */}
               <tr className="bg-slate-900 text-white">
                 <td colSpan={2} className="py-3 px-4 sticky left-0 z-10 bg-slate-950 border-r border-slate-800 font-black uppercase text-xs tracking-wider text-amber-300 shadow-md">
-                  💎 {t('finances.total_net_month')}
+                  {t('finances.total_net_month')}
                 </td>
                 {MONTH_KEYS.map((m) => {
                   const net = (monthlyTotals[m.key] || 0) - (monthlyExpenses[m.key] || 0);

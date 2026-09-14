@@ -3,6 +3,7 @@ const MonthlyFund = require('../models/MonthlyFund');
 const FundSubmission = require('../models/FundSubmission');
 const TeamConfig = require('../models/TeamConfig');
 const User = require('../models/User');
+const Match = require('../models/Match');
 const { AppError } = require('../middlewares/authMiddleware');
 const { CreateFinanceSchema, BulkUpdateFinanceSchema } = require('../validators/schemas');
 const { sendFundNotification } = require('../services/mailerService');
@@ -325,9 +326,40 @@ async function getMonthlyGrid(req, res, next) {
       .sort({ createdAt: 1 })
       .lean();
 
+    // 3. Calculate monthly expenses for this year
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+    const yearOutFinances = await Finance.find({
+      type: 'OUT',
+      $or: [
+        { fundMonth: { $regex: new RegExp(`^${year}-`) } },
+        {
+          $and: [
+            { $or: [{ fundMonth: null }, { fundMonth: '' }] },
+            { createdAt: { $gte: startOfYear, $lte: endOfYear } }
+          ]
+        }
+      ]
+    }).select('amount fundMonth createdAt').lean();
+
+    const monthlyExpenses = {};
+    for (let i = 1; i <= 12; i++) {
+      const mKey = `m${i}`;
+      const mStr = `${year}-${String(i).padStart(2, '0')}`;
+      monthlyExpenses[mKey] = 0;
+      for (let j = 0; j < yearOutFinances.length; j++) {
+        const f = yearOutFinances[j];
+        const isMatch = f.fundMonth === mStr || (!f.fundMonth && f.createdAt && new Date(f.createdAt).getMonth() === i - 1 && new Date(f.createdAt).getFullYear() === year);
+        if (isMatch) {
+          monthlyExpenses[mKey] += Number(f.amount) || 0;
+        }
+      }
+    }
+
     res.json({
       success: true,
-      data: list
+      data: list,
+      expenses: monthlyExpenses
     });
   } catch (err) {
     next(err);
