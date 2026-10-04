@@ -450,7 +450,19 @@
     "unit_goals": "Goals",
     "mistakes": "Errors",
     "unit_mistakes": "Errors",
-    "top_mistakes_title": "TOP 3 PLAYERS WITH ERRORS"
+    "top_mistakes_title": "TOP 3 PLAYERS WITH ERRORS",
+    "filter_all": "All Time",
+    "filter_month": "By Month",
+    "select_month": "Select Month",
+    "all_time": "All matches",
+    "matches_count": "{{count}} matches",
+    "summary_matches": "Matches",
+    "summary_record": "W - D - L",
+    "summary_goals": "Goals For / Against",
+    "summary_win_rate": "Win Rate",
+    "month_stat_banner": "Monthly performance stats",
+    "all_stat_banner": "Overall season stats",
+    "no_matches_month": "No completed matches in this month yet."
   },
   "members": {
     "title": "Members List",

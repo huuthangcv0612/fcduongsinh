@@ -1,21 +1,49 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
-import { Trophy, Flame, Star, Activity, Award, Crown, Sparkles, AlertTriangle } from 'lucide-react';
+import { 
+  Trophy, 
+  Flame, 
+  Star, 
+  Activity, 
+  Award, 
+  Crown, 
+  Sparkles, 
+  AlertTriangle, 
+  Calendar, 
+  TrendingUp, 
+  CheckCircle2, 
+  XCircle, 
+  MinusCircle,
+  BarChart3
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Loading3D from '../components/Loading3D';
 
 export default function StatsPage() {
   const { t } = useTranslation();
+  const [selectedMonth, setSelectedMonth] = useState('all'); // 'all' or 'YYYY-MM'
   const [activeTab, setActiveTab] = useState('goals'); // goals, assists, motm, appearances, mistakes
 
-  const { data: usersRes, isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => api.get('/users'),
-    staleTime: 60000
+  const { data: statsRes, isLoading, isFetching } = useQuery({
+    queryKey: ['stats', selectedMonth],
+    queryFn: () => api.get('/stats', { params: { month: selectedMonth } }),
+    staleTime: 60000,
+    keepPreviousData: true
   });
 
-  const users = Array.isArray(usersRes?.data) ? usersRes.data : [];
+  const statsData = statsRes?.data?.data || {};
+  const users = Array.isArray(statsData.users) ? statsData.users : [];
+  const availableMonths = Array.isArray(statsData.availableMonths) ? statsData.availableMonths : [];
+  const summary = statsData.summary || {
+    totalMatches: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    goalsScored: 0,
+    goalsConceded: 0,
+    winRate: 0
+  };
 
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
@@ -33,11 +61,13 @@ export default function StatsPage() {
     { id: 'mistakes', label: t('stats.mistakes'), icon: AlertTriangle, color: 'text-orange-600', activeBg: 'bg-orange-50 border-orange-500 text-orange-700', badgeColor: 'bg-orange-500' }
   ];
 
-  const activeTabData = tabs.find(t => t.id === activeTab) || tabs[0];
+  const activeTabData = tabs.find(tab => tab.id === activeTab) || tabs[0];
   const top1 = sortedUsers[0];
   const top2 = sortedUsers[1];
   const top3 = sortedUsers[2];
-  const restUsers = sortedUsers.slice(3);
+  const restUsers = sortedUsers.length >= 3 ? sortedUsers.slice(3) : sortedUsers;
+
+  const totalCompletedMatches = availableMonths.reduce((sum, item) => sum + (item.matchCount || 0), 0);
 
   const getUnitLabel = () => {
     switch (activeTab) {
@@ -49,7 +79,11 @@ export default function StatsPage() {
     }
   };
 
-  if (isLoading) return <Loading3D variant="section" text={t('stats.loading')} />;
+  const goalDiff = (summary.goalsScored || 0) - (summary.goalsConceded || 0);
+
+  if (isLoading && !statsRes) {
+    return <Loading3D variant="section" text={t('stats.loading')} />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-28 md:pb-0">
@@ -68,7 +102,153 @@ export default function StatsPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
       </div>
 
-      {/* Modern Filter Tabs */}
+      {/* Month Filter Section */}
+      <div className="bg-white/80 backdrop-blur-md p-3.5 sm:p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+            <Calendar className="w-4 h-4 text-blue-600" />
+            <span>{t('stats.month_stat_banner')}</span>
+            {isFetching && (
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+            )}
+          </div>
+
+          {/* Quick Select on Mobile / Desktop */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-slate-400 font-bold hidden sm:inline">{t('stats.select_month')}:</span>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              aria-label={t('stats.select_month')}
+              className="bg-slate-50 border border-slate-200 text-slate-800 text-xs font-black rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+            >
+              <option value="all">🌐 {t('stats.filter_all')} ({totalCompletedMatches} {t('stats.unit_match')})</option>
+              {availableMonths.map((m) => (
+                <option key={m.key} value={m.key}>
+                  📅 {m.label} ({m.matchCount} {t('stats.unit_match')})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Scrollable Month Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-200 no-scrollbar touch-pan-x">
+          <button
+            onClick={() => setSelectedMonth('all')}
+            className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-black transition-all border ${
+              selectedMonth === 'all'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 shadow-md shadow-blue-500/25 scale-[1.02]'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200/80'
+            }`}
+          >
+            <span>🌐 {t('stats.filter_all')}</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono-numbers font-black ${
+              selectedMonth === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {totalCompletedMatches}
+            </span>
+          </button>
+
+          {availableMonths.map((m) => {
+            const isSelected = selectedMonth === m.key;
+            return (
+              <button
+                key={m.key}
+                onClick={() => setSelectedMonth(m.key)}
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-black transition-all border ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 shadow-md shadow-blue-500/25 scale-[1.02]'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200/80'
+                }`}
+              >
+                <span>📅 {m.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono-numbers font-black ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {m.matchCount}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Team Performance Overview Cards for the Selected Month */}
+        {summary.totalMatches > 0 && (
+          <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            {/* Matches */}
+            <div className="bg-slate-50/80 border border-slate-200/60 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                <BarChart3 className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  {t('stats.summary_matches')}
+                </div>
+                <div className="text-sm sm:text-base font-black font-mono-numbers text-slate-800">
+                  {summary.totalMatches} <span className="text-[10px] font-semibold text-slate-400">{t('stats.unit_match')}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Record W-D-L */}
+            <div className="bg-slate-50/80 border border-slate-200/60 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  {t('stats.summary_record')}
+                </div>
+                <div className="text-xs sm:text-sm font-black font-mono-numbers text-slate-800 flex items-center gap-1">
+                  <span className="text-emerald-600">{summary.wins}T</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-amber-500">{summary.draws}H</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-rose-600">{summary.losses}B</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Goals Scored / Conceded */}
+            <div className="bg-slate-50/80 border border-slate-200/60 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <Flame className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  {t('stats.summary_goals')}
+                </div>
+                <div className="text-xs sm:text-sm font-black font-mono-numbers text-slate-800">
+                  <span className="text-emerald-600 font-black">{summary.goalsScored}</span>
+                  <span className="text-slate-400 mx-1">/</span>
+                  <span className="text-rose-500 font-black">{summary.goalsConceded}</span>
+                  <span className={`text-[10px] ml-1.5 font-bold ${goalDiff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    ({goalDiff >= 0 ? `+${goalDiff}` : goalDiff})
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Win Rate */}
+            <div className="bg-slate-50/80 border border-slate-200/60 p-2.5 sm:p-3 rounded-2xl flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  {t('stats.summary_win_rate')}
+                </div>
+                <div className="text-sm sm:text-base font-black font-mono-numbers text-indigo-600">
+                  {summary.winRate}%
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Category Tabs */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -136,7 +316,9 @@ export default function StatsPage() {
                   </span>
                 </div>
                 <div className="font-black text-xs sm:text-base text-amber-300 truncate max-w-[100px] sm:max-w-[140px]">{top1.name}</div>
-                <div className="text-lg sm:text-2xl font-black font-mono-numbers text-amber-400">{top1.stats?.[activeTab] || 0} <span className="text-[10px] font-bold text-amber-300/80">{getUnitLabel()}</span></div>
+                <div className="text-lg sm:text-2xl font-black font-mono-numbers text-amber-400">
+                  {top1.stats?.[activeTab] || 0} <span className="text-[10px] font-bold text-amber-300/80">{getUnitLabel()}</span>
+                </div>
                 <div className="w-full h-22 sm:h-28 bg-gradient-to-b from-amber-500/20 to-amber-600/10 border border-amber-400/40 rounded-t-2xl mt-2 flex flex-col items-center justify-center">
                   <Trophy className="w-5 h-5 text-amber-400 mb-0.5" />
                   <span className="text-xs font-black text-amber-300">GOLD</span>
@@ -173,10 +355,12 @@ export default function StatsPage() {
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Award className="w-8 h-8 text-slate-400" />
             </div>
-            <p className="text-sm font-bold text-slate-500">{t('stats.no_data')}</p>
+            <p className="text-sm font-bold text-slate-500">
+              {summary.totalMatches === 0 ? t('stats.no_matches_month') : t('stats.no_data')}
+            </p>
           </div>
         ) : (
-          (sortedUsers.length >= 3 ? restUsers : sortedUsers).map((user, index) => {
+          restUsers.map((user, index) => {
             const val = user.stats?.[activeTab] || 0;
             const actualRank = sortedUsers.length >= 3 ? index + 4 : index + 1;
 
@@ -187,14 +371,22 @@ export default function StatsPage() {
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   {/* Rank Number Badge */}
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-black font-mono-numbers text-xs sm:text-sm">
+                  <div className={`w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl flex items-center justify-center font-black font-mono-numbers text-xs sm:text-sm ${
+                    actualRank === 1 
+                      ? 'bg-amber-100 text-amber-800 border border-amber-300' 
+                      : actualRank === 2
+                      ? 'bg-slate-200 text-slate-800 border border-slate-300'
+                      : actualRank === 3
+                      ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}>
                     {actualRank}
                   </div>
 
                   <img 
                     src={user.avatar} 
                     alt={user.name} 
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-slate-200 shadow-sm shrink-0"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-slate-200 shadow-sm shrink-0" 
                   />
 
                   <div className="flex-1 min-w-0 pr-2">

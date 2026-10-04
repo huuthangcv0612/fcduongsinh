@@ -450,7 +450,19 @@
     "unit_goals": "Bàn",
     "mistakes": "Mắc lỗi",
     "unit_mistakes": "Lỗi",
-    "top_mistakes_title": "TOP 3 CẦU THỦ MẮC LỖI"
+    "top_mistakes_title": "TOP 3 CẦU THỦ MẮC LỖI",
+    "filter_all": "Toàn thời gian",
+    "filter_month": "Theo tháng",
+    "select_month": "Chọn tháng",
+    "all_time": "Tất cả trận đấu",
+    "matches_count": "{{count}} trận",
+    "summary_matches": "Trận đấu",
+    "summary_record": "Thắng - Hòa - Thua",
+    "summary_goals": "Bàn thắng / Thua",
+    "summary_win_rate": "Tỉ lệ thắng",
+    "month_stat_banner": "Thống kê phong độ tháng",
+    "all_stat_banner": "Thống kê toàn mùa",
+    "no_matches_month": "Chưa có trận đấu nào kết thúc trong tháng này."
   },
   "members": {
     "title": "Danh Sách Thành Viên",

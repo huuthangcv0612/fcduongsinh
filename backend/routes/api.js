@@ -16,6 +16,7 @@ const mediaController = require('../controllers/mediaController');
 const uploadController = require('../controllers/uploadController');
 const notificationController = require('../controllers/NotificationController');
 const configController = require('../controllers/configController');
+const statsController = require('../controllers/statsController');
 
 // --- Auth & Upload Routes ---
 router.post('/auth/google', authController.googleAuth);
@@ -82,6 +83,9 @@ router.get('/facebook-groups', authMiddleware, facebookGroupController.getFacebo
 router.post('/facebook-groups', authMiddleware, facebookGroupController.createFacebookGroup);
 router.put('/facebook-groups/:id', authMiddleware, facebookGroupController.updateFacebookGroup);
 router.delete('/facebook-groups/:id', authMiddleware, facebookGroupController.deleteFacebookGroup);
+
+// --- Stats Routes ---
+router.get('/stats', authMiddleware, statsController.getStats);
 
 // --- User / Member Routes ---
 router.get('/users', authMiddleware, userController.getUsers);
