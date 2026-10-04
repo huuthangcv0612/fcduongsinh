@@ -197,6 +197,7 @@ export default function MatchesPage() {
   });
 
   const pastMatches = Array.isArray(pastMatchesRes?.data) ? pastMatchesRes.data : [];
+  const pastPagination = pastMatchesRes?.pagination || {};
   const allPastMatchesCount = React.useMemo(() => {
     return matches.filter(m => m.status !== 'upcoming' && m.status !== 'live').length;
   }, [matches]);
