@@ -102,15 +102,32 @@ async function createMatch(req, res, next) {
 
 async function getMatches(req, res, next) {
   try {
-    const { status } = req.query;
+    const { status, page, limit } = req.query;
     const filter = { status: { $ne: 'deleted' } };
-    if (status) filter.status = status;
 
-    const sortOrder = (status === 'completed' || status === 'cancelled')
-      ? { date: -1, time: -1 }
-      : { date: 1, time: 1 };
+    if (status) {
+      if (status === 'past') {
+        filter.status = { $in: ['completed', 'cancelled'] };
+      } else if (status === 'upcoming') {
+        filter.status = { $in: ['upcoming', 'live'] };
+      } else {
+        filter.status = status;
+      }
+    }
 
-    const matches = await Match.find(filter)
+    // Sort order:
+    // Past/completed matches: newest date & time first (trận gần nhất ở trên cùng)
+    // Upcoming matches: nearest upcoming date & time first
+    let sortOrder = { date: -1, time: -1, createdAt: -1 };
+    if (status === 'upcoming') {
+      sortOrder = { status: -1, date: 1, time: 1 };
+    } else if (status === 'completed' || status === 'cancelled' || status === 'past') {
+      sortOrder = { date: -1, time: -1, createdAt: -1 };
+    }
+
+    const totalCount = await Match.countDocuments(filter);
+
+    let queryBuilder = Match.find(filter)
       .sort(sortOrder)
       .populate('checkInList.userId', 'name email avatar position number phone')
       .populate('lineup.starters.userId', 'name avatar number position')
@@ -118,8 +135,23 @@ async function getMatches(req, res, next) {
       .populate('internalTeams.teamA.players', 'name avatar number position phone stats')
       .populate('internalTeams.teamB.players', 'name avatar number position phone stats')
       .populate('internalTeams.teamA.starters.userId', 'name avatar number position')
-      .populate('internalTeams.teamB.starters.userId', 'name avatar number position')
-      .lean();
+      .populate('internalTeams.teamB.starters.userId', 'name avatar number position');
+
+    let pagination = null;
+    if (page !== undefined || limit !== undefined) {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 6));
+      const totalPages = Math.ceil(totalCount / limitNum) || 1;
+      queryBuilder = queryBuilder.skip((pageNum - 1) * limitNum).limit(limitNum);
+      pagination = {
+        page: pageNum,
+        limit: limitNum,
+        total: totalCount,
+        totalPages
+      };
+    }
+
+    const matches = await queryBuilder.lean();
 
     const formatted = matches.map(match => {
       const summary = { joined: 0, uncertain: 0, absent: 0, pending: 0 };
@@ -145,7 +177,13 @@ async function getMatches(req, res, next) {
 
     res.json({
       success: true,
-      data: formatted
+      data: formatted,
+      pagination: pagination || {
+        page: 1,
+        limit: formatted.length,
+        total: totalCount,
+        totalPages: 1
+      }
     });
   } catch (err) {
     next(err);

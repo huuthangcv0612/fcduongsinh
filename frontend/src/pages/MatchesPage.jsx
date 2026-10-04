@@ -5,6 +5,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import MatchCard from '../components/MatchCard';
+import Pagination from '../components/Pagination';
 import { Plus, X, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -180,18 +181,28 @@ export default function MatchesPage() {
       });
   }, [matches]);
 
-  // History / Past matches: most recent past matches first (descending date/time)
-  const pastMatches = React.useMemo(() => {
-    return matches
-      .filter(m => m.status !== 'upcoming' && m.status !== 'live')
-      .sort((a, b) => {
-        const dateComp = (b.date || '').localeCompare(a.date || '');
-        if (dateComp !== 0) return dateComp;
-        return (b.time || '').localeCompare(a.time || '');
-      });
-  }, [matches]);
+  const [pastCurrentPage, setPastCurrentPage] = useState(1);
+  const [pastItemsPerPage, setPastItemsPerPage] = useState(6);
 
-  const filteredMatches = activeTab === 'upcoming' ? upcomingMatches : pastMatches;
+  useEffect(() => {
+    setPastCurrentPage(1);
+  }, [activeTab]);
+
+  // Server-side paginated query for past / history matches
+  const { data: pastMatchesRes } = useQuery({
+    queryKey: ['matches', 'past', pastCurrentPage, pastItemsPerPage],
+    queryFn: () => api.get('/matches', { params: { status: 'past', page: pastCurrentPage, limit: pastItemsPerPage } }),
+    staleTime: 15000,
+    keepPreviousData: true
+  });
+
+  const pastMatches = Array.isArray(pastMatchesRes?.data) ? pastMatchesRes.data : [];
+  const pastPagination = pastMatchesRes?.pagination || {};
+  const totalPastMatches = pastPagination.total !== undefined ? pastPagination.total : pastMatches.length;
+  const totalPastPages = pastPagination.totalPages || Math.ceil(totalPastMatches / pastItemsPerPage) || 1;
+  const validPastPage = Math.min(Math.max(1, pastCurrentPage), totalPastPages);
+
+  const displayedMatches = activeTab === 'upcoming' ? upcomingMatches : pastMatches;
 
   const uniqueOpponents = React.useMemo(() => {
     if (!matches) return [];
@@ -287,7 +298,7 @@ export default function MatchesPage() {
 
       {/* Match Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filteredMatches.map(match => (
+        {displayedMatches.map(match => (
           <MatchCard
             key={match._id}
             match={match}
@@ -300,12 +311,31 @@ export default function MatchesPage() {
           />
         ))}
 
-        {filteredMatches.length === 0 && (
+        {displayedMatches.length === 0 && (
           <div className="col-span-full rounded-3xl p-12 text-center text-slate-500 font-bold bg-white border border-slate-200/80 shadow-sm">
             {t('matches.no_matches')}
           </div>
         )}
       </div>
+
+      {/* History Matches Pagination */}
+      {activeTab === 'past' && totalPastMatches > 0 && (
+        <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+          <Pagination
+            currentPage={validPastPage}
+            totalPages={totalPastPages}
+            onPageChange={(page) => {
+              setPastCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            totalItems={totalPastMatches}
+            itemsPerPage={pastItemsPerPage}
+            onItemsPerPageChange={setPastItemsPerPage}
+            itemsPerPageOptions={[6, 9, 12, 18]}
+            itemLabel="trận"
+          />
+        </div>
+      )}
 
       {/* Create Match Modal */}
       {showModal && (
