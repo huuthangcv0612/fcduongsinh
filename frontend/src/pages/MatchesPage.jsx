@@ -197,8 +197,13 @@ export default function MatchesPage() {
   });
 
   const pastMatches = Array.isArray(pastMatchesRes?.data) ? pastMatchesRes.data : [];
-  const pastPagination = pastMatchesRes?.pagination || {};
-  const totalPastMatches = pastPagination.total !== undefined ? pastPagination.total : pastMatches.length;
+  const allPastMatchesCount = React.useMemo(() => {
+    return matches.filter(m => m.status !== 'upcoming' && m.status !== 'live').length;
+  }, [matches]);
+
+  const totalPastMatches = pastPagination.total !== undefined
+    ? pastPagination.total
+    : (allPastMatchesCount || pastMatches.length);
   const totalPastPages = pastPagination.totalPages || Math.ceil(totalPastMatches / pastItemsPerPage) || 1;
   const validPastPage = Math.min(Math.max(1, pastCurrentPage), totalPastPages);
 
@@ -290,7 +295,7 @@ export default function MatchesPage() {
           >
             <span>{t('matches.past')}</span>
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono-numbers ${activeTab === 'past' ? 'bg-white/20 text-white' : 'bg-slate-300/80 text-slate-700'}`}>
-              {pastMatches.length}
+              {totalPastMatches}
             </span>
           </button>
         </div>
