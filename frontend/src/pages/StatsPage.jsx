@@ -32,7 +32,7 @@ export default function StatsPage() {
     keepPreviousData: true
   });
 
-  const statsData = statsRes?.data?.data || {};
+  const statsData = statsRes?.data?.users ? statsRes.data : (statsRes?.users ? statsRes : (statsRes?.data || {}));
   const users = Array.isArray(statsData.users) ? statsData.users : [];
   const availableMonths = Array.isArray(statsData.availableMonths) ? statsData.availableMonths : [];
   const summary = statsData.summary || {
