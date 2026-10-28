@@ -8,16 +8,29 @@ async function getFundConfig(req, res, next) {
     if (!config) {
       config = await TeamConfig.create({
         key: 'fund_config',
-        bankName: 'MB Bank',
-        bankCode: 'MB',
-        accountNumber: '0352526868',
-        accountName: 'TRAN DUC HOANG',
+        bankName: 'Techcombank',
+        bankCode: 'TCB',
+        accountNumber: '4645199999',
+        accountName: 'NGUYEN HUU THANG',
         monthlyFee: 200000,
-        transferPrefix: 'FCNHATRE'
+        transferPrefix: 'FCDUONGSINH'
       });
-    } else if (!config.monthlyFee || config.monthlyFee === 100000) {
-      config.monthlyFee = 200000;
-      await config.save();
+    } else {
+      let changed = false;
+      if (config.accountNumber === '0352526868' || config.accountName === 'TRAN DUC HOANG' || !config.accountNumber) {
+        config.bankName = 'Techcombank';
+        config.bankCode = 'TCB';
+        config.accountNumber = '4645199999';
+        config.accountName = 'NGUYEN HUU THANG';
+        changed = true;
+      }
+      if (!config.monthlyFee || config.monthlyFee === 100000) {
+        config.monthlyFee = 200000;
+        changed = true;
+      }
+      if (changed) {
+        await config.save();
+      }
     }
 
     res.json({

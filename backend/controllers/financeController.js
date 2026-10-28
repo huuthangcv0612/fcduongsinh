@@ -11,6 +11,7 @@ const { uploadImage } = require('../services/cloudinaryService');
 const Notification = require('../models/Notification');
 const PushSubscription = require('../models/PushSubscription');
 const { sendNotification } = require('../utils/webPush');
+const { calculateMatchFundBreakdown, getMemberFeeForMatch } = require('../utils/matchFundHelper');
 
 const ZERO_MONTHS = {
   m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0,
@@ -172,83 +173,34 @@ async function getBalance(req, res, next) {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
-    const currentMonthKey = `m${currentMonth}`;
-    const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
     const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
     const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
 
-    const [monthlyAgg, allFinances, currentYearFunds, currentMonthFinances] = await Promise.all([
-      // 1. All monthly funds for cumulative member contributions
-      MonthlyFund.find().select('months').lean(),
-      // 2. All finance records (for OUT expenses and non-member-fund IN)
+    const [allFinances, currentMonthFinances] = await Promise.all([
+      // All finance transactions (IN & OUT)
       Finance.find().select('type category amount userId createdAt').lean(),
-      // 3. Current year monthly fund records for current month
-      MonthlyFund.find({ year: currentYear }).select(`months.${currentMonthKey}`).lean(),
-      // 4. Current month finance transactions
+      // Current month finance transactions
       Finance.find({
-        $or: [
-          { fundMonth: currentMonthStr },
-          {
-            $and: [
-              { $or: [{ fundMonth: null }, { fundMonth: '' }] },
-              { createdAt: { $gte: startOfMonth, $lte: endOfMonth } }
-            ]
-          }
-        ]
-      }).select('type category amount userId fundMonth createdAt').lean()
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+      }).select('type category amount userId createdAt').lean()
     ]);
 
-    // 1. Calculate MonthlyFund contributions across all years
-    let totalMonthlyFund = 0;
-    if (Array.isArray(monthlyAgg)) {
-      for (let i = 0; i < monthlyAgg.length; i++) {
-        const fund = monthlyAgg[i];
-        if (fund.months) {
-          const values = Object.values(fund.months);
-          for (let j = 0; j < values.length; j++) {
-            const amount = values[j];
-            if (typeof amount === 'number' && amount > 0) {
-              totalMonthlyFund += amount;
-            }
-          }
-        }
-      }
-    }
-
-    // 2. Calculate expenses (OUT) and other non-member-fund income (IN) from Finance
-    // Avoid double counting member monthly fund dues (category === 'quy_thang' AND userId !== null)
+    let totalIn = 0;
     let totalOut = 0;
-    let totalOtherIn = 0;
     if (Array.isArray(allFinances)) {
       for (let i = 0; i < allFinances.length; i++) {
         const f = allFinances[i];
         if (f.type === 'OUT') {
           totalOut += Number(f.amount) || 0;
         } else if (f.type === 'IN') {
-          const isMemberFundDuplication = f.category === 'quy_thang' && Boolean(f.userId);
-          if (!isMemberFundDuplication) {
-            totalOtherIn += Number(f.amount) || 0;
-          }
+          totalIn += Number(f.amount) || 0;
         }
       }
     }
 
-    const totalIn = totalMonthlyFund + totalOtherIn;
     const balance = totalIn - totalOut;
 
-    // 3. Monthly fund dues in current month
-    let monthFundIn = 0;
-    if (Array.isArray(currentYearFunds)) {
-      for (let i = 0; i < currentYearFunds.length; i++) {
-        const amt = currentYearFunds[i]?.months?.[currentMonthKey];
-        if (typeof amt === 'number' && amt > 0) {
-          monthFundIn += amt;
-        }
-      }
-    }
-
-    // 4. Monthly expenses and other non-fund income in current month
-    let monthOtherIn = 0;
+    let monthIn = 0;
     let monthOut = 0;
     if (Array.isArray(currentMonthFinances)) {
       for (let i = 0; i < currentMonthFinances.length; i++) {
@@ -256,10 +208,7 @@ async function getBalance(req, res, next) {
         if (f.type === 'OUT') {
           monthOut += Number(f.amount) || 0;
         } else if (f.type === 'IN') {
-          const isMemberFundDuplication = f.category === 'quy_thang' && Boolean(f.userId);
-          if (!isMemberFundDuplication) {
-            monthOtherIn += Number(f.amount) || 0;
-          }
+          monthIn += Number(f.amount) || 0;
         }
       }
     }
@@ -268,7 +217,7 @@ async function getBalance(req, res, next) {
       totalIn,
       totalOut,
       balance,
-      monthIn: monthFundIn + monthOtherIn,
+      monthIn,
       monthOut,
       currentMonth,
       currentYear
@@ -423,7 +372,7 @@ async function addMonthlyMember(req, res, next) {
       const slug = cleanName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
       user = await User.create({
         name: cleanName,
-        email: `${slug || 'member'}_${Date.now()}@fcnhatre.local`,
+        email: `${slug || 'member'}_${Date.now()}@fcduongsinh.local`,
         role: 'member',
         monthlyFund: 200000,
         position: 'Tự do'
@@ -527,48 +476,73 @@ async function getMyFundStatus(req, res, next) {
   try {
     const user = req.user;
     if (!user) {
-      return res.json({ success: true, data: { isUnpaid: false } });
+      return res.json({ success: true, data: { isUnpaid: false, unpaidMatches: [], totalUnpaidAmount: 0 } });
     }
 
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1-12
-    const currentMonthKey = `m${currentMonth}`;
-    const monthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-
-    // Get Fund Config for monthly fee
     const fundConfig = await TeamConfig.findOne({ key: 'fund_config' }).lean();
-    const requiredAmount = fundConfig?.monthlyFee || user.monthlyFund || 200000;
 
-    // 1. Find user's MonthlyFund for this year
-    let monthlyRecord = await MonthlyFund.findOne({ year: currentYear, userId: user._id }).lean();
-    if (!monthlyRecord && user.name) {
-      monthlyRecord = await MonthlyFund.findOne({ year: currentYear, memberName: user.name }).lean();
+    // Find all completed matches where current user participated (joined)
+    const completedMatches = await Match.find({
+      status: 'completed',
+      'checkInList.userId': user._id
+    })
+      .sort({ date: -1, time: -1 })
+      .lean();
+
+    const unpaidMatches = [];
+    let totalUnpaidAmount = 0;
+
+    for (const match of completedMatches) {
+      const checkInItem = (match.checkInList || []).find(
+        c => (c.userId?._id?.toString() || c.userId?.toString()) === user._id.toString()
+      );
+
+      if (checkInItem && checkInItem.status === 'joined' && !checkInItem.isPaid) {
+        const breakdown = calculateMatchFundBreakdown(match);
+        const feePerPerson = getMemberFeeForMatch(breakdown, user._id);
+        const pitchCost = breakdown.pitchCost;
+        const serviceCost = breakdown.serviceCost;
+        const totalCost = breakdown.totalCost;
+        const totalPlayers = breakdown.totalPlayers;
+
+        // Check if user has a pending fund submission for this match
+        const pendingSubmission = await FundSubmission.findOne({
+          userId: user._id,
+          matchId: match._id,
+          status: 'pending'
+        }).lean();
+
+        unpaidMatches.push({
+          matchId: match._id,
+          date: match.date,
+          time: match.time,
+          stadium: match.stadium,
+          opponent: match.opponent?.teamName || (match.matchType === 'internal' ? 'Đấu nội bộ (Team A vs Team B)' : 'Giao hữu'),
+          matchType: match.matchType,
+          pitchCost,
+          serviceCost,
+          totalCost,
+          totalPlayers,
+          feePerPerson,
+          breakdown,
+          hasPendingSubmission: Boolean(pendingSubmission)
+        });
+
+        if (!pendingSubmission) {
+          totalUnpaidAmount += feePerPerson;
+        }
+      }
     }
 
-    const paidAmount = monthlyRecord?.months?.[currentMonthKey] || 0;
-
-    // 2. Check if user has a pending fund submission for this month
-    const pendingSubmission = await FundSubmission.findOne({
-      userId: user._id,
-      status: 'pending',
-      months: monthStr
-    }).lean();
-
-    const isPaidInFull = paidAmount >= requiredAmount;
-    const isUnpaid = !isPaidInFull && !pendingSubmission;
+    const isUnpaid = unpaidMatches.some(m => !m.hasPendingSubmission);
 
     res.json({
       success: true,
       data: {
         isUnpaid,
-        isPaidInFull,
-        hasPendingSubmission: Boolean(pendingSubmission),
-        currentMonth,
-        currentYear,
-        paidAmount,
-        requiredAmount,
-        remainingAmount: Math.max(0, requiredAmount - paidAmount),
+        unpaidCount: unpaidMatches.length,
+        unpaidMatches,
+        totalUnpaidAmount,
         fundConfig: fundConfig ? {
           bankName: fundConfig.bankName,
           bankCode: fundConfig.bankCode,
@@ -578,6 +552,97 @@ async function getMyFundStatus(req, res, next) {
           transferPrefix: fundConfig.transferPrefix
         } : null
       }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ⚽ GET MATCH FUNDS SUMMARY TABLE (Replaces Monthly Grid)
+async function getMatchFunds(req, res, next) {
+  try {
+    const { year, status } = req.query;
+    const filter = { status: { $ne: 'deleted' } };
+    if (status) {
+      filter.status = status;
+    } else {
+      filter.status = { $in: ['completed', 'upcoming', 'live'] };
+    }
+
+    if (year) {
+      filter.date = { $regex: `^${year}` };
+    }
+
+    const matches = await Match.find(filter)
+      .sort({ date: -1, time: -1 })
+      .populate('checkInList.userId', 'name email avatar number position phone')
+      .lean();
+
+    const formatted = matches.map(match => {
+      const breakdown = calculateMatchFundBreakdown(match);
+      const joinedList = (match.checkInList || []).filter(c => c.status === 'joined' && c.userId);
+      const teamJoinedCount = joinedList.length;
+      const guestPlayers = breakdown.guestPlayers;
+      const guestPaidCount = Math.max(0, Number(match.guestPaidCount) || 0);
+      const totalPlayers = breakdown.totalPlayers;
+      const pitchCost = breakdown.pitchCost;
+      const serviceCost = breakdown.serviceCost;
+      const totalCost = breakdown.totalCost;
+      const feePerPerson = breakdown.feePerPerson;
+
+      const attendees = joinedList.map(item => {
+        const memberFee = getMemberFeeForMatch(breakdown, item.userId._id || item.userId);
+        return {
+          userId: item.userId._id || item.userId,
+          name: item.userId.name || 'Thành viên',
+          avatar: item.userId.avatar || '',
+          number: item.userId.number,
+          position: item.userId.position,
+          isPaid: Boolean(item.isPaid),
+          paidAmount: Number(item.paidAmount) || (item.isPaid ? memberFee : 0),
+          feeToPay: memberFee,
+          paidAt: item.paidAt || null,
+          team: breakdown.isInternal ? (
+            breakdown.teamA?.playerIds?.includes(String(item.userId._id || item.userId)) ? 'teamA' :
+            breakdown.teamB?.playerIds?.includes(String(item.userId._id || item.userId)) ? 'teamB' : 'unassigned'
+          ) : null
+        };
+      });
+
+      const teamPaidCount = attendees.filter(a => a.isPaid).length;
+      const totalPaidCount = teamPaidCount + guestPaidCount;
+      const totalCollected = attendees.filter(a => a.isPaid).reduce((acc, cur) => acc + (cur.paidAmount || cur.feeToPay), 0) + (guestPaidCount * (breakdown.isInternal ? breakdown.fallbackFee : feePerPerson));
+
+      return {
+        _id: match._id,
+        date: match.date,
+        time: match.time,
+        stadium: match.stadium,
+        deal: match.deal,
+        matchType: match.matchType,
+        opponent: match.opponent,
+        status: match.status,
+        pitchCost,
+        serviceCost,
+        totalCost,
+        teamJoinedCount,
+        guestPlayers,
+        guestPlayersA: breakdown.guestPlayersA || 0,
+        guestPlayersB: breakdown.guestPlayersB || 0,
+        guestPaidCount,
+        totalPlayers,
+        feePerPerson,
+        breakdown,
+        attendees,
+        teamPaidCount,
+        totalPaidCount,
+        totalCollected
+      };
+    });
+
+    res.json({
+      success: true,
+      data: formatted
     });
   } catch (err) {
     next(err);
@@ -595,5 +660,6 @@ module.exports = {
   addMonthlyMember,
   deleteMonthlyMember,
   sendFundEmail,
-  getMyFundStatus
+  getMyFundStatus,
+  getMatchFunds
 };

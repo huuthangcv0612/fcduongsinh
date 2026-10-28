@@ -15,6 +15,18 @@ const CheckInItemSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  isPaid: {
+    type: Boolean,
+    default: false
+  },
+  paidAmount: {
+    type: Number,
+    default: 0
+  },
+  paidAt: {
+    type: Date,
+    default: null
+  },
   updatedAt: {
     type: Date,
     default: Date.now
@@ -141,8 +153,9 @@ const MatchSchema = new mongoose.Schema({
   },
   internalTeams: {
     teamA: {
-      name: { type: String, default: 'Đội A' },
+      name: { type: String, default: 'Team A' },
       kitColor: { type: String, default: 'xanh dương' },
+      guestPlayers: { type: Number, default: 0, min: 0 },
       players: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -151,8 +164,9 @@ const MatchSchema = new mongoose.Schema({
       starters: [StarterSchema]
     },
     teamB: {
-      name: { type: String, default: 'Đội B' },
+      name: { type: String, default: 'Team B' },
       kitColor: { type: String, default: 'cam' },
+      guestPlayers: { type: Number, default: 0, min: 0 },
       players: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -181,8 +195,33 @@ const MatchSchema = new mongoose.Schema({
   },
   pitchCost: {
     type: Number,
-    required: true,
+    default: 0,
     min: [0, 'Tiền sân không được âm']
+  },
+  serviceCost: {
+    type: Number,
+    default: 0,
+    min: [0, 'Tiền dịch vụ không được âm']
+  },
+  guestPlayers: {
+    type: Number,
+    default: 0,
+    min: [0, 'Số thành viên vãng lai không được âm']
+  },
+  guestPlayersA: {
+    type: Number,
+    default: 0,
+    min: [0, 'Số thành viên vãng lai Team A không được âm']
+  },
+  guestPlayersB: {
+    type: Number,
+    default: 0,
+    min: [0, 'Số thành viên vãng lai Team B không được âm']
+  },
+  guestPaidCount: {
+    type: Number,
+    default: 0,
+    min: 0
   },
   deal: {
     type: String,

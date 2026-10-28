@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.GMAIL_USER || 'team.fc.nhatre@gmail.com',
+    user: process.env.GMAIL_USER || 'team.fcduongsinh@gmail.com',
     pass: process.env.GMAIL_APP_PASSWORD || 'xxxx'
   }
 });
@@ -31,8 +31,8 @@ async function sendMatchNotification(users, match) {
   const teamBKit = match.internalTeams?.teamB?.kitColor || 'Cam';
 
   const subjectTitle = isInternal
-    ? `⚔️ [FC Nhà Trẻ] GIAO LƯU NỘI BỘ (${teamAName} vs ${teamBName}) - ${formattedDate} lúc ${match.time}`
-    : `⚽ [FC Nhà Trẻ] THÔNG BÁO TRẬN ĐẤU MỚI - ${formattedDate} lúc ${match.time}`;
+    ? `⚔️ [FC Dưỡng Sinh] GIAO LƯU NỘI BỘ (${teamAName} vs ${teamBName}) - ${formattedDate} lúc ${match.time}`
+    : `⚽ [FC Dưỡng Sinh] THÔNG BÁO TRẬN ĐẤU MỚI - ${formattedDate} lúc ${match.time}`;
 
   const headingText = isInternal
     ? `⚔️ TRẬN ĐẤU GIAO LƯU NỘI BỘ!`
@@ -45,13 +45,13 @@ async function sendMatchNotification(users, match) {
        <li><b>🤝 Đối thủ:</b> ${match.opponent?.teamName || 'Đang cập nhật'}</li>`;
 
   const mailOptions = {
-    from: `"FC Nhà Trẻ" <${process.env.GMAIL_USER || 'team.fc.nhatre@gmail.com'}>`,
+    from: `"FC Dưỡng Sinh" <${process.env.GMAIL_USER || 'team.fcduongsinh@gmail.com'}>`,
     to: emails.join(','),
     subject: subjectTitle,
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #f8fafc; border-radius: 10px;">
         <h2 style="color: #38bdf8;">${headingText}</h2>
-        <p>Thành viên FC Nhà Trẻ lưu ý trận đấu tiếp theo:</p>
+        <p>Thành viên FC Dưỡng Sinh lưu ý trận đấu tiếp theo:</p>
         <ul style="line-height: 1.8;">
           <li><b>📅 Ngày thi đấu:</b> ${formattedDate}</li>
           <li><b>⏰ Giờ đá:</b> ${match.time}</li>
@@ -81,13 +81,13 @@ async function sendFundNotification(users, month, message, qrUrl) {
   if (emails.length === 0) return;
 
   const mailOptions = {
-    from: `"FC Nhà Trẻ" <${process.env.GMAIL_USER || 'team.fc.nhatre@gmail.com'}>`,
+    from: `"FC Dưỡng Sinh" <${process.env.GMAIL_USER || 'team.fcduongsinh@gmail.com'}>`,
     to: emails.join(','),
-    subject: `💰 [FC Nhà Trẻ] THÔNG BÁO ĐÓNG QUỸ - ${month}`,
+    subject: `💰 [FC Dưỡng Sinh] THÔNG BÁO ĐÓNG QUỸ - ${month}`,
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #f8fafc; border-radius: 10px; max-width: 600px; margin: auto;">
         <h2 style="color: #10b981; text-align: center;">💰 THÔNG BÁO ĐÓNG QUỸ ĐỘI</h2>
-        <p style="font-size: 16px;">Kính gửi các thành viên FC Nhà Trẻ,</p>
+        <p style="font-size: 16px;">Kính gửi các thành viên FC Dưỡng Sinh,</p>
         <p style="font-size: 16px;">Ban cán sự thông báo thu quỹ đội cho <b>${month}</b>.</p>
         
         ${message ? `<div style="background: #1e293b; padding: 15px; border-left: 4px solid #38bdf8; border-radius: 4px; margin: 20px 0;"><p style="margin: 0; font-style: italic;">"${message}"</p></div>` : ''}

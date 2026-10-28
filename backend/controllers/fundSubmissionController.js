@@ -1,6 +1,7 @@
 const FundSubmission = require('../models/FundSubmission');
 const MonthlyFund = require('../models/MonthlyFund');
 const Finance = require('../models/Finance');
+const Match = require('../models/Match');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const PushSubscription = require('../models/PushSubscription');
@@ -58,16 +59,12 @@ async function notifyTreasurersAndAdmins({ title, message, link, type = 'fund' }
   }
 }
 
-// 1. Submit a fund payment with proof image & multiple months
+// 1. Submit a fund payment with proof image for a match (or legacy months)
 async function submitFundPayment(req, res, next) {
   try {
-    const { months, amount, proofImage, note } = req.body;
+    const { matchId, months, amount, proofImage, note } = req.body;
     const userId = req.user._id;
     const memberName = req.user.name;
-
-    if (!months || !Array.isArray(months) || months.length === 0) {
-      throw new AppError('VALIDATION_ERROR', 'Vui lòng chọn ít nhất một tháng đóng quỹ', 400);
-    }
 
     if (!amount || Number(amount) < 1000) {
       throw new AppError('VALIDATION_ERROR', 'Số tiền nộp không hợp lệ (tối thiểu 1.000đ)', 400);
@@ -77,25 +74,52 @@ async function submitFundPayment(req, res, next) {
       throw new AppError('VALIDATION_ERROR', 'Vui lòng tải lên ảnh chụp bill chuyển khoản', 400);
     }
 
-    // Check if there is already a pending submission for the exact same months
-    const existingPending = await FundSubmission.findOne({
-      userId,
-      status: 'pending',
-      months: { $in: months }
-    });
+    let matchDoc = null;
+    let descriptionText = '';
 
-    if (existingPending) {
-      throw new AppError(
-        'DUPLICATE_SUBMISSION',
-        `Bạn đã có một yêu cầu nộp quỹ cho tháng (${existingPending.months.join(', ')}) đang chờ duyệt. Vui lòng chờ Thủ quỹ xác nhận!`,
-        400
-      );
+    if (matchId) {
+      matchDoc = await Match.findById(matchId);
+      if (!matchDoc) {
+        throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+      }
+      descriptionText = `trận ngày ${matchDoc.date} (${matchDoc.opponent?.teamName || (matchDoc.matchType === 'internal' ? 'Nội bộ' : 'Giao hữu')})`;
+
+      // Check if there is already a pending submission for this match
+      const existingPending = await FundSubmission.findOne({
+        userId,
+        status: 'pending',
+        matchId: matchDoc._id
+      });
+
+      if (existingPending) {
+        throw new AppError(
+          'DUPLICATE_SUBMISSION',
+          `Bạn đã có một yêu cầu nộp tiền cho ${descriptionText} đang chờ duyệt. Vui lòng chờ Thủ quỹ xác nhận!`,
+          400
+        );
+      }
+    } else if (months && Array.isArray(months) && months.length > 0) {
+      descriptionText = `tháng ${months.join(', ')}`;
+      const existingPending = await FundSubmission.findOne({
+        userId,
+        status: 'pending',
+        months: { $in: months }
+      });
+      if (existingPending) {
+        throw new AppError(
+          'DUPLICATE_SUBMISSION',
+          `Bạn đã có một yêu cầu nộp quỹ cho tháng (${existingPending.months.join(', ')}) đang chờ duyệt. Vui lòng chờ Thủ quỹ xác nhận!`,
+          400
+        );
+      }
+    } else {
+      throw new AppError('VALIDATION_ERROR', 'Vui lòng chọn trận đấu đóng tiền', 400);
     }
 
     let finalProofImage = proofImage;
     if (proofImage.startsWith('data:image')) {
       try {
-        finalProofImage = await uploadProofImage(proofImage, 'fc_nhatre_bills');
+        finalProofImage = await uploadProofImage(proofImage, 'fc_duongsinh_bills');
       } catch (uploadErr) {
         console.warn('⚠️ Cloudinary proof upload failed, falling back to direct image data:', uploadErr.message);
       }
@@ -104,7 +128,8 @@ async function submitFundPayment(req, res, next) {
     const submission = await FundSubmission.create({
       userId,
       memberName,
-      months,
+      matchId: matchDoc ? matchDoc._id : null,
+      months: months || [],
       amount: Number(amount),
       proofImage: finalProofImage,
       note: note || '',
@@ -112,11 +137,10 @@ async function submitFundPayment(req, res, next) {
     });
 
     // Notify all Treasurers & Admins
-    const monthText = months.join(', ');
     const formattedAmount = Number(amount).toLocaleString('vi-VN');
     await notifyTreasurersAndAdmins({
-      title: '💰 Yêu cầu xác nhận đóng quỹ mới',
-      message: `${memberName} vừa nộp chuyển khoản ${formattedAmount}đ cho tháng ${monthText}`,
+      title: '💰 Yêu cầu xác nhận đóng tiền trận mới',
+      message: `${memberName} vừa nộp chuyển khoản ${formattedAmount}đ cho ${descriptionText}`,
       link: `/finances?submissionId=${submission._id}`
     });
 
@@ -195,6 +219,7 @@ async function getFundSubmissions(req, res, next) {
       .select('-proofImage')
       .populate('userId', 'name email avatar phone position')
       .populate('reviewedBy', 'name email avatar')
+      .populate('matchId', 'date time stadium opponent matchType pitchCost serviceCost')
       .sort({ createdAt: -1 });
 
     let pagination = null;
@@ -238,6 +263,7 @@ async function getFundSubmissionById(req, res, next) {
     const submission = await FundSubmission.findById(id)
       .populate('userId', 'name email avatar phone position')
       .populate('reviewedBy', 'name email avatar')
+      .populate('matchId', 'date time stadium opponent matchType pitchCost serviceCost')
       .lean();
 
     if (!submission) {
@@ -280,60 +306,95 @@ async function approveFundSubmission(req, res, next) {
     }
 
     const createdFinanceIds = [];
-    const monthCount = submission.months.length;
-    const perMonthAmount = Math.round(submission.amount / monthCount);
+    let approvalMessage = '';
 
-    for (const monthStr of submission.months) {
-      const [yearStr, monthNumStr] = monthStr.split('-');
-      const year = parseInt(yearStr, 10) || new Date().getFullYear();
-      const monthNum = parseInt(monthNumStr, 10) || (new Date().getMonth() + 1);
-      const monthKey = `m${monthNum}`;
-
-      // 1. Update or create MonthlyFund record for the member
-      let monthlyFund = await MonthlyFund.findOne({
-        year,
-        $or: [
-          { userId: submission.userId },
-          { memberName: submission.memberName }
-        ]
-      });
-
-      if (!monthlyFund) {
-        monthlyFund = await MonthlyFund.create({
-          year,
-          memberName: submission.memberName,
-          userId: submission.userId,
-          months: { [monthKey]: perMonthAmount }
-        });
-      } else {
-        if (!monthlyFund.userId) {
-          monthlyFund.userId = submission.userId;
-        }
-        await MonthlyFund.findByIdAndUpdate(
-          monthlyFund._id,
-          { 
-            $set: { 
-              [`months.${monthKey}`]: perMonthAmount,
-              userId: submission.userId,
-              memberName: submission.memberName
-            } 
-          }
+    if (submission.matchId) {
+      // 1. Update Match CheckIn payment status
+      const match = await Match.findById(submission.matchId);
+      let matchDesc = 'trận đấu';
+      if (match) {
+        matchDesc = `trận ngày ${match.date}`;
+        const checkInItem = (match.checkInList || []).find(
+          c => c.userId?.toString() === submission.userId.toString()
         );
+        if (checkInItem) {
+          checkInItem.isPaid = true;
+          checkInItem.paidAmount = Number(submission.amount);
+          checkInItem.paidAt = new Date();
+          await match.save();
+        }
       }
 
-      // 2. Create income Finance record in general ledger
+      // 2. Create Finance IN record
       const financeDoc = await Finance.create({
         type: 'IN',
-        category: 'quy_thang',
-        amount: perMonthAmount,
-        description: `Thu quỹ tháng ${monthNum}/${year} (${submission.memberName})`,
+        category: 'quy_tran',
+        amount: Number(submission.amount),
+        description: `Thu tiền ${matchDesc} (${submission.memberName})`,
         userId: submission.userId,
-        fundMonth: monthStr,
+        matchId: submission.matchId,
         proofImage: submission.proofImage,
         createdBy: req.user._id
       });
 
       createdFinanceIds.push(financeDoc._id);
+      approvalMessage = `tiền ${matchDesc}`;
+    } else if (submission.months && submission.months.length > 0) {
+      // Legacy Monthly Fund support
+      const monthCount = submission.months.length;
+      const perMonthAmount = Math.round(submission.amount / monthCount);
+
+      for (const monthStr of submission.months) {
+        const [yearStr, monthNumStr] = monthStr.split('-');
+        const year = parseInt(yearStr, 10) || new Date().getFullYear();
+        const monthNum = parseInt(monthNumStr, 10) || (new Date().getMonth() + 1);
+        const monthKey = `m${monthNum}`;
+
+        let monthlyFund = await MonthlyFund.findOne({
+          year,
+          $or: [
+            { userId: submission.userId },
+            { memberName: submission.memberName }
+          ]
+        });
+
+        if (!monthlyFund) {
+          monthlyFund = await MonthlyFund.create({
+            year,
+            memberName: submission.memberName,
+            userId: submission.userId,
+            months: { [monthKey]: perMonthAmount }
+          });
+        } else {
+          if (!monthlyFund.userId) {
+            monthlyFund.userId = submission.userId;
+          }
+          await MonthlyFund.findByIdAndUpdate(
+            monthlyFund._id,
+            { 
+              $set: { 
+                [`months.${monthKey}`]: perMonthAmount,
+                userId: submission.userId,
+                memberName: submission.memberName
+              } 
+            }
+          );
+        }
+
+        const financeDoc = await Finance.create({
+          type: 'IN',
+          category: 'quy_thang',
+          amount: perMonthAmount,
+          description: `Thu quỹ tháng ${monthNum}/${year} (${submission.memberName})`,
+          userId: submission.userId,
+          fundMonth: monthStr,
+          proofImage: submission.proofImage,
+          createdBy: req.user._id
+        });
+
+        createdFinanceIds.push(financeDoc._id);
+      }
+      approvalMessage = `khoản đóng quỹ tháng ${submission.months.join(', ')}`;
     }
 
     // Link created finance docs
@@ -341,12 +402,11 @@ async function approveFundSubmission(req, res, next) {
     await submission.save();
 
     // 3. Notify the member about approval
-    const monthText = submission.months.join(', ');
     const formattedAmount = Number(submission.amount).toLocaleString('vi-VN');
     await Notification.create({
       recipient: submission.userId,
       title: '✅ Đã duyệt nộp quỹ thành công',
-      message: `Thủ quỹ đã xác nhận khoản đóng quỹ tháng ${monthText} (${formattedAmount}đ). Cảm ơn bạn!`,
+      message: `Thủ quỹ đã xác nhận ${approvalMessage} (${formattedAmount}đ). Cảm ơn bạn!`,
       type: 'fund',
       link: '/finances'
     });
@@ -357,7 +417,7 @@ async function approveFundSubmission(req, res, next) {
       try {
         await sendNotification(sub.subscription, {
           title: '✅ Đã duyệt nộp quỹ thành công',
-          body: `Khoản đóng quỹ tháng ${monthText} (${formattedAmount}đ) đã được Thủ quỹ xác nhận!`,
+          body: `Khoản đóng (${formattedAmount}đ) cho ${approvalMessage} đã được Thủ quỹ xác nhận!`,
           icon: '/icons/icon-192.png',
           badge: '/icons/icon-96.png',
           data: { url: '/finances' }

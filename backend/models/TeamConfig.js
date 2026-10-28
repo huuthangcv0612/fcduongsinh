@@ -9,19 +9,19 @@ const TeamConfigSchema = new mongoose.Schema({
   },
   bankName: {
     type: String,
-    default: 'MB Bank'
+    default: 'Techcombank'
   },
   bankCode: {
     type: String,
-    default: 'MB' // Used for VietQR (MB, VCB, ACB, ICB, TCB, etc.)
+    default: 'TCB' // Used for VietQR (MB, VCB, ACB, ICB, TCB, etc.)
   },
   accountNumber: {
     type: String,
-    default: '0352526868'
+    default: '4645199999'
   },
   accountName: {
     type: String,
-    default: 'TRAN DUC HOANG'
+    default: 'NGUYEN HUU THANG'
   },
   monthlyFee: {
     type: Number,
@@ -37,7 +37,7 @@ const TeamConfigSchema = new mongoose.Schema({
   },
   transferPrefix: {
     type: String,
-    default: 'FCNHATRE'
+    default: 'FCDUONGSINH'
   },
   note: {
     type: String,

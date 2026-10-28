@@ -4,21 +4,21 @@ const User = require('./models/User');
 const MonthlyFund = require('./models/MonthlyFund');
 
 const DEFAULT_MEMBERS_SEED = [
-  { memberName: 'thắng lớn', email: 'thanglon@fcnhatre.local', months: { m1: 0, m2: 300000, m3: 200000, m4: 1500000, m5: 300000, m6: 200000, m7: 200000, m8: 1000000, m9: 500000, m10: 500000, m11: 500000, m12: 500000 } },
-  { memberName: 'long', email: 'long@fcnhatre.local', months: { m1: 0, m2: 0, m3: 100000, m4: 0, m5: 150000, m6: 0, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'bùi dũng', email: 'buidung@fcnhatre.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 200000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'Trung', email: 'trung@fcnhatre.local', months: { m1: 0, m2: 0, m3: 150000, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'nam', email: 'nam@fcnhatre.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'nhất', email: 'nhat@fcnhatre.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 200000, m6: 200000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'thắng bé', email: 'thangbe@fcnhatre.local', months: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 150000, m6: 200000, m7: 0, m8: 0, m9: 100000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'hưng thỏ', email: 'hungtho@fcnhatre.local', months: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'vương', email: 'vuong@fcnhatre.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'hoàng bo', email: 'hoangbo@fcnhatre.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 150000, m6: 200000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'đạt', email: 'dat@fcnhatre.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 200000, m6: 200000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'lai', email: 'lai@fcnhatre.local', months: { m1: 0, m2: 150000, m3: 0, m4: 0, m5: 200000, m6: 150000, m7: 200000, m8: 150000, m9: 200000, m10: 0, m11: 0, m12: 200000 } },
-  { memberName: 'vanh', email: 'vanh@fcnhatre.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 200000, m6: 150000, m7: 200000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'nam ken', email: 'namken@fcnhatre.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 200000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
-  { memberName: 'kiên vũ', email: 'kienvu@fcnhatre.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } }
+  { memberName: 'thắng lớn', email: 'thanglon@fcduongsinh.local', months: { m1: 0, m2: 300000, m3: 200000, m4: 1500000, m5: 300000, m6: 200000, m7: 200000, m8: 1000000, m9: 500000, m10: 500000, m11: 500000, m12: 500000 } },
+  { memberName: 'long', email: 'long@fcduongsinh.local', months: { m1: 0, m2: 0, m3: 100000, m4: 0, m5: 150000, m6: 0, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'bùi dũng', email: 'buidung@fcduongsinh.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 200000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'Trung', email: 'trung@fcduongsinh.local', months: { m1: 0, m2: 0, m3: 150000, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'nam', email: 'nam@fcduongsinh.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'nhất', email: 'nhat@fcduongsinh.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 200000, m6: 200000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'thắng bé', email: 'thangbe@fcduongsinh.local', months: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 150000, m6: 200000, m7: 0, m8: 0, m9: 100000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'hưng thỏ', email: 'hungtho@fcduongsinh.local', months: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'vương', email: 'vuong@fcduongsinh.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'hoàng bo', email: 'hoangbo@fcduongsinh.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 150000, m6: 200000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'đạt', email: 'dat@fcduongsinh.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 200000, m6: 200000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'lai', email: 'lai@fcduongsinh.local', months: { m1: 0, m2: 150000, m3: 0, m4: 0, m5: 200000, m6: 150000, m7: 200000, m8: 150000, m9: 200000, m10: 0, m11: 0, m12: 200000 } },
+  { memberName: 'vanh', email: 'vanh@fcduongsinh.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 200000, m6: 150000, m7: 200000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'nam ken', email: 'namken@fcduongsinh.local', months: { m1: 0, m2: 200000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 200000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } },
+  { memberName: 'kiên vũ', email: 'kienvu@fcduongsinh.local', months: { m1: 0, m2: 150000, m3: 150000, m4: 150000, m5: 150000, m6: 150000, m7: 150000, m8: 150000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 } }
 ];
 
 async function syncRealUsers() {

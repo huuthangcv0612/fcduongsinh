@@ -1,30 +1,34 @@
 const User = require('../models/User');
-const MonthlyFund = require('../models/MonthlyFund');
+const Match = require('../models/Match');
 const { AppError } = require('../middlewares/authMiddleware');
 
 async function getUsers(req, res, next) {
   try {
-    const currentYear = new Date().getFullYear();
-    const currentMonthNum = new Date().getMonth() + 1;
-    const monthKey = `m${currentMonthNum}`;
-    
     const users = await User.find().sort({ role: 1, name: 1 }).lean();
 
-    // Check monthly fund payments for each user in current month from MonthlyFund
-    const monthlyFunds = await MonthlyFund.find({ year: currentYear }).lean();
-    
-    const fundPaidAmount = new Map();
-    monthlyFunds.forEach(fund => {
-      if (fund.months && fund.months[monthKey] > 0) {
-        fundPaidAmount.set(fund.userId?.toString(), fund.months[monthKey]);
-      }
-    });
+    // Calculate unpaid matches for each user
+    const completedMatches = await Match.find({ status: 'completed' })
+      .select('checkInList')
+      .lean();
 
-    const formatted = users.map(user => ({
-      ...user,
-      isFundPaidThisMonth: fundPaidAmount.has(user._id.toString()),
-      fundPaidThisMonth: fundPaidAmount.get(user._id.toString()) || 0
-    }));
+    const unpaidMatchesByUser = new Map();
+    for (const match of completedMatches) {
+      for (const item of (match.checkInList || [])) {
+        if (item.status === 'joined' && !item.isPaid && item.userId) {
+          const uid = item.userId.toString();
+          unpaidMatchesByUser.set(uid, (unpaidMatchesByUser.get(uid) || 0) + 1);
+        }
+      }
+    }
+
+    const formatted = users.map(user => {
+      const unpaidCount = unpaidMatchesByUser.get(user._id.toString()) || 0;
+      return {
+        ...user,
+        unpaidMatchesCount: unpaidCount,
+        hasUnpaidMatches: unpaidCount > 0
+      };
+    });
 
     res.json({
       success: true,

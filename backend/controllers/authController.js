@@ -16,12 +16,16 @@ function generateToken(user) {
 
 // Ensure primary Admin user exists & purge mock accounts
 async function ensureAdminUser() {
-  const adminEmail = (process.env.GMAIL_USER || 'tranduchoangh20@gmail.com').toLowerCase().trim();
+  const adminEmail = (process.env.GMAIL_USER || 'huuthang.cv0612@gmail.com').toLowerCase().trim();
   
   // Clean up mock demo accounts from DB
   await User.deleteMany({
     email: {
       $in: [
+        'admin@fcduongsinh.com',
+        'nam.tran@fcduongsinh.com',
+        'duc.le@fcduongsinh.com',
+        'user.google@fcduongsinh.com',
         'admin@fcnhatre.com',
         'nam.tran@fcnhatre.com',
         'duc.le@fcnhatre.com',
@@ -34,11 +38,11 @@ async function ensureAdminUser() {
 
   if (!admin) {
     admin = await User.create({
-      name: 'Trần Đức Hoàng (Admin)',
+      name: 'Nguyễn Hữu Thắng (Admin)',
       email: adminEmail,
       role: 'admin',
       position: 'Tiền vệ',
-      phone: '0901234567',
+      phone: '0913220444',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
     });
     console.log(`🌱 Created primary Admin user: ${adminEmail}`);
@@ -50,9 +54,28 @@ async function ensureAdminUser() {
       memberName: admin.name,
       months: { m1: 200000, m2: 200000, m3: 200000, m4: 200000, m5: 200000, m6: 200000, m7: 200000, m8: 200000, m9: 200000, m10: 200000, m11: 200000, m12: 200000 }
     }).catch(() => {});
-  } else if (admin.role !== 'admin') {
-    admin.role = 'admin';
-    await admin.save();
+  } else {
+    let changed = false;
+    if (admin.name === 'Trần Đức Hoàng (Admin)' || admin.name === 'Trần Đức Hoàng') {
+      admin.name = 'Nguyễn Hữu Thắng (Admin)';
+      changed = true;
+    }
+    if (admin.phone === '0901234567' || !admin.phone) {
+      admin.phone = '0913220444';
+      changed = true;
+    }
+    if (admin.role !== 'admin') {
+      admin.role = 'admin';
+      changed = true;
+    }
+    if (changed) {
+      await admin.save();
+      await MonthlyFund.updateMany(
+        { userId: admin._id },
+        { memberName: admin.name }
+      );
+      console.log(`🔄 Updated Admin info to: ${admin.name} (${admin.phone})`);
+    }
   }
 }
 
@@ -89,7 +112,7 @@ async function googleAuth(req, res, next) {
     userEmail = userEmail.toLowerCase().trim();
     let user = await User.findOne({ email: userEmail });
 
-    const adminEmail = (process.env.GMAIL_USER || 'tranduchoangh20@gmail.com').toLowerCase().trim();
+    const adminEmail = (process.env.GMAIL_USER || 'huuthang.cv0612@gmail.com').toLowerCase().trim();
     const isPrimaryAdmin = userEmail === adminEmail;
 
     if (!user) {
@@ -152,7 +175,7 @@ async function devBypass(req, res, next) {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
-    const adminEmail = (process.env.GMAIL_USER || 'tranduchoangh20@gmail.com').toLowerCase().trim();
+    const adminEmail = (process.env.GMAIL_USER || 'huuthang.cv0612@gmail.com').toLowerCase().trim();
     let user = await User.findOne({ email: adminEmail });
 
     if (!user) {
@@ -184,6 +207,25 @@ async function devBypass(req, res, next) {
 
 async function getMe(req, res, next) {
   try {
+    const adminEmail = (process.env.GMAIL_USER || 'huuthang.cv0612@gmail.com').toLowerCase().trim();
+    if (req.user && req.user.email === adminEmail) {
+      let changed = false;
+      if (req.user.name === 'Trần Đức Hoàng (Admin)' || req.user.name === 'Trần Đức Hoàng') {
+        req.user.name = 'Nguyễn Hữu Thắng (Admin)';
+        changed = true;
+      }
+      if (req.user.phone === '0901234567' || !req.user.phone) {
+        req.user.phone = '0913220444';
+        changed = true;
+      }
+      if (changed) {
+        await req.user.save();
+        await MonthlyFund.updateMany(
+          { userId: req.user._id },
+          { memberName: req.user.name }
+        );
+      }
+    }
     res.json({
       success: true,
       data: req.user

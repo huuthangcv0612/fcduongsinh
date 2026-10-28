@@ -8,7 +8,7 @@ const FinanceSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['quy_thang', 'tien_san', 'nuoc_uong', 'dong_phuc', 'phat', 'khac'],
+    enum: ['quy_tran', 'quy_thang', 'tien_san', 'nuoc_uong', 'dich_vu', 'dong_phuc', 'phat', 'khac'],
     default: 'khac'
   },
   amount: {

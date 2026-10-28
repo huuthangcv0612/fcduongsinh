@@ -34,6 +34,8 @@ router.post('/matches/:id/vote-mvp', authMiddleware, matchController.voteMvp);
 router.post('/matches/:id/finalize-mvp', authMiddleware, adminMiddleware, matchController.finalizeMvp);
 router.post('/matches', authMiddleware, adminMiddleware, matchController.createMatch);
 router.put('/matches/:id/checkin', authMiddleware, matchController.updateCheckIn);
+router.put('/matches/:id/payment', authMiddleware, treasurerOrAdminMiddleware, matchController.updateMatchPayment);
+router.put('/matches/:id/fund', authMiddleware, treasurerOrAdminMiddleware, matchController.updateMatchFund);
 router.put('/matches/:id', authMiddleware, adminMiddleware, matchController.updateMatch);
 router.put('/matches/:id/result', authMiddleware, adminMiddleware, matchController.updateMatchResult);
 router.delete('/matches/:id', authMiddleware, adminMiddleware, matchController.deleteMatch);
@@ -53,7 +55,8 @@ router.post('/finances', authMiddleware, adminMiddleware, financeController.crea
 router.put('/finances/bulk-update', authMiddleware, adminMiddleware, financeController.bulkUpdateFinances);
 router.delete('/finances/:id', authMiddleware, adminMiddleware, financeController.deleteFinance);
 
-// --- Monthly Fund Grid Routes (Google Sheets Style Matrix) ---
+// --- Match Fund & Finance Routes ---
+router.get('/finances/match-funds', authMiddleware, financeController.getMatchFunds);
 router.get('/finances/my-fund-status', authMiddleware, financeController.getMyFundStatus);
 router.get('/finances/monthly-grid', authMiddleware, financeController.getMonthlyGrid);
 router.put('/finances/monthly-grid/cell', authMiddleware, adminMiddleware, financeController.updateMonthlyCell);

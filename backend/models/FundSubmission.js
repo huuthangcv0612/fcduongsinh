@@ -11,9 +11,13 @@ const FundSubmissionSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  matchId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Match',
+    default: null
+  },
   months: [{
-    type: String, // Format: YYYY-MM (e.g. '2026-08')
-    required: true
+    type: String // Deprecated monthly field
   }],
   amount: {
     type: Number,
@@ -55,6 +59,7 @@ const FundSubmissionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 FundSubmissionSchema.index({ userId: 1, createdAt: -1 });
+FundSubmissionSchema.index({ matchId: 1 });
 FundSubmissionSchema.index({ status: 1, createdAt: -1 });
 FundSubmissionSchema.index({ userId: 1, status: 1 });
 

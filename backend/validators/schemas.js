@@ -13,7 +13,11 @@ const CreateMatchSchema = z.object({
   time: z.string().regex(/^\d{2}:\d{2}$/, 'Giờ phải theo định dạng HH:mm'),
   stadium: z.string().min(1, 'Tên sân không được để trống'),
   stadiumLink: z.string().optional(),
-  pitchCost: z.number().min(0, 'Tiền sân không được âm'),
+  pitchCost: z.number().min(0, 'Tiền sân không được âm').optional().default(0),
+  serviceCost: z.number().min(0, 'Tiền dịch vụ không được âm').optional().default(0),
+  guestPlayers: z.number().min(0, 'Số thành viên vãng lai không được âm').optional().default(0),
+  guestPlayersA: z.number().min(0, 'Số thành viên vãng lai Team A không được âm').optional().default(0),
+  guestPlayersB: z.number().min(0, 'Số thành viên vãng lai Team B không được âm').optional().default(0),
   deal: z.string().optional().default('5-5'),
   kitColor: z.string().optional(),
   opponent: z.object({
@@ -25,11 +29,13 @@ const CreateMatchSchema = z.object({
     teamA: z.object({
       name: z.string().optional(),
       kitColor: z.string().optional(),
+      guestPlayers: z.number().min(0).optional(),
       players: z.array(z.string()).optional()
     }).optional(),
     teamB: z.object({
       name: z.string().optional(),
       kitColor: z.string().optional(),
+      guestPlayers: z.number().min(0).optional(),
       players: z.array(z.string()).optional()
     }).optional()
   }).optional(),
@@ -45,7 +51,7 @@ const CheckInSchema = z.object({
 
 const CreateFinanceSchema = z.object({
   type: z.enum(['IN', 'OUT']),
-  category: z.enum(['quy_thang', 'tien_san', 'nuoc_uong', 'dong_phuc', 'phat', 'khac']).optional(),
+  category: z.enum(['quy_tran', 'quy_thang', 'tien_san', 'nuoc_uong', 'dich_vu', 'dong_phuc', 'phat', 'khac']).optional(),
   amount: z.number().positive('Số tiền phải lớn hơn 0'),
   description: z.string().min(1, 'Mô tả không được để trống'),
   userId: z.string().optional().nullable(),

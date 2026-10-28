@@ -6,7 +6,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || 'XIMARFfRMytzRjQhd2JaxNq7Zhg'
 });
 
-async function uploadImage(fileData, folder = 'fc_nhatre_avatars') {
+async function uploadImage(fileData, folder = 'fc_duongsinh_avatars') {
   try {
     const result = await cloudinary.uploader.upload(fileData, {
       folder,
@@ -22,7 +22,7 @@ async function uploadImage(fileData, folder = 'fc_nhatre_avatars') {
   }
 }
 
-async function uploadMedia(fileData, folder = 'fc_nhatre_media') {
+async function uploadMedia(fileData, folder = 'fc_duongsinh_media') {
   try {
     const result = await cloudinary.uploader.upload(fileData, {
       folder,
@@ -38,7 +38,7 @@ async function uploadMedia(fileData, folder = 'fc_nhatre_media') {
   }
 }
 
-async function uploadProofImage(fileData, folder = 'fc_nhatre_bills') {
+async function uploadProofImage(fileData, folder = 'fc_duongsinh_bills') {
   try {
     const result = await cloudinary.uploader.upload(fileData, {
       folder,

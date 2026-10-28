@@ -10,7 +10,7 @@ async function cleanOldData() {
     console.log('🧹 Cleaning old mock/fake data from MongoDB...');
 
     // 1. Delete placeholder .local seed users
-    const deleteUsersRes = await User.deleteMany({ email: { $regex: /@fcnhatre\.local$/i } });
+    const deleteUsersRes = await User.deleteMany({ email: { $regex: /@(fcnhatre|fcduongsinh)\.local$/i } });
     console.log(`🗑️ Deleted ${deleteUsersRes.deletedCount} placeholder seed users.`);
 
     // 2. Delete all old MonthlyFund documents

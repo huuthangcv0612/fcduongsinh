@@ -1,11 +1,13 @@
 const Match = require('../models/Match');
 const User = require('../models/User');
+const Finance = require('../models/Finance');
 const { AppError } = require('../middlewares/authMiddleware');
 const { CreateMatchSchema, CheckInSchema } = require('../validators/schemas');
 const { sendMatchNotification } = require('../services/mailerService');
 const Notification = require('../models/Notification');
 const PushSubscription = require('../models/PushSubscription');
 const { sendNotification } = require('../utils/webPush');
+const { calculateMatchFundBreakdown, getMemberFeeForMatch } = require('../utils/matchFundHelper');
 async function recalculateUserStats() {
   const users = await User.find({ isActive: true }).select('_id name').lean();
   const matches = await Match.find({ status: 'completed' }).select('checkInList motm scorers concededGoals').lean();
@@ -83,8 +85,19 @@ async function createMatch(req, res, next) {
       reason: ''
     }));
 
+    const matchData = { ...validation.data };
+    if (matchData.matchType === 'internal') {
+      const gA = Number(matchData.guestPlayersA || matchData.internalTeams?.teamA?.guestPlayers || 0);
+      const gB = Number(matchData.guestPlayersB || matchData.internalTeams?.teamB?.guestPlayers || 0);
+      matchData.guestPlayersA = gA;
+      matchData.guestPlayersB = gB;
+      matchData.guestPlayers = gA + gB;
+      if (matchData.internalTeams?.teamA) matchData.internalTeams.teamA.guestPlayers = gA;
+      if (matchData.internalTeams?.teamB) matchData.internalTeams.teamB.guestPlayers = gB;
+    }
+
     const newMatch = await Match.create({
-      ...validation.data,
+      ...matchData,
       checkInList,
       createdBy: req.user._id
     });
@@ -167,9 +180,34 @@ async function getMatches(req, res, next) {
                 item.userId?.toString() === req.user._id.toString()
       );
 
+      // Match fund metrics using breakdown helper
+      const breakdown = calculateMatchFundBreakdown(match);
+      const userFeeToPay = getMemberFeeForMatch(breakdown, req.user._id);
+      const totalPaidCount = (match.checkInList || []).filter(item => item.status === 'joined' && item.isPaid).length;
+
+      const fundSummary = {
+        pitchCost: breakdown.pitchCost,
+        serviceCost: breakdown.serviceCost,
+        totalCost: breakdown.totalCost,
+        teamJoinedCount: summary.joined,
+        guestPlayers: breakdown.guestPlayers,
+        guestPlayersA: breakdown.guestPlayersA || 0,
+        guestPlayersB: breakdown.guestPlayersB || 0,
+        guestPaidCount: Number(match.guestPaidCount) || 0,
+        totalPlayers: breakdown.totalPlayers,
+        feePerPerson: breakdown.isInternal ? userFeeToPay : breakdown.feePerPerson,
+        userFeeToPay,
+        totalPaidCount,
+        userIsPaid: Boolean(userCheckIn?.isPaid),
+        userPaidAmount: Number(userCheckIn?.paidAmount) || 0,
+        userPaidAt: userCheckIn?.paidAt || null,
+        breakdown
+      };
+
       return {
         ...match,
         checkInSummary: summary,
+        fundSummary,
         userCheckInStatus: userCheckIn ? userCheckIn.status : 'pending',
         userCheckInReason: userCheckIn ? userCheckIn.reason : ''
       };
@@ -286,7 +324,7 @@ async function updateCheckIn(req, res, next) {
 async function updateMatch(req, res, next) {
   try {
     const { id } = req.params;
-    const { date, time, stadium, stadiumLink, pitchCost, deal, kitColor, opponent, status, notes, matchType, internalTeams } = req.body;
+    const { date, time, stadium, stadiumLink, pitchCost, serviceCost, guestPlayers, guestPlayersA, guestPlayersB, guestPaidCount, deal, kitColor, opponent, status, notes, matchType, internalTeams } = req.body;
 
     const match = await Match.findById(id);
     if (!match) {
@@ -299,8 +337,23 @@ async function updateMatch(req, res, next) {
     if (time) match.time = time;
     if (stadium) match.stadium = stadium;
     if (stadiumLink !== undefined) match.stadiumLink = stadiumLink;
-    if (pitchCost !== undefined) match.pitchCost = Number(pitchCost);
-    if (deal) match.deal = deal;
+    if (pitchCost !== undefined) match.pitchCost = Math.max(0, Number(pitchCost) || 0);
+    if (serviceCost !== undefined) match.serviceCost = Math.max(0, Number(serviceCost) || 0);
+    if (guestPlayersA !== undefined) {
+      match.guestPlayersA = Math.max(0, Number(guestPlayersA) || 0);
+      if (match.internalTeams?.teamA) match.internalTeams.teamA.guestPlayers = match.guestPlayersA;
+    }
+    if (guestPlayersB !== undefined) {
+      match.guestPlayersB = Math.max(0, Number(guestPlayersB) || 0);
+      if (match.internalTeams?.teamB) match.internalTeams.teamB.guestPlayers = match.guestPlayersB;
+    }
+    if (guestPlayers !== undefined) {
+      match.guestPlayers = Math.max(0, Number(guestPlayers) || 0);
+    } else if (guestPlayersA !== undefined || guestPlayersB !== undefined) {
+      match.guestPlayers = (match.guestPlayersA || 0) + (match.guestPlayersB || 0);
+    }
+    if (guestPaidCount !== undefined) match.guestPaidCount = Math.max(0, Number(guestPaidCount) || 0);
+    if (deal !== undefined) match.deal = deal;
     if (kitColor !== undefined) match.kitColor = kitColor;
     if (opponent) match.opponent = { ...match.opponent, ...opponent };
     if (status) match.status = status;
@@ -488,6 +541,32 @@ async function updateMatchResult(req, res, next) {
 
     if (req.body.motm !== undefined) {
       match.motm = req.body.motm;
+    }
+
+    if (req.body.pitchCost !== undefined) {
+      match.pitchCost = Math.max(0, Number(req.body.pitchCost) || 0);
+    }
+    if (req.body.serviceCost !== undefined) {
+      match.serviceCost = Math.max(0, Number(req.body.serviceCost) || 0);
+    }
+    if (req.body.deal !== undefined) {
+      match.deal = req.body.deal;
+    }
+    if (req.body.guestPlayersA !== undefined) {
+      match.guestPlayersA = Math.max(0, Number(req.body.guestPlayersA) || 0);
+      if (match.internalTeams?.teamA) match.internalTeams.teamA.guestPlayers = match.guestPlayersA;
+    }
+    if (req.body.guestPlayersB !== undefined) {
+      match.guestPlayersB = Math.max(0, Number(req.body.guestPlayersB) || 0);
+      if (match.internalTeams?.teamB) match.internalTeams.teamB.guestPlayers = match.guestPlayersB;
+    }
+    if (req.body.guestPlayers !== undefined) {
+      match.guestPlayers = Math.max(0, Number(req.body.guestPlayers) || 0);
+    } else if (req.body.guestPlayersA !== undefined || req.body.guestPlayersB !== undefined) {
+      match.guestPlayers = (match.guestPlayersA || 0) + (match.guestPlayersB || 0);
+    }
+    if (req.body.guestPaidCount !== undefined) {
+      match.guestPaidCount = Math.max(0, Number(req.body.guestPaidCount) || 0);
     }
 
     const newStatus = status || 'completed';
@@ -1325,7 +1404,7 @@ async function splitInternalTeams(req, res, next) {
 async function updateInternalTeams(req, res, next) {
   try {
     const { id } = req.params;
-    const { teamA, teamB, sendPush } = req.body;
+    const { teamA, teamB, sendPush, deal, guestPlayersA, guestPlayersB, pitchCost, serviceCost } = req.body;
 
     const match = await Match.findById(id);
     if (!match) {
@@ -1333,24 +1412,44 @@ async function updateInternalTeams(req, res, next) {
     }
 
     if (teamA) {
+      const gA = teamA.guestPlayers !== undefined ? Number(teamA.guestPlayers) : (guestPlayersA !== undefined ? Number(guestPlayersA) : match.internalTeams?.teamA?.guestPlayers || 0);
       match.internalTeams.teamA = {
         name: teamA.name || match.internalTeams.teamA.name,
         kitColor: teamA.kitColor || match.internalTeams.teamA.kitColor,
+        guestPlayers: Math.max(0, gA),
         players: teamA.players || match.internalTeams.teamA.players,
         formation: teamA.formation || match.internalTeams.teamA.formation,
         starters: teamA.starters || match.internalTeams.teamA.starters
       };
+      match.guestPlayersA = Math.max(0, gA);
+    } else if (guestPlayersA !== undefined) {
+      const gA = Math.max(0, Number(guestPlayersA) || 0);
+      match.guestPlayersA = gA;
+      if (match.internalTeams?.teamA) match.internalTeams.teamA.guestPlayers = gA;
     }
 
     if (teamB) {
+      const gB = teamB.guestPlayers !== undefined ? Number(teamB.guestPlayers) : (guestPlayersB !== undefined ? Number(guestPlayersB) : match.internalTeams?.teamB?.guestPlayers || 0);
       match.internalTeams.teamB = {
         name: teamB.name || match.internalTeams.teamB.name,
         kitColor: teamB.kitColor || match.internalTeams.teamB.kitColor,
+        guestPlayers: Math.max(0, gB),
         players: teamB.players || match.internalTeams.teamB.players,
         formation: teamB.formation || match.internalTeams.teamB.formation,
         starters: teamB.starters || match.internalTeams.teamB.starters
       };
+      match.guestPlayersB = Math.max(0, gB);
+    } else if (guestPlayersB !== undefined) {
+      const gB = Math.max(0, Number(guestPlayersB) || 0);
+      match.guestPlayersB = gB;
+      if (match.internalTeams?.teamB) match.internalTeams.teamB.guestPlayers = gB;
     }
+
+    match.guestPlayers = (match.guestPlayersA || 0) + (match.guestPlayersB || 0);
+
+    if (deal !== undefined) match.deal = deal;
+    if (pitchCost !== undefined) match.pitchCost = Math.max(0, Number(pitchCost) || 0);
+    if (serviceCost !== undefined) match.serviceCost = Math.max(0, Number(serviceCost) || 0);
 
     await match.save();
     await match.populate('internalTeams.teamA.players', 'name avatar number position phone stats');
@@ -1401,6 +1500,140 @@ async function updateInternalTeams(req, res, next) {
   }
 }
 
+// 💰 UPDATE MEMBER PAYMENT STATUS IN MATCH (Admin / Treasurer)
+async function updateMatchPayment(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { userId, isPaid, paidAmount } = req.body;
+
+    if (!userId) {
+      throw new AppError('VALIDATION_ERROR', 'Thiếu userId', 400);
+    }
+
+    const match = await Match.findById(id);
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    const checkInItem = (match.checkInList || []).find(
+      c => c.userId?.toString() === userId.toString()
+    );
+
+    if (!checkInItem) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy thành viên trong danh sách điểm danh trận đấu', 404);
+    }
+
+    const targetUser = await User.findById(userId).select('name').lean();
+    const memberName = targetUser?.name || 'Thành viên';
+
+    // Calculate fee per person using breakdown (handles friendly & internal with deal)
+    const breakdown = calculateMatchFundBreakdown(match);
+    const targetFee = getMemberFeeForMatch(breakdown, userId);
+    const finalAmount = paidAmount !== undefined ? Number(paidAmount) : targetFee;
+
+    checkInItem.isPaid = Boolean(isPaid);
+    checkInItem.paidAmount = isPaid ? finalAmount : 0;
+    checkInItem.paidAt = isPaid ? new Date() : null;
+
+    await match.save();
+
+    // Sync with Finance IN
+    if (isPaid) {
+      const existingFinance = await Finance.findOne({
+        matchId: match._id,
+        userId: userId,
+        type: 'IN',
+        category: 'quy_tran'
+      });
+
+      if (existingFinance) {
+        existingFinance.amount = finalAmount;
+        existingFinance.description = `Tiền trận ngày ${match.date} (${memberName})`;
+        await existingFinance.save();
+      } else {
+        await Finance.create({
+          type: 'IN',
+          category: 'quy_tran',
+          amount: finalAmount,
+          description: `Tiền trận ngày ${match.date} (${memberName})`,
+          userId: userId,
+          matchId: match._id,
+          createdBy: req.user._id
+        });
+      }
+    } else {
+      await Finance.deleteMany({
+        matchId: match._id,
+        userId: userId,
+        type: 'IN',
+        category: 'quy_tran'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Đã cập nhật trạng thái đóng tiền trận cho ${memberName}`,
+      data: {
+        userId,
+        isPaid: checkInItem.isPaid,
+        paidAmount: checkInItem.paidAmount,
+        paidAt: checkInItem.paidAt
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// 👥 UPDATE MATCH FUND DETAILS (Admin / Treasurer)
+async function updateMatchFund(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { pitchCost, serviceCost, guestPlayers, guestPlayersA, guestPlayersB, guestPaidCount, deal } = req.body;
+
+    const match = await Match.findById(id);
+    if (!match) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy trận đấu', 404);
+    }
+
+    if (pitchCost !== undefined) match.pitchCost = Math.max(0, Number(pitchCost) || 0);
+    if (serviceCost !== undefined) match.serviceCost = Math.max(0, Number(serviceCost) || 0);
+    if (deal !== undefined) match.deal = deal;
+    if (guestPlayersA !== undefined) {
+      match.guestPlayersA = Math.max(0, Number(guestPlayersA) || 0);
+      if (match.internalTeams?.teamA) match.internalTeams.teamA.guestPlayers = match.guestPlayersA;
+    }
+    if (guestPlayersB !== undefined) {
+      match.guestPlayersB = Math.max(0, Number(guestPlayersB) || 0);
+      if (match.internalTeams?.teamB) match.internalTeams.teamB.guestPlayers = match.guestPlayersB;
+    }
+    if (guestPlayers !== undefined) {
+      match.guestPlayers = Math.max(0, Number(guestPlayers) || 0);
+    } else if (guestPlayersA !== undefined || guestPlayersB !== undefined) {
+      match.guestPlayers = (match.guestPlayersA || 0) + (match.guestPlayersB || 0);
+    }
+    if (guestPaidCount !== undefined) match.guestPaidCount = Math.max(0, Number(guestPaidCount) || 0);
+
+    await match.save();
+
+    res.json({
+      success: true,
+      message: 'Cập nhật chi phí và thành viên vãng lai thành công',
+      data: {
+        pitchCost: match.pitchCost,
+        serviceCost: match.serviceCost,
+        deal: match.deal,
+        guestPlayers: match.guestPlayers,
+        guestPlayersA: match.guestPlayersA,
+        guestPlayersB: match.guestPlayersB,
+        guestPaidCount: match.guestPaidCount
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createMatch,
   getMatches,
@@ -1420,6 +1653,8 @@ module.exports = {
   updateMatchLineup,
   notifyLineupPush,
   splitInternalTeams,
-  updateInternalTeams
+  updateInternalTeams,
+  updateMatchPayment,
+  updateMatchFund
 };
 
