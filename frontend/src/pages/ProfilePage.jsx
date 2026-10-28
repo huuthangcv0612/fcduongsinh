@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { User, Phone, Save, CheckCircle2, Sparkles, Upload, RefreshCw, LogOut, Bell, BellRing, BellOff, Globe } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout, setUser } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -70,11 +70,26 @@ export default function ProfilePage() {
     avatar: user?.avatar || ''
   });
 
+  React.useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        phone: user.phone || '',
+        position: user.position || 'Tự do',
+        avatar: user.avatar || ''
+      }));
+    }
+  }, [user]);
+
   const updateProfileMutation = useMutation({
     mutationFn: (data) => api.put('/auth/profile', data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      localStorage.setItem('user', JSON.stringify(res.data));
+      if (res.data) {
+        setUser?.(res.data);
+        localStorage.setItem('user', JSON.stringify(res.data));
+      }
       setSavedSuccess(true);
       toast.success(t('profile.update_success'), t('profile.success_title'));
       setTimeout(() => setSavedSuccess(false), 3000);

@@ -7,8 +7,7 @@ import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmModalContext';
 import StatCard from '../components/StatCard';
 import DataGridTable from '../components/DataGridTable';
-import MonthlyFundGrid from '../components/MonthlyFundGrid';
-import SendFundEmailModal from '../components/SendFundEmailModal';
+import MatchFundsGrid from '../components/MatchFundsGrid';
 import SubmitFundModal from '../components/SubmitFundModal';
 import FundSubmissionReviewModal from '../components/FundSubmissionReviewModal';
 import FundConfigModal from '../components/FundConfigModal';
@@ -25,7 +24,7 @@ export default function FinancesPage() {
   const confirm = useConfirm();
   const { t } = useTranslation();
   
-  const [activeTab, setActiveTab] = useState('monthly_grid'); // 'monthly_grid' | 'submissions' | 'transactions'
+  const [activeTab, setActiveTab] = useState('match_funds'); // 'match_funds' | 'submissions' | 'transactions'
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showSubmitFundModal, setShowSubmitFundModal] = useState(false);
@@ -233,50 +232,43 @@ export default function FinancesPage() {
           </p>
         </div>
 
-        <div className="flex gap-2 flex-wrap items-center">
+        <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center">
           {/* Quick QR View Button */}
           <button
             onClick={() => setShowQuickQrModal(true)}
-            className="tactile-btn flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md transition"
+            className="tactile-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs shadow-sm transition"
             title="Xem mã QR đóng quỹ và thông tin chuyển khoản"
           >
-            <QrCode className="w-4 h-4 text-cyan-400" />
-            <span>Xem Mã QR</span>
+            <QrCode className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span>Mã QR</span>
           </button>
 
           {/* Member Submit Fund Button */}
           <button
             onClick={() => setShowSubmitFundModal(true)}
-            className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/30 transition"
+            className="tactile-btn flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm shadow-emerald-600/30 transition"
           >
-            <CreditCard className="w-4 h-4" />
-            <span>Nộp Tiền Quỹ / Báo Đóng</span>
+            <CreditCard className="w-3.5 h-3.5 shrink-0" />
+            <span>Nộp Quỹ</span>
           </button>
 
           {isManager && (
             <>
               <button
                 onClick={() => setShowConfigModal(true)}
-                className="tactile-btn flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs sm:text-sm shadow-md shadow-purple-600/25 transition"
+                className="tactile-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-sm shadow-purple-600/25 transition"
                 title="Cấu hình tài khoản ngân hàng và mức đóng quỹ"
               >
-                <Settings className="w-4 h-4" />
-                <span>Cấu Hình Quỹ</span>
+                <Settings className="w-3.5 h-3.5 shrink-0" />
+                <span>Cấu Hình</span>
               </button>
 
               <button
-                onClick={() => setShowEmailModal(true)}
-                className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md transition"
-              >
-                <Mail className="w-4 h-4 text-emerald-400" />
-                <span>{t('finances.send_email_btn')}</span>
-              </button>
-              <button
                 onClick={() => setShowAddModal(true)}
-                className="tactile-btn flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-2xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs sm:text-sm shadow-md shadow-blue-600/30 transition"
+                className="tactile-btn flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs shadow-sm shadow-blue-600/30 transition"
               >
-                <Plus className="w-4 h-4" />
-                <span>{t('finances.add_transaction_btn')}</span>
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>+ Giao Dịch</span>
               </button>
             </>
           )}
@@ -313,15 +305,15 @@ export default function FinancesPage() {
       {/* Tab Navigation */}
       <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/60 p-1.5 rounded-2xl border border-slate-300/80 self-start">
         <button
-          onClick={() => setActiveTab('monthly_grid')}
+          onClick={() => setActiveTab('match_funds')}
           className={`tactile-btn px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
-            activeTab === 'monthly_grid'
+            activeTab === 'match_funds'
               ? 'bg-[#2c3ec4] text-white shadow-md'
               : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/50'
           }`}
         >
           <Table className="w-3.5 h-3.5" />
-          <span>📊 {t('finances.tab_monthly_grid')}</span>
+          <span>⚽ Quỹ Theo Trận Đấu</span>
         </button>
 
         <button
@@ -355,8 +347,8 @@ export default function FinancesPage() {
       </div>
 
       {/* Main Tab Contents */}
-      {activeTab === 'monthly_grid' && (
-        <MonthlyFundGrid isAdmin={isManager} />
+      {activeTab === 'match_funds' && (
+        <MatchFundsGrid isAdmin={isManager} />
       )}
 
       {activeTab === 'submissions' && (
@@ -786,9 +778,10 @@ export default function FinancesPage() {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="quy_thang">{t('finances.cat_monthly')}</option>
+                    <option value="quy_tran">Quỹ trận đấu (Thu tiền trận)</option>
                     <option value="tien_san">{t('finances.cat_pitch')}</option>
                     <option value="nuoc_uong">{t('finances.cat_water')}</option>
+                    <option value="dich_vu">Dịch vụ khác</option>
                     <option value="dong_phuc">{t('finances.cat_kit')}</option>
                     <option value="phat">{t('finances.cat_fine')}</option>
                     <option value="khac">{t('finances.cat_other')}</option>
@@ -851,12 +844,6 @@ export default function FinancesPage() {
           </div>
         </div>
       )}
-
-      {/* Send Fund Email Modal */}
-      <SendFundEmailModal 
-        isOpen={showEmailModal} 
-        onClose={() => setShowEmailModal(false)} 
-      />
 
       {/* QR Code Viewer Modal */}
       {showQRModal && qrUrlFromParam && (

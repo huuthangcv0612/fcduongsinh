@@ -207,14 +207,14 @@ export default function MembersPage() {
 
                 {/* Fund Status Badge */}
                 <div className="bg-slate-50/80 p-2.5 rounded-2xl border border-slate-100 mb-2 flex items-center justify-between text-xs font-bold gap-2">
-                  <span className="text-slate-500 text-[11px]">{t('members.fund_this_month')}</span>
-                  {member.isFundPaidThisMonth ? (
-                    <span className="flex items-center gap-1 font-black text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300 text-[11px] shrink-0">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> {t('members.paid')} ({member.fundPaidThisMonth >= 1000 ? `${member.fundPaidThisMonth / 1000}k` : `${member.fundPaidThisMonth}đ`})
+                  <span className="text-slate-500 text-[11px]">Tiền quỹ trận</span>
+                  {member.hasUnpaidMatches ? (
+                    <span className="flex items-center gap-1 font-black text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-lg border border-amber-300 text-[11px] shrink-0">
+                      <XCircle className="w-3.5 h-3.5" /> Nợ {member.unpaidMatchesCount} trận
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 font-black text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-lg border border-amber-300 text-[11px] shrink-0">
-                      <XCircle className="w-3.5 h-3.5" /> {t('members.unpaid')}
+                    <span className="flex items-center gap-1 font-black text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300 text-[11px] shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Đã hoàn tất
                     </span>
                   )}
                 </div>

@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { X, UploadCloud, QrCode, Check, AlertCircle, Sparkles, CreditCard, ChevronRight } from 'lucide-react';
+import { X, UploadCloud, QrCode, Check, AlertCircle, Sparkles, CreditCard, ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
-export default function SubmitFundModal({ isOpen, onClose }) {
+export default function SubmitFundModal({ isOpen, onClose, defaultMatchId = null }) {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -23,67 +23,68 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     staleTime: 5 * 60 * 1000
   });
 
+  // Query recent matches to pay for
+  const { data: matchesRes, isLoading: isMatchesLoading } = useQuery({
+    queryKey: ['matches-for-payment'],
+    queryFn: () => api.get('/matches?limit=20'),
+    enabled: isOpen,
+    staleTime: 30000
+  });
+
   const config = configRes?.data || {};
-  const standardFeePerMonth = config.monthlyFee || user?.monthlyFund || 200000;
-  const bankName = config.bankName || 'MB Bank';
-  const bankCode = config.bankCode || 'MB';
-  const accountNumber = config.accountNumber || '0352526868';
-  const accountName = config.accountName || 'TRAN DUC HOANG';
+  const bankName = config.bankName || 'Techcombank';
+  const bankCode = config.bankCode || 'TCB';
+  const accountNumber = config.accountNumber || '4645199999';
+  const accountName = config.accountName || 'NGUYEN HUU THANG';
   const transferPrefix = config.transferPrefix || 'FCDUONGSINH';
-  const customQrUrl = config.customQrUrl || '';
 
-  // Generate available months (previous month, current month, and next 4 months)
-  const now = new Date();
-  const generateMonthOptions = () => {
-    const options = [];
-    for (let i = -1; i <= 4; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const year = d.getFullYear();
-      const monthNum = d.getMonth() + 1;
-      const monthStr = `${year}-${monthNum < 10 ? '0' + monthNum : monthNum}`;
-      const label = `Tháng ${monthNum}/${year}`;
-      options.push({ value: monthStr, label, isCurrent: i === 0 });
-    }
-    return options;
-  };
+  const matchesList = useMemo(() => {
+    return Array.isArray(matchesRes?.data) ? matchesRes.data : [];
+  }, [matchesRes]);
 
-  const monthOptions = generateMonthOptions();
-  const currentMonthStr = `${now.getFullYear()}-${now.getMonth() + 1 < 10 ? '0' + (now.getMonth() + 1) : now.getMonth() + 1}`;
-
-  const [selectedMonths, setSelectedMonths] = useState([currentMonthStr]);
-  const [amount, setAmount] = useState(standardFeePerMonth);
+  const [selectedMatchId, setSelectedMatchId] = useState(defaultMatchId || '');
+  const [amount, setAmount] = useState(50000);
   const [proofImage, setProofImage] = useState('');
   const [imageSizeInfo, setImageSizeInfo] = useState('');
   const [note, setNote] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isQrZoomed, setIsQrZoomed] = useState(false);
 
+  // When matches load or defaultMatchId changes, set selected match
   useEffect(() => {
-    if (config.monthlyFee && selectedMonths.length > 0) {
-      setAmount(selectedMonths.length * config.monthlyFee);
-    }
-  }, [config.monthlyFee, selectedMonths.length]);
-
-  // Toggle month selection
-  const toggleMonth = (monthValue) => {
-    let newMonths;
-    if (selectedMonths.includes(monthValue)) {
-      if (selectedMonths.length === 1) {
-        toast.warning('Bạn phải chọn ít nhất 1 tháng đóng quỹ', 'Lưu ý');
-        return;
+    if (defaultMatchId) {
+      setSelectedMatchId(defaultMatchId);
+    } else if (!selectedMatchId && matchesList.length > 0) {
+      // Pick the first unpaid match if available, or the latest completed match
+      const unpaid = matchesList.find(m => m.userCheckInStatus === 'joined' && !m.fundSummary?.userIsPaid);
+      if (unpaid) {
+        setSelectedMatchId(unpaid._id);
+      } else {
+        setSelectedMatchId(matchesList[0]._id);
       }
-      newMonths = selectedMonths.filter((m) => m !== monthValue);
-    } else {
-      newMonths = [...selectedMonths, monthValue].sort();
     }
-    setSelectedMonths(newMonths);
-    setAmount(newMonths.length * standardFeePerMonth);
-  };
+  }, [defaultMatchId, matchesList]);
+
+  // Selected match object
+  const selectedMatch = useMemo(() => {
+    return matchesList.find(m => m._id === selectedMatchId) || null;
+  }, [matchesList, selectedMatchId]);
+
+  // Update amount when selected match changes
+  useEffect(() => {
+    if (selectedMatch) {
+      const fee = selectedMatch.fundSummary?.userFeeToPay ?? selectedMatch.fundSummary?.feePerPerson ?? 0;
+      if (fee > 0) {
+        setAmount(fee);
+      }
+    }
+  }, [selectedMatch]);
 
   // Helper to compress bill image using canvas before uploading
   const compressBillImage = (file) => {
     return new Promise((resolve, reject) => {
-      const MAX_DIMENSION = 1400; // Keep sharp resolution for bank receipt text/digits
-      const TARGET_MAX_BYTES = 700 * 1024; // ~700KB max target
+      const MAX_DIMENSION = 1400;
+      const TARGET_MAX_BYTES = 700 * 1024;
 
       const img = new Image();
       const objectUrl = URL.createObjectURL(file);
@@ -122,7 +123,6 @@ export default function SubmitFundModal({ isOpen, onClose }) {
         let quality = 0.85;
         let base64 = canvas.toDataURL('image/jpeg', quality);
 
-        // Progressively lower quality if still above target
         while (base64.length > TARGET_MAX_BYTES * 1.37 && quality > 0.45) {
           quality -= 0.1;
           base64 = canvas.toDataURL('image/jpeg', quality);
@@ -141,7 +141,6 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     });
   };
 
-  // Handle bill image upload with automatic client-side compression
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -175,12 +174,13 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     mutationFn: (data) => api.post('/fund-submissions', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fund-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['match-funds'] });
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
       queryClient.invalidateQueries({ queryKey: ['finances'] });
-      toast.success('Đã gửi yêu cầu đóng quỹ! Thủ quỹ sẽ xác nhận sớm.', 'Thành công');
+      queryClient.invalidateQueries({ queryKey: ['balance'] });
+      queryClient.invalidateQueries({ queryKey: ['myFundStatus'] });
+      toast.success('Đã gửi yêu cầu đóng tiền trận! Thủ quỹ sẽ xác nhận sớm.', 'Thành công');
       onClose();
-      // Reset form
-      setSelectedMonths([currentMonthStr]);
-      setAmount(standardFeePerMonth);
       setProofImage('');
       setImageSizeInfo('');
       setNote('');
@@ -192,12 +192,12 @@ export default function SubmitFundModal({ isOpen, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (selectedMonths.length === 0) {
-      toast.warning('Vui lòng chọn ít nhất 1 tháng đóng quỹ');
+    if (!selectedMatchId) {
+      toast.warning('Vui lòng chọn trận đấu đóng tiền');
       return;
     }
     if (!amount || Number(amount) < 1000) {
-      toast.warning('Vui lòng nhập số tiền hợp lệ');
+      toast.warning('Vui lòng nhập số tiền hợp lệ (tối thiểu 1.000đ)');
       return;
     }
     if (!proofImage) {
@@ -206,22 +206,22 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     }
 
     submitMutation.mutate({
-      months: selectedMonths,
+      matchId: selectedMatchId,
       amount: Number(amount),
       proofImage,
       note
     });
   };
 
-  const [isQrZoomed, setIsQrZoomed] = useState(false);
-
-  // Build transfer description
-  const monthLabelsForQR = selectedMonths.map(m => m.split('-')[1]).join('-');
+  // Build transfer syntax
   const safeUserName = user?.name
     ? user.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase()
     : 'MEM';
-  const transferSyntax = `${transferPrefix} ${safeUserName} T${monthLabelsForQR}`;
-  const qrUrl = customQrUrl;
+  const matchDateCompact = selectedMatch?.date ? selectedMatch.date.replace(/-/g, '').slice(2) : 'TRAN';
+  const transferSyntax = `${transferPrefix} ${safeUserName} ${matchDateCompact}`;
+
+  // Generate dynamic VietQR URL with exact amount and syntax
+  const qrUrl = `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferSyntax)}&accountName=${encodeURIComponent(accountName)}`;
 
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -245,7 +245,6 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
       <div className="min-h-full flex items-center justify-center py-4">
         <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xl relative">
-          
           {/* Close Button */}
           <button
             onClick={onClose}
@@ -254,286 +253,347 @@ export default function SubmitFundModal({ isOpen, onClose }) {
             <X className="w-4 h-4" />
           </button>
 
-        {/* Header */}
-        <div className="mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-[11px] font-black uppercase tracking-wider mb-2">
-            <CreditCard className="w-3.5 h-3.5" /> Nộp Quỹ Đội Bóng
+          {/* Header */}
+          <div className="mb-6">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-[11px] font-black uppercase tracking-wider mb-2">
+              <CreditCard className="w-3.5 h-3.5" /> Nộp Quỹ Trận Đấu
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              ⚽ Chuyển Khoản & Báo Đóng Tiền Trận
+            </h3>
+            <p className="text-xs text-slate-500 font-bold mt-1">
+              Chọn trận đấu bạn đã tham gia, chuyển khoản theo mã QR và tải ảnh bill để Thủ quỹ duyệt tự động.
+            </p>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            💳 Chuyển Khoản & Báo Đóng Quỹ
-          </h3>
-          <p className="text-xs text-slate-500 font-bold mt-1">
-            Chọn các tháng cần đóng, chuyển khoản theo mã QR và tải ảnh bill để Thủ quỹ duyệt tự động.
-          </p>
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          {/* Bank Transfer Box */}
-          <div className="rounded-2xl p-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md flex flex-col sm:flex-row items-center gap-4">
-            <div 
-              className="bg-white p-2 rounded-xl shrink-0 shadow-sm relative group cursor-pointer"
-              onClick={() => qrUrl && setIsQrZoomed(true)}
-              title={qrUrl ? "Nhấn để xem phóng to mã QR" : "Thông tin chuyển khoản"}
-            >
-              {isConfigLoading ? (
-                <div className="w-28 h-28 bg-slate-200 animate-pulse rounded-lg flex items-center justify-center">
-                  <QrCode className="w-6 h-6 text-slate-400 animate-bounce" />
-                </div>
-              ) : qrUrl ? (
-                <>
-                  <img
-                    src={qrUrl}
-                    alt="QR Đóng Quỹ"
-                    className="w-28 h-28 object-contain rounded-lg group-hover:opacity-90 transition"
-                  />
-                  <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-[10px] font-black gap-1">
-                    <QrCode className="w-5 h-5" />
-                    <span>Xem ảnh QR</span>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Bank Transfer Box */}
+            <div className="rounded-2xl p-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md flex flex-col sm:flex-row items-center gap-4">
+              <div 
+                className="bg-white p-2 rounded-xl shrink-0 shadow-sm relative group cursor-pointer"
+                onClick={() => qrUrl && setIsQrZoomed(true)}
+                title="Nhấn để xem phóng to mã QR"
+              >
+                {isConfigLoading ? (
+                  <div className="w-28 h-28 bg-slate-200 animate-pulse rounded-lg flex items-center justify-center">
+                    <QrCode className="w-6 h-6 text-slate-400 animate-bounce" />
                   </div>
-                </>
+                ) : (
+                  <>
+                    <img
+                      src={qrUrl}
+                      alt="VietQR Mã Thanh Toán"
+                      className="w-28 h-28 object-contain rounded-lg group-hover:scale-105 transition-transform"
+                    />
+                    <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center transition text-[10px] font-black text-white backdrop-blur-[1px]">
+                      Phóng to
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex-1 w-full space-y-1.5 text-xs">
+                <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5">
+                  <span className="text-slate-400 font-bold">Ngân hàng:</span>
+                  <span className="font-black text-white">{bankName}</span>
+                </div>
+                <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5">
+                  <span className="text-slate-400 font-bold">Chủ tài khoản:</span>
+                  <span className="font-black text-white uppercase">{accountName}</span>
+                </div>
+                <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5">
+                  <span className="text-slate-400 font-bold">Số tài khoản:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono font-black text-cyan-400 text-sm tracking-wider">{accountNumber}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(accountNumber, 'Số tài khoản')}
+                      className="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-[10px] font-bold text-slate-200 transition"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-slate-400 font-bold">Nội dung CK:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono font-black text-amber-400 text-xs">{transferSyntax}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(transferSyntax, 'Cú pháp chuyển khoản')}
+                      className="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-[10px] font-bold text-slate-200 transition"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* QR Zoom Modal */}
+            {isQrZoomed && (
+              <div 
+                className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
+                onClick={() => setIsQrZoomed(false)}
+              >
+                <div 
+                  className="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-3 relative shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setIsQrZoomed(false)}
+                    className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  <div>
+                    <h4 className="text-base font-black text-slate-900">📲 Quét Mã QR Chuyển Khoản</h4>
+                    <p className="text-xs text-slate-500 font-bold mt-0.5">{bankName} • {accountName}</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-2xl border-2 border-slate-200 inline-block shadow-inner">
+                    <img
+                      src={qrUrl}
+                      alt="Mã QR Chuyển Khoản Phóng To"
+                      className="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-xl mx-auto"
+                    />
+                  </div>
+
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-left space-y-1 font-mono text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">STK:</span>
+                      <span className="font-black text-slate-900">{accountNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Số tiền:</span>
+                      <span className="font-black text-emerald-600">{Number(amount).toLocaleString('vi-VN')} đ</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Nội dung:</span>
+                      <span className="font-black text-blue-600 truncate">{transferSyntax}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleDownloadQr}
+                      className="tactile-btn flex-1 py-2.5 rounded-xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white text-xs font-black shadow-md transition"
+                    >
+                      📥 Tải Ảnh QR
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(accountNumber, 'Số tài khoản')}
+                      className="tactile-btn px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black transition"
+                    >
+                      Sao Chép STK
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 1. Match Selection */}
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>1. Chọn trận đấu đóng tiền</span>
+                {selectedMatch?.fundSummary?.feePerPerson ? (
+                  <span className="text-[11px] text-emerald-700 font-bold">
+                    Tiền trận: {selectedMatch.fundSummary.feePerPerson.toLocaleString('vi-VN')} đ
+                  </span>
+                ) : null}
+              </label>
+
+              {isMatchesLoading ? (
+                <div className="text-xs text-slate-500 font-bold p-3 bg-slate-50 rounded-xl">Đang tải danh sách trận đấu...</div>
+              ) : matchesList.length === 0 ? (
+                <div className="text-xs text-slate-500 font-bold p-3 bg-slate-50 rounded-xl">Chưa có trận đấu nào trong hệ thống.</div>
               ) : (
-                <div className="w-28 h-28 bg-slate-100 rounded-lg flex flex-col items-center justify-center p-2 text-center text-slate-400">
-                  <QrCode className="w-6 h-6 mb-1 text-slate-400" />
-                  <span className="text-[9px] font-bold">Chuyển theo STK</span>
+                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                  {matchesList.map((m) => {
+                    const isSelected = selectedMatchId === m._id;
+                    const fee = m.fundSummary?.userFeeToPay ?? m.fundSummary?.feePerPerson ?? 0;
+                    const isPaid = m.fundSummary?.userIsPaid;
+                    const didJoin = m.userCheckInStatus === 'joined';
+
+                    return (
+                      <div
+                        key={m._id}
+                        onClick={() => setSelectedMatchId(m._id)}
+                        className={`p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${
+                          isSelected
+                            ? 'bg-blue-50/90 border-blue-600 shadow-sm'
+                            : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                            isSelected ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-700'
+                          }`}>
+                            {m.date?.split('-')[2] || '⚽'}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-black text-slate-900 text-xs truncate flex items-center gap-1.5">
+                              <span>{m.matchType === 'internal' ? `⚔️ Nội bộ: ${m.fundSummary?.breakdown?.teamA?.name || 'Team A'} vs ${m.fundSummary?.breakdown?.teamB?.name || 'Team B'}` : `⚔️ vs ${m.opponent?.teamName || 'Giao hữu'}`}</span>
+                              {m.deal && (
+                                <span className="text-[9px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded font-mono font-bold">
+                                  {m.deal}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5 mt-0.5 truncate">
+                              <span>Ngày {m.date}</span>
+                              <span>•</span>
+                              <span>{m.stadium}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <div className="text-xs font-black text-emerald-700 font-mono">
+                            {fee > 0 ? `${fee.toLocaleString('vi-VN')} đ` : 'Chưa tính'}
+                          </div>
+                          {isPaid ? (
+                            <span className="text-[9px] font-black text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                              ✓ Đã đóng
+                            </span>
+                          ) : didJoin ? (
+                            <span className="text-[9px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                              Đã đá • Chưa nộp
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold text-slate-400">
+                              Chưa điểm danh
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            <div className="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Thông Tin Thụ Hưởng {bankName}</span>
-                {qrUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setIsQrZoomed(true)}
-                    className="text-[10px] font-black text-cyan-300 hover:text-cyan-200 underline hidden sm:inline"
-                  >
-                    🔍 Phóng to QR
-                  </button>
+            {/* 2. Amount Input */}
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+                2. Số tiền chuyển khoản (VNĐ)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  step="1000"
+                  required
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 font-black font-mono-numbers focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+                <span className="absolute right-4 top-3.5 text-xs font-bold text-slate-400">
+                  {amount ? `${Number(amount).toLocaleString('vi-VN')} đ` : ''}
+                </span>
+              </div>
+            </div>
+
+            {/* 3. Proof Image Upload */}
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>3. Tải lên ảnh bill chuyển khoản (Bắt buộc)</span>
+                {imageSizeInfo && (
+                  <span className="text-[11px] text-emerald-600 font-bold lowercase">{imageSizeInfo}</span>
                 )}
-              </div>
-              <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <span className="font-mono text-base font-black text-white tracking-tight">{accountNumber}</span>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(accountNumber, 'Số tài khoản')}
-                  className="tactile-btn text-[10px] px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 text-white font-bold transition"
-                >
-                  Sao chép
-                </button>
-              </div>
-              <div className="text-xs font-bold text-slate-300 uppercase">{accountName}</div>
-              <div 
-                onClick={() => handleCopy(transferSyntax, 'Cú pháp chuyển khoản')}
-                className="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 font-mono truncate cursor-pointer hover:border-slate-500 transition"
-                title="Nhấn để sao chép cú pháp"
-              >
-                Cú pháp: <span className="text-emerald-400 font-black">{transferSyntax}</span>
-              </div>
-            </div>
-          </div>
+              </label>
 
-          {/* Fullscreen QR Lightbox Modal */}
-          {isQrZoomed && (
-            <div
-              className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
-              onClick={() => setIsQrZoomed(false)}
-            >
-              <div 
-                className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4 relative"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => setIsQrZoomed(false)}
-                  className="tactile-btn absolute top-4 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div>
-                  <h4 className="text-base font-black text-slate-900">📲 Quét Mã QR Chuyển Khoản</h4>
-                  <p className="text-xs text-slate-500 font-bold mt-0.5">{bankName} • {accountName}</p>
-                </div>
-
-                <div className="p-3 bg-slate-50 rounded-2xl border-2 border-slate-200 inline-block shadow-inner">
+              {proofImage ? (
+                <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-400 bg-slate-900 flex items-center justify-center max-h-56 group">
                   <img
-                    src={qrUrl}
-                    alt="Mã QR Chuyển Khoản Phóng To"
-                    className="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-xl mx-auto"
+                    src={proofImage}
+                    alt="Bill preview"
+                    className="w-full h-auto max-h-56 object-contain"
                   />
-                </div>
-
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-left space-y-1 font-mono text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">STK:</span>
-                    <span className="font-black text-slate-900">{accountNumber}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Số tiền:</span>
-                    <span className="font-black text-emerald-600">{Number(amount).toLocaleString('vi-VN')} đ</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Nội dung:</span>
-                    <span className="font-black text-blue-600 truncate">{transferSyntax}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={handleDownloadQr}
-                    className="tactile-btn flex-1 py-2.5 rounded-xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white text-xs font-black shadow-md transition"
-                  >
-                    📥 Tải Ảnh QR
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(accountNumber, 'Số tài khoản')}
-                    className="tactile-btn px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black transition"
-                  >
-                    Sao Chép STK
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Month Multi-Select */}
-          <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>1. Chọn các tháng đóng quỹ ({selectedMonths.length} tháng đã chọn)</span>
-              <span className="text-[11px] text-blue-600 font-bold">{(standardFeePerMonth).toLocaleString('vi-VN')}đ / tháng</span>
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {monthOptions.map((opt) => {
-                const isSelected = selectedMonths.includes(opt.value);
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => toggleMonth(opt.value)}
-                    className={`tactile-btn p-2.5 rounded-xl border text-xs font-black flex items-center justify-between transition ${
-                      isSelected
-                        ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span>{opt.label}</span>
-                    {isSelected ? (
-                      <Check className="w-3.5 h-3.5 text-white" />
-                    ) : opt.isCurrent ? (
-                      <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">Nay</span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Amount Input */}
-          <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
-              2. Tổng số tiền nộp (VNĐ)
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                min="0"
-                step="1000"
-                required
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 font-black font-mono-numbers focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-              <span className="absolute right-4 top-3.5 text-xs font-bold text-slate-400">
-                {amount ? `${Number(amount).toLocaleString('vi-VN')} đ` : ''}
-              </span>
-            </div>
-          </div>
-
-          {/* Upload Proof Image */}
-          <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>3. Ảnh chụp bill chuyển khoản <span className="text-rose-500">*</span></span>
-              {uploadingImage && <span className="text-blue-600 text-xs font-bold animate-pulse">⚡ Đang nén & tối ưu ảnh...</span>}
-            </label>
-
-            {proofImage ? (
-              <div className="space-y-2">
-                <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 bg-slate-900 max-h-48 group flex items-center justify-center">
-                  <img src={proofImage} alt="Bill chuyển khoản" className="max-h-48 w-auto object-contain" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
-                    <label className="tactile-btn px-3 py-1.5 rounded-xl bg-white text-slate-900 text-xs font-black cursor-pointer shadow-md">
+                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+                    <label className="tactile-btn px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-black cursor-pointer shadow-md">
                       Đổi ảnh khác
-                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
                     </label>
                     <button
                       type="button"
-                      onClick={() => { setProofImage(''); setImageSizeInfo(''); }}
-                      className="tactile-btn px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-black shadow-md"
+                      onClick={() => {
+                        setProofImage('');
+                        setImageSizeInfo('');
+                      }}
+                      className="tactile-btn px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-black shadow-md"
                     >
-                      Xóa
+                      Xóa ảnh
                     </button>
                   </div>
                 </div>
-                {imageSizeInfo && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>{imageSizeInfo} - Đã nén nhẹ mượt mà, chữ số sắc nét</span>
+              ) : (
+                <label className={`w-full border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition ${
+                  uploadingImage ? 'border-blue-400 bg-blue-50/50' : 'border-slate-300 hover:border-blue-500 bg-slate-50/50'
+                }`}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="hidden"
+                  />
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
+                    <UploadCloud className="w-6 h-6" />
                   </div>
-                )}
-              </div>
-            ) : (
-              <label className="tactile-btn border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/50 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition text-center">
-                <UploadCloud className="w-8 h-8 text-blue-600 mb-2" />
-                <span className="text-xs font-black text-slate-800">Nhấn để chọn hoặc kéo thả ảnh bill</span>
-                <span className="text-[10px] text-slate-400 font-bold mt-1">Tự động nén tối ưu (Hỗ trợ JPG, PNG, WEBP lên đến 20MB)</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={uploadingImage}
-                  className="hidden"
-                />
+                  <span className="text-xs font-black text-slate-800 mb-0.5">
+                    {uploadingImage ? 'Đang nén và tải ảnh lên...' : 'Nhấp để tải lên bill chuyển khoản'}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-bold">
+                    Hỗ trợ JPG, PNG, WEBP (Tự động tối ưu dung lượng)
+                  </span>
+                </label>
+              )}
+            </div>
+
+            {/* 4. Member Note */}
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+                4. Ghi chú thêm (Không bắt buộc)
               </label>
-            )}
-          </div>
+              <input
+                type="text"
+                placeholder="VD: Em nộp tiền sân + 20k nước hôm qua..."
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-500"
+              />
+            </div>
 
-          {/* Note Input */}
-          <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
-              4. Ghi chú thêm (không bắt buộc)
-            </label>
-            <input
-              type="text"
-              placeholder="VD: Em chuyển khoản từ Vietcombank tên Nguyễn Văn A"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-bold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-
-          {/* Submit Actions */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="tactile-btn px-5 py-2.5 rounded-xl text-xs font-black text-slate-600 hover:bg-slate-100 transition"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              disabled={submitMutation.isPending || uploadingImage || !proofImage}
-              className="tactile-btn px-6 py-2.5 rounded-xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs shadow-md shadow-blue-600/25 transition flex items-center gap-2 disabled:opacity-50"
-            >
-              {submitMutation.isPending ? 'Đang gửi...' : 'Gửi Biên Lai Xác Nhận'}
-            </button>
-          </div>
-        </form>
+            {/* Submit Action Buttons */}
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 text-xs font-bold transition"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={submitMutation.isPending || !proofImage}
+                className="tactile-btn flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#2c3ec4] hover:bg-[#1f2ca3] text-white font-black text-xs sm:text-sm shadow-md shadow-blue-600/30 transition disabled:opacity-50"
+              >
+                {submitMutation.isPending ? 'Đang gửi...' : 'Gửi Xác Nhận Đóng Tiền'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
   );
 }

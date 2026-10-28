@@ -28,13 +28,13 @@ export default function Navbar() {
   const { t } = useTranslation();
 
   const navItems = [
-    { path: '/', label: t('navbar.overview'), icon: Trophy },
-    { path: '/matches', label: t('navbar.matches'), icon: Calendar },
-    { path: '/media', label: t('navbar.media'), icon: ImageIcon },
-    { path: '/stats', label: t('navbar.stats'), icon: Award },
-    { path: '/finances', label: t('navbar.finances'), icon: Wallet },
-    { path: '/matchmaking', label: t('navbar.matchmaking'), icon: Search },
-    { path: '/members', label: t('navbar.members'), icon: Users },
+    { path: '/', label: 'Tổng quan', icon: Trophy },
+    { path: '/matches', label: 'Trận đấu', icon: Calendar },
+    { path: '/finances', label: 'Tài chính', icon: Wallet },
+    { path: '/stats', label: 'Thống kê', icon: Award },
+    { path: '/members', label: 'Thành viên', icon: Users },
+    { path: '/matchmaking', label: 'Tìm kèo', icon: Search },
+    { path: '/media', label: 'Media', icon: ImageIcon },
   ];
 
   return (
@@ -45,19 +45,19 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             
             {/* Brand Logo */}
-            <div className="flex items-center gap-3">
-              <Link to="/" className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-md transform hover:scale-105 transition overflow-hidden p-0.5">
+            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+              <Link to="/" className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-md transform hover:scale-105 transition overflow-hidden p-0.5 shrink-0">
                 <img src={teamLogo} alt="FC Dưỡng Sinh" className="w-full h-full object-cover rounded-xl" />
               </Link>
-              <div>
-                <Link to="/" className="font-black text-lg text-white tracking-tight leading-none flex items-center gap-2">
+              <div className="shrink-0">
+                <Link to="/" className="font-black text-base sm:text-lg text-white tracking-tight leading-none whitespace-nowrap flex items-center gap-2">
                   FC DƯỠNG SINH
                 </Link>
               </div>
             </div>
 
-            {/* Desktop Navigation Pill Tabs */}
-            <nav className="hidden md:flex items-center gap-1.5 bg-black/15 p-1 rounded-full border border-white/10">
+            {/* Desktop & Tablet Navigation Pill Tabs */}
+            <nav className="hidden md:flex items-center gap-1 bg-black/15 p-1 rounded-full border border-white/10 overflow-hidden">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -65,14 +65,14 @@ export default function Navbar() {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-black tracking-wider transition-all duration-200 whitespace-nowrap ${
+                    `flex items-center gap-1 px-2.5 py-1 lg:px-3 lg:py-1.5 rounded-full text-[11px] lg:text-xs font-black tracking-wide transition-all duration-200 whitespace-nowrap ${
                       isActive
                         ? 'bg-white text-[#2c3ec4] shadow-md'
                         : 'text-white/90 hover:text-white hover:bg-white/10'
                     }`
                   }
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span>{item.label}</span>
                 </NavLink>
               );
@@ -80,7 +80,7 @@ export default function Navbar() {
           </nav>
 
           {/* User Profile & Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <NotificationBell />
             {/* PWA Install Button */}
             <PWAInstallButton />
@@ -89,15 +89,15 @@ export default function Navbar() {
             <Link
               to="/profile"
               title={t('navbar.profile_title')}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full border border-white/20 text-white shadow-sm transition"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 p-1 sm:px-2.5 sm:py-1 rounded-full border border-white/20 text-white shadow-sm transition shrink-0"
             >
               <img
                 src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
                 alt={user?.name}
-                className="w-7 h-7 rounded-full object-cover border-2 border-white/40 shadow-sm"
+                className="w-7 h-7 rounded-full object-cover border-2 border-white/40 shadow-sm shrink-0"
               />
-              <div className="text-left hidden sm:block">
-                <div className="text-xs font-black text-white line-clamp-1">{user?.name}</div>
+              <div className="text-left hidden xl:block">
+                <div className="text-xs font-black text-white line-clamp-1 max-w-[100px]">{user?.name}</div>
                 <div className="text-[9px] text-white/80 capitalize flex items-center gap-1 font-bold">
                   {isAdmin ? (
                     <span className="text-amber-300 flex items-center gap-0.5">

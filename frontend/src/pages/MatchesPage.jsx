@@ -30,14 +30,18 @@ export default function MatchesPage() {
     stadium: '',
     stadiumLink: '',
     pitchCost: 1000000,
+    serviceCost: 0,
+    guestPlayers: 0,
+    guestPlayersA: 0,
+    guestPlayersB: 0,
     deal: '5-5',
     kitColor: '',
     opponentTeamName: '',
     opponentPhone: '',
     opponentFbLink: '',
-    internalTeamAName: 'Đội Xanh',
+    internalTeamAName: 'Team A',
     internalTeamAKit: 'xanh dương',
-    internalTeamBName: 'Đội Cam',
+    internalTeamBName: 'Team B',
     internalTeamBKit: 'cam',
     notes: ''
   });
@@ -74,7 +78,13 @@ export default function MatchesPage() {
       time: data.time,
       stadium: data.stadium,
       stadiumLink: data.stadiumLink,
-      pitchCost: Number(data.pitchCost),
+      pitchCost: Number(data.pitchCost) || 0,
+      serviceCost: Number(data.serviceCost) || 0,
+      guestPlayers: data.matchType === 'internal'
+        ? (Number(data.guestPlayersA) || 0) + (Number(data.guestPlayersB) || 0)
+        : (Number(data.guestPlayers) || 0),
+      guestPlayersA: Number(data.guestPlayersA) || 0,
+      guestPlayersB: Number(data.guestPlayersB) || 0,
       deal: data.deal,
       kitColor: data.kitColor,
       opponent: data.matchType === 'friendly' ? {
@@ -84,13 +94,15 @@ export default function MatchesPage() {
       } : undefined,
       internalTeams: data.matchType === 'internal' ? {
         teamA: {
-          name: data.internalTeamAName || 'Đội Xanh',
+          name: data.internalTeamAName || 'Team A',
           kitColor: data.internalTeamAKit || 'xanh dương',
+          guestPlayers: Number(data.guestPlayersA) || 0,
           players: []
         },
         teamB: {
-          name: data.internalTeamBName || 'Đội Cam',
+          name: data.internalTeamBName || 'Team B',
           kitColor: data.internalTeamBKit || 'cam',
+          guestPlayers: Number(data.guestPlayersB) || 0,
           players: []
         }
       } : undefined,
@@ -303,7 +315,7 @@ export default function MatchesPage() {
       </div>
 
       {/* Match Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
         {displayedMatches.map(match => (
           <MatchCard
             key={match._id}
@@ -454,19 +466,44 @@ export default function MatchesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.deal')}</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">🥤 Tiền dịch vụ / nước uống</label>
                   <input
-                    type="text"
-                    placeholder="5-5 / 6-4"
-                    value={formData.deal}
-                    onChange={(e) => setFormData({ ...formData, deal: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                    type="number"
+                    min="0"
+                    step="5000"
+                    value={formData.serviceCost}
+                    onChange={(e) => setFormData({ ...formData, serviceCost: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               {formData.matchType === 'friendly' ? (
                 <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">👤 Số thành viên vãng lai</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.guestPlayers}
+                        onChange={(e) => setFormData({ ...formData, guestPlayers: e.target.value })}
+                        placeholder="VD: 0, 1, 2..."
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.deal')}</label>
+                      <input
+                        type="text"
+                        placeholder="5-5 / 6-4"
+                        value={formData.deal}
+                        onChange={(e) => setFormData({ ...formData, deal: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.select_old_opponent')}</label>
@@ -532,21 +569,73 @@ export default function MatchesPage() {
                   </div>
                 </>
               ) : (
-                /* Internal Match: Setup 2 Teams & Kits */
-                <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-black text-emerald-900 uppercase tracking-wider">
-                    <span>⚔️</span> {t('matches.internal_teams_setup')}
+                /* Internal Match: Setup 2 Teams (Team A & Team B) & Deal & Guests */
+                <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-black text-emerald-900 uppercase tracking-wider">
+                      <span>⚔️</span> Thiết Lập Trận Đấu Nội Bộ (Team A & Team B)
+                    </div>
+                  </div>
+
+                  {/* Deal Selector for Internal Match */}
+                  <div className="bg-white p-3 rounded-xl border border-emerald-200 shadow-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-slate-800">
+                        ⚖️ Kèo Sân (Deal phân chia tiền trận)
+                      </label>
+                      <span className="text-[11px] font-bold text-emerald-700 font-mono">
+                        {formData.deal || '5-5'}
+                      </span>
+                    </div>
+
+                    {/* Quick preset buttons */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {[
+                        { label: '5-5 (Đều 50%)', val: '5-5' },
+                        { label: '6-4 (Thắng 4 - Thua 6)', val: '6-4' },
+                        { label: '7-3 (Thắng 3 - Thua 7)', val: '7-3' },
+                        { label: 'Thua đóng tất', val: '10-0' }
+                      ].map(item => (
+                        <button
+                          key={item.val}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, deal: item.val })}
+                          className={`py-1.5 px-2 rounded-lg text-[11px] font-bold border transition ${
+                            formData.deal === item.val
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Hoặc nhập kèo tùy chỉnh: 5-5, 6-4, 7-3..."
+                      value={formData.deal}
+                      onChange={(e) => setFormData({ ...formData, deal: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-500"
+                    />
+
+                    <p className="text-[10px] text-slate-500 leading-relaxed font-bold">
+                      💡 <strong>Quy tắc chia tiền:</strong> Bên thắng trả phần ít hơn, bên thua trả phần nhiều hơn (Ví dụ 6-4: Thắng trả 40%, Thua trả 60%). Nếu hòa: chia 5-5. Mỗi người đóng = Tổng tiền bên đó / (Số người trong đội + Khách vãng lai).
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Team A */}
-                    <div className="bg-white p-3 rounded-xl border border-emerald-200 shadow-xs space-y-2">
-                      <div className="text-[11px] font-black text-blue-600 uppercase flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
-                        ĐỘI A
+                    <div className="bg-white p-3 rounded-xl border border-blue-200 shadow-xs space-y-2">
+                      <div className="text-[11px] font-black text-blue-600 uppercase flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                          TEAM A
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-bold">Bên A</span>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_a_name')}</label>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Tên Team A</label>
                         <input
                           type="text"
                           value={formData.internalTeamAName}
@@ -555,7 +644,7 @@ export default function MatchesPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_a_kit')}</label>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Màu áo Team A</label>
                         <select
                           value={formData.internalTeamAKit}
                           onChange={(e) => setFormData({ ...formData, internalTeamAKit: e.target.value })}
@@ -570,16 +659,30 @@ export default function MatchesPage() {
                           <option value="xanh lá">{t('matches.kit_green')}</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">👤 Khách vãng lai Team A</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.guestPlayersA}
+                          onChange={(e) => setFormData({ ...formData, guestPlayersA: e.target.value })}
+                          placeholder="0"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
                     </div>
 
                     {/* Team B */}
-                    <div className="bg-white p-3 rounded-xl border border-emerald-200 shadow-xs space-y-2">
-                      <div className="text-[11px] font-black text-orange-600 uppercase flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" />
-                        ĐỘI B
+                    <div className="bg-white p-3 rounded-xl border border-orange-200 shadow-xs space-y-2">
+                      <div className="text-[11px] font-black text-orange-600 uppercase flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" />
+                          TEAM B
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-bold">Bên B</span>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_b_name')}</label>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Tên Team B</label>
                         <input
                           type="text"
                           value={formData.internalTeamBName}
@@ -588,7 +691,7 @@ export default function MatchesPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">{t('matches.team_b_kit')}</label>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Màu áo Team B</label>
                         <select
                           value={formData.internalTeamBKit}
                           onChange={(e) => setFormData({ ...formData, internalTeamBKit: e.target.value })}
@@ -602,6 +705,17 @@ export default function MatchesPage() {
                           <option value="vàng">{t('matches.kit_yellow')}</option>
                           <option value="xanh lá">{t('matches.kit_green')}</option>
                         </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-0.5">👤 Khách vãng lai Team B</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.guestPlayersB}
+                          onChange={(e) => setFormData({ ...formData, guestPlayersB: e.target.value })}
+                          placeholder="0"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                        />
                       </div>
                     </div>
                   </div>

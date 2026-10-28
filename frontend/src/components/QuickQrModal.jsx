@@ -21,20 +21,18 @@ export default function QuickQrModal({ isOpen, onClose }) {
 
   const config = configRes?.data || {};
   const fee = config.monthlyFee || 200000;
-  const bankName = config.bankName || 'MB Bank';
-  const bankCode = config.bankCode || 'MB';
-  const accountNumber = config.accountNumber || '0352526868';
-  const accountName = config.accountName || 'TRAN DUC HOANG';
+  const bankName = config.bankName || 'Techcombank';
+  const bankCode = config.bankCode || 'TCB';
+  const accountNumber = config.accountNumber || '4645199999';
+  const accountName = config.accountName || 'NGUYEN HUU THANG';
   const transferPrefix = config.transferPrefix || 'FCDUONGSINH';
   const customQrUrl = config.customQrUrl || '';
 
-  const now = new Date();
-  const currentMonthNum = (now.getMonth() + 1).toString().padStart(2, '0');
   const safeUserName = user?.name
     ? user.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase()
     : 'MEM';
-  const transferSyntax = `${transferPrefix} ${safeUserName} T${currentMonthNum}`;
-  const qrUrl = customQrUrl;
+  const transferSyntax = `${transferPrefix} ${safeUserName}`;
+  const qrUrl = customQrUrl || (bankCode && accountNumber ? `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.png?addInfo=${encodeURIComponent(transferSyntax)}&accountName=${encodeURIComponent(accountName)}` : '');
 
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);

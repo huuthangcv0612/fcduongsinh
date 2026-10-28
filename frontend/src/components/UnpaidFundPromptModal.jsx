@@ -9,10 +9,9 @@ import {
   ArrowRight, 
   X, 
   CheckCircle2, 
-  Clock, 
   Sparkles,
   Wallet,
-  QrCode
+  Calendar
 } from 'lucide-react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
@@ -20,7 +19,6 @@ export default function UnpaidFundPromptModal() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isDismissed, setIsDismissed] = useState(false);
-  const [showQr, setShowQr] = useState(false);
 
   const { data: statusRes, isLoading } = useQuery({
     queryKey: ['myFundStatus'],
@@ -30,12 +28,11 @@ export default function UnpaidFundPromptModal() {
   });
 
   const fundData = statusRes?.data;
-  const currentMonth = fundData?.currentMonth || (new Date().getMonth() + 1);
-  const currentYear = fundData?.currentYear || new Date().getFullYear();
-  const sessionKey = `dismissed_fund_prompt_${currentYear}_${currentMonth}`;
+  const unpaidCount = fundData?.unpaidCount || (fundData?.unpaidMatches?.length || 0);
+  const sessionKey = `dismissed_match_fund_prompt_${unpaidCount}`;
 
   const isSessionDismissed = Boolean(sessionStorage.getItem(sessionKey));
-  const shouldShow = !isLoading && fundData?.isUnpaid && !isDismissed && !isSessionDismissed;
+  const shouldShow = !isLoading && fundData?.isUnpaid && unpaidCount > 0 && !isDismissed && !isSessionDismissed;
 
   useBodyScrollLock(shouldShow);
 
@@ -73,20 +70,20 @@ export default function UnpaidFundPromptModal() {
         <div className="flex items-center gap-2 mb-3">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[11px] font-black uppercase tracking-wider shadow-sm">
             <AlertCircle className="w-3.5 h-3.5 text-amber-600 animate-bounce" />
-            {t('fund_prompt.badge')}
+            Nhắc Nhở Đóng Quỹ Trận
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-black">
             <Sparkles className="w-3 h-3" />
-            Tháng {currentMonth}/{currentYear}
+            {unpaidCount} trận chưa nộp
           </span>
         </div>
 
         {/* Modal Title */}
         <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-1.5">
-          {t('fund_prompt.title', { month: currentMonth, year: currentYear })}
+          Bạn có {unpaidCount} trận đấu chưa đóng quỹ
         </h3>
         <p className="text-xs text-slate-600 font-bold leading-relaxed mb-4">
-          {t('fund_prompt.subtitle')}
+          Chi phí sân và dịch vụ sau trận đấu đã được cập nhật và chia đều cho các thành viên tham gia.
         </p>
 
         {/* Financial Status Breakdown Card */}
@@ -94,94 +91,44 @@ export default function UnpaidFundPromptModal() {
           <div className="flex items-center justify-between text-xs font-bold text-slate-700">
             <span className="flex items-center gap-1.5 text-slate-600">
               <Wallet className="w-4 h-4 text-emerald-600" />
-              {t('fund_prompt.amount_label')}
+              Tổng số tiền cần đóng:
             </span>
-            <span className="text-sm font-black text-slate-900">
-              {formatCurrency(fundData.requiredAmount)}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-            <span className="flex items-center gap-1.5 text-slate-600">
-              <CheckCircle2 className="w-4 h-4 text-cyan-600" />
-              {t('fund_prompt.paid_label')}
-            </span>
-            <span className="font-mono font-black text-emerald-700">
-              {formatCurrency(fundData.paidAmount)}
+            <span className="text-base font-black text-emerald-700 font-mono">
+              {formatCurrency(fundData.totalUnpaidAmount)}
             </span>
           </div>
 
-          <div className="pt-2 border-t border-emerald-200/80 flex items-center justify-between">
-            <span className="text-xs font-black text-rose-600 uppercase tracking-wide">
-              {t('fund_prompt.remaining_label')}
-            </span>
-            <span className="text-base sm:text-lg font-black text-rose-600 font-mono">
-              {formatCurrency(fundData.remainingAmount)}
-            </span>
+          {/* List of unpaid matches */}
+          <div className="pt-2 border-t border-emerald-200/80 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            {fundData.unpaidMatches?.map((m) => (
+              <div key={m.matchId} className="flex items-center justify-between bg-white/80 p-2 rounded-xl text-xs font-bold border border-emerald-100">
+                <div className="min-w-0">
+                  <div className="text-slate-900 font-black truncate">
+                    ⚽ {m.date} • {m.opponent}
+                  </div>
+                  <div className="text-[10px] text-slate-500 truncate">{m.stadium}</div>
+                </div>
+                <div className="text-right text-emerald-700 font-black shrink-0 font-mono">
+                  {formatCurrency(m.feePerPerson)}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Bank Details Snippet */}
-        {fundData.fundConfig && (
-          <div className="rounded-2xl bg-slate-50 border border-slate-200 p-3.5 mb-4 text-xs font-bold text-slate-700 space-y-2">
-            <div className="text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center justify-between mb-1">
-              <span className="flex items-center gap-1.5">
-                <CreditCard className="w-3.5 h-3.5 text-indigo-600" />
-                {t('fund_prompt.bank_info_title')}
-              </span>
-              {fundData.fundConfig.customQrUrl && (
-                <button
-                  type="button"
-                  onClick={() => setShowQr(!showQr)}
-                  className="text-[11px] font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer transition"
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  <span>{showQr ? 'Ẩn QR' : 'Xem mã QR'}</span>
-                </button>
-              )}
-            </div>
-
-            {showQr && fundData.fundConfig.customQrUrl && (
-              <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-center animate-fade-in">
-                <img
-                  src={fundData.fundConfig.customQrUrl}
-                  alt="QR Đóng Quỹ"
-                  className="w-44 h-44 sm:w-48 sm:h-48 object-contain rounded-lg mx-auto"
-                />
-                <p className="text-[10px] text-slate-400 font-medium mt-1">Quét mã QR để chuyển khoản nhanh</p>
-              </div>
-            )}
-
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">{t('fund_prompt.bank_name')}</span>
-              <span className="font-black text-slate-900">{fundData.fundConfig.bankName} ({fundData.fundConfig.bankCode})</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">{t('fund_prompt.account_number')}</span>
-              <span className="font-mono font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-lg">{fundData.fundConfig.accountNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">{t('fund_prompt.account_name')}</span>
-              <span className="font-black text-slate-900">{fundData.fundConfig.accountName}</span>
-            </div>
-          </div>
-        )}
-
         {/* Action Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
+        <div className="flex items-center gap-2.5 pt-1">
           <button
-            type="button"
             onClick={handleDismiss}
-            className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition active:scale-95 text-center min-h-[44px] flex items-center justify-center"
+            className="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition text-center"
           >
             {t('fund_prompt.remind_later')}
           </button>
           <button
-            type="button"
             onClick={handleGoToFinances}
-            className="flex-1 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2 min-h-[44px]"
+            className="tactile-btn flex-2 py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/30 text-center"
           >
-            <span>{t('fund_prompt.go_to_finances')}</span>
+            <span>Vào Đóng Tiền Ngay</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

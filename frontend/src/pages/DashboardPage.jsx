@@ -216,9 +216,10 @@ export default function DashboardPage() {
             
             {/* Top Eyebrow & Countdown */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] font-black tracking-wider uppercase border border-white/25 text-white">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[10px] sm:text-[11px] font-black tracking-wider uppercase border border-white/25 text-white">
                 <Zap className="w-3.5 h-3.5 text-amber-300" />
-                <span>FC DƯỠNG SINH MATCH CENTER</span>
+                <span className="hidden sm:inline">FC DƯỠNG SINH</span>
+                <span>MATCH CENTER</span>
               </div>
 
               {nextUpcomingMatch && (
@@ -226,61 +227,61 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
                 {t('dashboard.hello')}, {user?.name || t('dashboard.player')}! ⚽
               </h1>
-              <p className="text-white/85 text-xs sm:text-sm font-semibold leading-relaxed max-w-xl mx-auto lg:mx-0">
-                {t('dashboard.welcome_msg')}
+              <p className="text-white/85 text-xs sm:text-sm font-semibold leading-relaxed max-w-xl mx-auto lg:mx-0 line-clamp-2 sm:line-clamp-none">
+                Chào mừng bạn đến với FC Dưỡng Sinh. Hãy nhớ điểm danh trận tới để ban huấn luyện chốt sân nhé!
               </p>
             </div>
 
             {/* Quick 1-Tap Attendance Widget for Mobile/Desktop */}
             {nextUpcomingMatch && isUserPending && (
               <div className="p-3 sm:p-3.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md text-left space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {t('dashboard.quick_checkin_title')} ({nextUpcomingMatch.date})
+                <div className="flex items-center justify-between text-xs gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1 truncate">
+                    <Calendar className="w-3 h-3 shrink-0" />
+                    <span>Điểm danh nhanh ({nextUpcomingMatch.date})</span>
                   </span>
-                  <span className="text-white/70 text-[11px] font-bold">{nextUpcomingMatch.time} @ {nextUpcomingMatch.stadium}</span>
+                  <span className="text-white/80 text-[10px] sm:text-[11px] font-bold truncate shrink-0">{nextUpcomingMatch.time} @ {nextUpcomingMatch.stadium}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'joined', reason: '' })}
                     className="tactile-btn py-2 px-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1 min-h-[38px] active:scale-95"
                   >
-                    ✓ {t('matchcard.play')}
+                    ✓ Đi đá
                   </button>
                   <button
-                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'uncertain', reason: t('dashboard.reason_uncertain_default') })}
+                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'uncertain', reason: 'Chưa chắc chắn' })}
                     className="tactile-btn py-2 px-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1 min-h-[38px] active:scale-95"
                   >
-                    ? {t('matchcard.uncertain_btn')}
+                    ? 50/50
                   </button>
                   <button
-                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'absent', reason: t('dashboard.reason_absent_default') })}
+                    onClick={() => checkInMutation.mutate({ matchId: nextUpcomingMatch._id, status: 'absent', reason: 'Bận việc riêng' })}
                     className="tactile-btn py-2 px-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md text-center flex items-center justify-center gap-1 min-h-[38px] active:scale-95"
                   >
-                    ✕ {t('matchcard.absent_btn')}
+                    ✕ Vắng
                   </button>
                 </div>
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-2.5 pt-1">
+            <div className="flex flex-row items-center justify-center lg:justify-start gap-2.5 pt-1">
               <Link
                 to="/matches"
-                className="tactile-btn w-full sm:w-auto px-5 py-2.5 rounded-full bg-white text-[#2c3ec4] hover:bg-slate-100 font-black text-xs shadow-lg transition text-center"
+                className="tactile-btn flex-1 sm:flex-initial sm:w-auto px-4 sm:px-5 py-2.5 rounded-full bg-white text-[#2c3ec4] hover:bg-slate-100 font-black text-xs shadow-lg transition text-center whitespace-nowrap"
               >
-                {t('dashboard.schedule_attendance')}
+                Lịch Thi Đấu
               </Link>
 
               <Link
                 to="/finances"
-                className="tactile-btn w-full sm:w-auto px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 font-black text-xs backdrop-blur-md transition text-center"
+                className="tactile-btn flex-1 sm:flex-initial sm:w-auto px-4 sm:px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/30 font-black text-xs backdrop-blur-md transition text-center whitespace-nowrap"
               >
-                {t('dashboard.fund_table')}
+                Quỹ Đội
               </Link>
             </div>
           </div>

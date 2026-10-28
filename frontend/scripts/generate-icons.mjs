@@ -6,6 +6,7 @@
 import { copyFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
@@ -18,10 +19,28 @@ if (!existsSync(iconsDir)) {
 
 const srcLogo = join(publicDir, 'logo.png');
 
-// Copy logo to required icon sizes (browser scales automatically)
+// Check if macOS sips is available for crisp resizing
+let hasSips = false;
+try {
+  execSync('which sips', { stdio: 'ignore' });
+  hasSips = true;
+} catch {
+  hasSips = false;
+}
+
+// Generate required icon sizes
 const sizes = [72, 96, 128, 144, 152, 180, 192, 384, 512];
 sizes.forEach(size => {
   const dest = join(iconsDir, `icon-${size}.png`);
+  if (hasSips) {
+    try {
+      execSync(`sips -z ${size} ${size} "${srcLogo}" --out "${dest}"`, { stdio: 'ignore' });
+      console.log(`✅ Resized icon-${size}.png (${size}x${size})`);
+      return;
+    } catch {
+      // fallback to copy
+    }
+  }
   copyFileSync(srcLogo, dest);
   console.log(`✅ Created icon-${size}.png`);
 });

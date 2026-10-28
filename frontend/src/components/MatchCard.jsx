@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import MatchLineupModal from './MatchLineupModal';
 import InternalMatchModal from './InternalMatchModal';
+import SubmitFundModal from './SubmitFundModal';
 
 function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush, isAdmin }) {
   const { user } = useAuth();
@@ -71,6 +72,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [showLineupModal, setShowLineupModal] = useState(false);
   const [showInternalSplitModal, setShowInternalSplitModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Reason Modal State for 'uncertain' and 'absent'
   const [showReasonModal, setShowReasonModal] = useState(false);
@@ -146,11 +148,18 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     stadium: match.stadium || '',
     stadiumLink: match.stadiumLink || '',
     pitchCost: match.pitchCost || 0,
+    serviceCost: match.serviceCost || 0,
+    guestPlayers: match.guestPlayers || 0,
+    guestPlayersA: match.guestPlayersA ?? match.internalTeams?.teamA?.guestPlayers ?? 0,
+    guestPlayersB: match.guestPlayersB ?? match.internalTeams?.teamB?.guestPlayers ?? 0,
     deal: match.deal || '5-5',
     matchType: match.matchType || 'friendly',
-    internalTeamAName: match.internalTeams?.teamA?.name || 'Đội A',
+    opponentName: match.opponent?.teamName || '',
+    opponentPhone: match.opponent?.phone || '',
+    opponentFbLink: match.opponent?.fbLink || '',
+    internalTeamAName: match.internalTeams?.teamA?.name || 'Team A',
     internalTeamAKit: match.internalTeams?.teamA?.kitColor || 'xanh dương',
-    internalTeamBName: match.internalTeams?.teamB?.name || 'Đội B',
+    internalTeamBName: match.internalTeams?.teamB?.name || 'Team B',
     internalTeamBKit: match.internalTeams?.teamB?.kitColor || 'cam',
     status: match.status || 'upcoming',
     notes: match.notes || ''
@@ -163,7 +172,43 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     status: match.status === 'upcoming' ? 'completed' : match.status,
     scorers: match.scorers || [],
     concededGoals: match.concededGoals || [],
-    motm: match.motm || ''
+    motm: match.motm || '',
+    pitchCost: match.pitchCost || 0,
+    serviceCost: match.serviceCost || 0,
+    guestPlayers: match.guestPlayers || 0,
+    guestPlayersA: match.guestPlayersA ?? match.internalTeams?.teamA?.guestPlayers ?? 0,
+    guestPlayersB: match.guestPlayersB ?? match.internalTeams?.teamB?.guestPlayers ?? 0,
+    deal: match.deal || '5-5'
+  });
+
+  // Toggle Member Payment in Match
+  const togglePaymentMutation = useMutation({
+    mutationFn: ({ userId, isPaid, paidAmount }) =>
+      api.put(`/matches/${match._id}/payment`, { userId, isPaid, paidAmount }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['match-funds'] });
+      queryClient.invalidateQueries({ queryKey: ['balance'] });
+      queryClient.invalidateQueries({ queryKey: ['myFundStatus'] });
+      toast.success(res.message || 'Đã cập nhật trạng thái đóng tiền!');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Lỗi khi cập nhật thanh toán', 'Lỗi');
+    }
+  });
+
+  // Update Guest Paid Count
+  const updateGuestPaidMutation = useMutation({
+    mutationFn: (guestPaidCount) =>
+      api.put(`/matches/${match._id}/fund`, { guestPaidCount }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['match-funds'] });
+      toast.success('Đã cập nhật số khách đã nộp!');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Lỗi cập nhật', 'Lỗi');
+    }
   });
 
   const [selectedMember, setSelectedMember] = useState('');
@@ -216,7 +261,13 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         time: editForm.time,
         stadium: editForm.stadium,
         stadiumLink: editForm.stadiumLink,
-        pitchCost: Number(editForm.pitchCost),
+        pitchCost: Number(editForm.pitchCost) || 0,
+        serviceCost: Number(editForm.serviceCost) || 0,
+        guestPlayers: editForm.matchType === 'internal'
+          ? (Number(editForm.guestPlayersA) || 0) + (Number(editForm.guestPlayersB) || 0)
+          : (Number(editForm.guestPlayers) || 0),
+        guestPlayersA: Number(editForm.guestPlayersA) || 0,
+        guestPlayersB: Number(editForm.guestPlayersB) || 0,
         deal: editForm.deal,
         kitColor: editForm.kitColor,
         opponent: editForm.matchType === 'friendly' ? {
@@ -228,11 +279,13 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
           teamA: {
             name: editForm.internalTeamAName,
             kitColor: editForm.internalTeamAKit,
+            guestPlayers: Number(editForm.guestPlayersA) || 0,
             players: match.internalTeams?.teamA?.players?.map(p => p._id || p) || []
           },
           teamB: {
             name: editForm.internalTeamBName,
             kitColor: editForm.internalTeamBKit,
+            guestPlayers: Number(editForm.guestPlayersB) || 0,
             players: match.internalTeams?.teamB?.players?.map(p => p._id || p) || []
           }
         } : undefined,
@@ -257,10 +310,20 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         scorers: resultForm.scorers,
         concededGoals: resultForm.concededGoals || [],
         motm: resultForm.motm,
-        status: resultForm.status
+        status: resultForm.status,
+        pitchCost: Number(resultForm.pitchCost) || 0,
+        serviceCost: Number(resultForm.serviceCost) || 0,
+        guestPlayers: match.matchType === 'internal'
+          ? (Number(resultForm.guestPlayersA) || 0) + (Number(resultForm.guestPlayersB) || 0)
+          : (Number(resultForm.guestPlayers) || 0),
+        guestPlayersA: Number(resultForm.guestPlayersA) || 0,
+        guestPlayersB: Number(resultForm.guestPlayersB) || 0,
+        deal: resultForm.deal
       });
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      toast.success('Đã cập nhật tỉ số, danh sách ghi bàn & lỗi bàn thua!', 'Tỉ Số Realtime');
+      queryClient.invalidateQueries({ queryKey: ['match-funds'] });
+      queryClient.invalidateQueries({ queryKey: ['balance'] });
+      toast.success('Đã cập nhật tỉ số, chi phí & chia tiền quỹ trận!', 'Cập Nhật Trận Đấu');
       setShowResultModal(false);
     } catch (err) {
       toast.error(err.message || 'Lỗi khi cập nhật tỉ số', 'Lỗi');
@@ -343,55 +406,49 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
     <div className="app-card p-3 md:p-4 lg:p-5 border border-slate-200 hover:border-blue-400 transition-all duration-300 shadow-md bg-white flex flex-col justify-between relative">
       <div>
         {/* Match Header */}
-        <div className="flex items-start sm:items-center justify-between border-b border-slate-100 pb-3 mb-3 text-xs flex-col sm:flex-row gap-3 sm:gap-2">
-          <div className="flex items-start sm:items-center gap-2 flex-1 pr-2 w-full">
-            <span className={`w-2.5 h-2.5 rounded-full ${match.matchType === 'internal' ? 'bg-amber-500' : 'bg-[#374df5]'} shrink-0 mt-1 sm:mt-0`} />
-            <span className="font-extrabold text-slate-700 uppercase tracking-wider text-[11px] break-words line-clamp-2">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3 text-xs gap-2">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-1">
+            <span className={`w-2 h-2 rounded-full ${match.matchType === 'internal' ? 'bg-amber-500' : 'bg-[#374df5]'} shrink-0`} />
+            <span className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] truncate">
               {match.matchType === 'internal'
-                ? `⚔️ ${t('matches.internal_match_badge')} • ${match.stadium}`
-                : `⚽ ${match.stadium ? `${t('matchcard.friendly')} • ${match.stadium}` : t('matchcard.friendly')}`}
+                ? `⚔️ Nội bộ ${match.stadium ? `• ${match.stadium}` : ''}`
+                : `⚽ ${match.stadium || 'Giao hữu'}`}
             </span>
           </div>
 
-          <div className="flex items-center justify-end gap-1.5 shrink-0 flex-wrap w-full sm:w-auto">
-            {match.matchType === 'internal' && (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 border border-amber-400">
-                {t('matches.internal_match_badge')}
-              </span>
-            )}
-
+          <div className="flex items-center gap-1.5 shrink-0">
             {match.status === 'live' && (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse flex items-center gap-1">
-                <Zap className="w-3 h-3 fill-white" /> {t('matchcard.live')}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse flex items-center gap-1 shrink-0">
+                <Zap className="w-3 h-3 fill-white" /> LIVE
               </span>
             )}
 
             {match.status === 'upcoming' && (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#374df5] text-white">
-                {t('matchcard.upcoming')}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#374df5] text-white shrink-0">
+                Sắp đá
               </span>
             )}
 
             {match.status === 'completed' && (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-white">
-                {t('matchcard.completed')}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-white shrink-0">
+                Xong
               </span>
             )}
 
             {isAdmin && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5 bg-slate-50 p-0.5 rounded-xl border border-slate-200/80">
                 <button
                   onClick={() => setShowEditModal(true)}
                   title="Chỉnh sửa thông tin trận đấu"
-                  className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                  className="p-1 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-white transition"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                 </button>
 
                 <button
                   onClick={() => onClone(match._id)}
-                  title="Sao chép tạo trận đấu tương tự"
-                  className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                  title="Sao chép tạo trận tương tự"
+                  className="p-1 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-white transition"
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
@@ -399,7 +456,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   title="Xóa trận đấu"
-                  className="p-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition"
+                  className="p-1 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-white transition"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -413,8 +470,8 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   title={match.isNotified ? 'Đã gửi Email' : 'Gửi Email thông báo'}
                   className={`p-1 rounded-lg transition ${
                     match.isNotified
-                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                      : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600'
+                      ? 'text-slate-300 cursor-not-allowed'
+                      : 'text-emerald-600 hover:bg-white'
                   }`}
                 >
                   <Send className="w-3.5 h-3.5" />
@@ -422,8 +479,8 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                 
                 <button
                   onClick={() => onNotifyPush(match._id)}
-                  title="Gửi Push Notification & App Popup (Có thể gửi nhiều lần)"
-                  className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition ml-1"
+                  title="Gửi Push Notification & App Popup"
+                  className="p-1 rounded-lg text-blue-600 hover:bg-white transition"
                 >
                   <Bell className="w-3.5 h-3.5" />
                 </button>
@@ -648,16 +705,16 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
         )}
 
         {/* Match Specs Bar */}
-        <div className="grid grid-cols-2 gap-2 mb-4 text-[11px] font-bold text-slate-800">
-          <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 truncate">
-            <Calendar className="w-3.5 h-3.5 text-[#374df5]" />
-            <span>{formatDateWithDay(match.date)}</span>
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3.5 text-[11px] font-bold text-slate-800">
+          <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 truncate">
+            <Calendar className="w-3.5 h-3.5 text-[#374df5] shrink-0" />
+            <span className="truncate">{formatDateWithDay(match.date)}</span>
           </div>
-          <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 truncate">
-            <Clock className="w-3.5 h-3.5 text-cyan-600" />
-            <span>{match.time}</span>
+          <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 truncate">
+            <Clock className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+            <span className="truncate">{match.time}</span>
           </div>
-          <div className="flex items-center gap-2 col-span-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-1.5 col-span-2 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
             <MapPin className="w-3.5 h-3.5 text-rose-600 shrink-0" />
             <div className="truncate flex-1">
               <span>{match.stadium}</span>
@@ -668,46 +725,170 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 truncate">
-            <DollarSign className="w-3.5 h-3.5 text-amber-600" />
-            <span>{match.pitchCost?.toLocaleString('vi-VN')} đ ({match.deal})</span>
+          <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 truncate col-span-2 sm:col-span-1">
+            <DollarSign className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span className="truncate">
+              {((match.pitchCost || 0) + (match.serviceCost || 0)).toLocaleString('vi-VN')} đ
+              <span className="text-[10px] text-slate-500 font-normal ml-1">
+                {match.serviceCost > 0 ? '(sân+nước' : '(sân'}
+                {match.guestPlayers > 0 ? `, +${match.guestPlayers}k)` : ')'}
+              </span>
+            </span>
           </div>
-          <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 truncate">
-            <Shirt className={`w-3.5 h-3.5 ${getKitColorClass(match.kitColor)}`} />
-            <span>{t('matchcard.color')} <span className={`uppercase ${getKitColorClass(match.kitColor)}`}>{match.kitColor || t('matchcard.undecided')}</span></span>
+          <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 truncate col-span-2 sm:col-span-1">
+            <Shirt className={`w-3.5 h-3.5 ${getKitColorClass(match.kitColor)} shrink-0`} />
+            <span className="truncate">Áo: <span className={`uppercase font-black ${getKitColorClass(match.kitColor)}`}>{match.kitColor || t('matchcard.undecided')}</span></span>
           </div>
         </div>
 
         {/* Check-in Multi-state Progress Bar */}
         <div className="mb-3">
           <div className="flex items-center justify-between text-xs mb-1 font-bold">
-            <span className="text-slate-800">{t('matchcard.attendance')} ({summary.joined} {t('matchcard.joined')})</span>
-            <span className="text-emerald-700 font-black">{joinedPct}% {t('matchcard.ratio')}</span>
+            <span className="text-slate-800">Điểm danh ({summary.joined} tham gia)</span>
+            <span className="text-emerald-700 font-black">{joinedPct}%</span>
           </div>
 
-          <div className="w-full h-2.5 rounded-full bg-slate-200 overflow-hidden flex">
-            <div style={{ width: `${joinedPct}%` }} className="bg-emerald-500 h-full transition-all duration-500" title={`${summary.joined} ${t('matchcard.joined')}`} />
-            <div style={{ width: `${uncertainPct}%` }} className="bg-amber-400 h-full transition-all duration-500" title={`${summary.uncertain} ${t('matchcard.uncertain')}`} />
-            <div style={{ width: `${absentPct}%` }} className="bg-rose-500 h-full transition-all duration-500" title={`${summary.absent} ${t('matchcard.absent')}`} />
+          <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden flex">
+            <div style={{ width: `${joinedPct}%` }} className="bg-emerald-500 h-full transition-all duration-500" title={`${summary.joined} đi đá`} />
+            <div style={{ width: `${uncertainPct}%` }} className="bg-amber-400 h-full transition-all duration-500" title={`${summary.uncertain} 50/50`} />
+            <div style={{ width: `${absentPct}%` }} className="bg-rose-500 h-full transition-all duration-500" title={`${summary.absent} vắng`} />
           </div>
 
           <div className="flex items-center justify-between text-[10px] font-extrabold mt-1 text-slate-600">
-            <span className="text-emerald-700">✓ {summary.joined} {t('matchcard.will_play')}</span>
-            <span className="text-amber-700">? {summary.uncertain} {t('matchcard.uncertain')}</span>
-            <span className="text-rose-700">✕ {summary.absent} {t('matchcard.absent')}</span>
+            <span className="text-emerald-700">✓ {summary.joined} đá</span>
+            <span className="text-amber-700">? {summary.uncertain} 50/50</span>
+            <span className="text-rose-700">✕ {summary.absent} vắng</span>
           </div>
         </div>
 
+        {/* Match Fund Summary Box */}
+        {((match.pitchCost > 0 || match.serviceCost > 0) || match.status === 'completed') && (
+          match.matchType === 'internal' ? (
+            <div className="mb-3 p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-300 text-xs space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <div className="text-[11px] font-black text-amber-950 flex items-center gap-1.5 flex-wrap">
+                  <span>⚔️ Quỹ: <b>{((match.pitchCost || 0) + (match.serviceCost || 0)).toLocaleString('vi-VN')} đ</b></span>
+                  <span className="text-[10px] font-bold text-slate-500">
+                    ({(match.fundSummary?.totalPlayers || summary.joined)} ng: {summary.joined} đội{match.guestPlayers > 0 ? ` + ${match.guestPlayers}k` : ''})
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-400 text-slate-950 font-mono">
+                  Kèo {match.deal || '5-5'}
+                </span>
+              </div>
+
+              {/* Internal Teams Cost Breakdown */}
+              {match.fundSummary?.breakdown && (
+                <div className="grid grid-cols-2 gap-1.5 text-[11px] pt-1 border-t border-amber-200/80">
+                  {/* Team A */}
+                  <div className="p-2 rounded-xl bg-white/90 border border-blue-200 shadow-2xs">
+                    <div className="flex items-center justify-between font-black text-blue-900 mb-0.5">
+                      <span className="truncate">🔵 {match.fundSummary.breakdown.teamA?.name || 'Team A'}</span>
+                      <span className="font-mono text-[11px] shrink-0">{match.fundSummary.breakdown.teamA?.cost?.toLocaleString('vi-VN')} đ</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600 text-[10px] flex-wrap gap-0.5">
+                      <span className="truncate">{match.fundSummary.breakdown.teamA?.totalCount || 0} ng {match.fundSummary.breakdown.teamA?.guestPlayers > 0 ? `(+${match.fundSummary.breakdown.teamA?.guestPlayers}k)` : ''}</span>
+                      <span className="font-black text-emerald-700 font-mono text-[11px] shrink-0">👉 {match.fundSummary.breakdown.teamA?.feePerPerson?.toLocaleString('vi-VN')} đ/ng</span>
+                    </div>
+                  </div>
+
+                  {/* Team B */}
+                  <div className="p-2 rounded-xl bg-white/90 border border-orange-200 shadow-2xs">
+                    <div className="flex items-center justify-between font-black text-orange-900 mb-0.5">
+                      <span className="truncate">🟠 {match.fundSummary.breakdown.teamB?.name || 'Team B'}</span>
+                      <span className="font-mono text-[11px] shrink-0">{match.fundSummary.breakdown.teamB?.cost?.toLocaleString('vi-VN')} đ</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600 text-[10px] flex-wrap gap-0.5">
+                      <span className="truncate">{match.fundSummary.breakdown.teamB?.totalCount || 0} ng {match.fundSummary.breakdown.teamB?.guestPlayers > 0 ? `(+${match.fundSummary.breakdown.teamB?.guestPlayers}k)` : ''}</span>
+                      <span className="font-black text-emerald-700 font-mono text-[11px] shrink-0">👉 {match.fundSummary.breakdown.teamB?.feePerPerson?.toLocaleString('vi-VN')} đ/ng</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Current user action / payment status */}
+              {userStatus === 'joined' && (
+                <div className="pt-2 border-t border-amber-200/80 flex items-center justify-between gap-2">
+                  <div className="text-[11px] font-bold text-slate-700 truncate">
+                    {(() => {
+                      const curUid = user?._id?.toString();
+                      const inA = Boolean(match.fundSummary?.breakdown?.teamA?.playerIds?.some(id => (id?._id || id)?.toString() === curUid));
+                      const inB = Boolean(match.fundSummary?.breakdown?.teamB?.playerIds?.some(id => (id?._id || id)?.toString() === curUid));
+                      const teamName = inA ? (match.internalTeams?.teamA?.name || 'Team A') : inB ? (match.internalTeams?.teamB?.name || 'Team B') : null;
+                      const fee = match.fundSummary?.userFeeToPay ?? match.fundSummary?.feePerPerson ?? 0;
+
+                      return teamName ? (
+                        <span><b className="text-slate-900">{teamName}</b>: Đóng <b className="text-emerald-700 font-mono font-black">{fee.toLocaleString('vi-VN')} đ</b></span>
+                      ) : (
+                        <span>Cần đóng: <b className="text-emerald-700 font-mono font-black">{fee.toLocaleString('vi-VN')} đ</b></span>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="shrink-0">
+                    {match.fundSummary?.userIsPaid ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-[11px] font-black border border-emerald-300">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Đã đóng
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowPaymentModal(true)}
+                        className="tactile-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black shadow-md shadow-emerald-600/20 active:scale-95 transition"
+                      >
+                        <span>Nộp tiền</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mb-3 p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-blue-50/70 to-indigo-50/70 border border-blue-200/80 flex items-center justify-between gap-2 text-xs">
+              <div className="min-w-0">
+                <div className="text-[11px] font-black text-blue-900 flex items-center gap-1.5 flex-wrap">
+                  <span>💰 Quỹ: {((match.pitchCost || 0) + (match.serviceCost || 0)).toLocaleString('vi-VN')} đ</span>
+                  <span className="text-[10px] font-bold text-slate-500">
+                    ({summary.joined + (match.guestPlayers || 0)} ng{match.guestPlayers > 0 ? `: +${match.guestPlayers}k` : ''})
+                  </span>
+                </div>
+                <div className="text-[11px] font-bold text-slate-600 mt-0.5">
+                  Đóng: <span className="font-black text-emerald-700 font-mono">{match.fundSummary?.feePerPerson?.toLocaleString('vi-VN') || 0} đ</span>/người
+                </div>
+              </div>
+
+              {/* Member's payment status or Pay button */}
+              {userStatus === 'joined' && (
+                <div className="shrink-0">
+                  {match.fundSummary?.userIsPaid ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-[11px] font-black border border-emerald-300">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Đã đóng
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentModal(true)}
+                      className="tactile-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black shadow-md shadow-emerald-600/20 active:scale-95 transition"
+                    >
+                      <span>Nộp tiền</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        )}
+
         {/* Action Buttons: Lineup / Internal Teams & Attendance */}
-        <div className={`grid ${match.matchType === 'internal' ? 'grid-cols-3' : 'grid-cols-2'} gap-2 border-t border-slate-100 pt-2.5`}>
+        <div className={`grid ${match.matchType === 'internal' ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5 sm:gap-2 border-t border-slate-100 pt-2.5`}>
           {match.matchType === 'internal' ? (
             <button
               type="button"
               onClick={() => setShowInternalSplitModal(true)}
-              className="py-1.5 px-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black transition flex items-center justify-center gap-1 shadow-2xs group"
+              className="py-1.5 px-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black transition flex items-center justify-center gap-1 shadow-2xs group"
             >
-              <Users className="w-3.5 h-3.5 text-amber-600 group-hover:scale-110 transition-transform" />
-              <span>Chia 2 Đội</span>
+              <Users className="w-3.5 h-3.5 text-amber-600 group-hover:scale-110 transition-transform shrink-0" />
+              <span className="truncate">Chia 2 Đội</span>
             </button>
           ) : null}
 
@@ -720,66 +901,66 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                 setShowLineupModal(true);
               }
             }}
-            className="py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black transition flex items-center justify-center gap-1.5 shadow-2xs group"
+            className="py-1.5 px-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black transition flex items-center justify-center gap-1 shadow-2xs group"
           >
-            <Shield className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
-            <span>{match.matchType === 'internal' ? 'Sa bàn 2 đội' : 'Đội hình ra sân'}</span>
+            <Shield className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform shrink-0" />
+            <span className="truncate">{match.matchType === 'internal' ? 'Sa bàn' : 'Đội hình'}</span>
             {match.lineup?.isPublished && (
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Đã có đội hình" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setShowMembers(true)}
-            className="py-1.5 px-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5"
+            className="py-1.5 px-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center justify-center gap-1 truncate"
           >
-            <Users className="w-3.5 h-3.5 text-slate-500" />
-            <span>{t('matchcard.view_details')}</span>
+            <Users className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <span className="truncate">Điểm danh ({summary.joined})</span>
           </button>
         </div>
       </div>
 
       {/* User Action Footer (3 Options: Joined, Uncertain, Absent) */}
       {match.status === 'upcoming' && (
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
+        <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center gap-1.5">
           {/* Option 1: Joined */}
           <button
             onClick={() => onCheckIn(match._id, 'joined', '')}
-            className={`flex-1 py-2 px-2 rounded-full text-[11px] font-black flex items-center justify-center gap-1 transition ${
+            className={`flex-1 py-2 px-1 rounded-full text-[11px] font-black flex items-center justify-center gap-1 transition ${
               userStatus === 'joined'
                 ? 'bg-emerald-600 text-white shadow-md'
                 : 'bg-slate-100 hover:bg-emerald-50 text-emerald-800 border border-slate-300'
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            {userStatus === 'joined' ? t('matchcard.registered') : t('matchcard.play')}
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{userStatus === 'joined' ? 'Đã điểm danh' : 'Đi đá'}</span>
           </button>
 
           {/* Option 2: Uncertain (Requires reason!) */}
           <button
             onClick={() => handleOpenReasonModal('uncertain')}
-            className={`flex-1 py-2 px-2 rounded-full text-[11px] font-black flex items-center justify-center gap-1 transition ${
+            className={`flex-1 py-2 px-1 rounded-full text-[11px] font-black flex items-center justify-center gap-1 transition ${
               userStatus === 'uncertain'
                 ? 'bg-amber-500 text-white shadow-md'
                 : 'bg-slate-100 hover:bg-amber-50 text-amber-800 border border-slate-300'
             }`}
           >
-            <HelpCircle className="w-3.5 h-3.5" />
-            {userStatus === 'uncertain' ? t('matchcard.uncertain') : t('matchcard.uncertain_btn')}
+            <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{userStatus === 'uncertain' ? 'Đang 50/50' : '50/50'}</span>
           </button>
 
           {/* Option 3: Absent (Requires reason!) */}
           <button
             onClick={() => handleOpenReasonModal('absent')}
-            className={`flex-1 py-2 px-2 rounded-full text-[11px] font-black flex items-center justify-center gap-1 transition ${
+            className={`flex-1 py-2 px-1 rounded-full text-[11px] font-black flex items-center justify-center gap-1 transition ${
               userStatus === 'absent'
                 ? 'bg-rose-600 text-white shadow-md'
                 : 'bg-slate-100 hover:bg-rose-50 text-rose-800 border border-slate-300'
             }`}
           >
-            <XCircle className="w-3.5 h-3.5" />
-            {userStatus === 'absent' ? t('matchcard.absent_btn_done') : t('matchcard.absent_btn')}
+            <XCircle className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{userStatus === 'absent' ? 'Đã báo vắng' : 'Báo vắng'}</span>
           </button>
         </div>
       )}
@@ -817,9 +998,32 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
 
                   <div className="text-right">
                     {item.status === 'joined' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-800 rounded-lg font-black text-[11px]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> ĐÁ
-                      </span>
+                      <div className="flex items-center gap-1.5 justify-end flex-wrap">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-lg font-black text-[11px]">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> ĐÁ
+                        </span>
+                        {item.isPaid ? (
+                          <button
+                            type="button"
+                            disabled={!isAdmin}
+                            onClick={() => isAdmin && togglePaymentMutation.mutate({ userId: item.userId?._id || item.userId, isPaid: false })}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-teal-100 text-teal-800 rounded-lg font-black text-[10px] border border-teal-300 hover:bg-teal-200 transition"
+                            title={isAdmin ? "Nhấn để hủy đánh dấu đã nộp" : "Đã đóng tiền"}
+                          >
+                            ✓ Đã nộp
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={!isAdmin}
+                            onClick={() => isAdmin && togglePaymentMutation.mutate({ userId: item.userId?._id || item.userId, isPaid: true })}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-900 rounded-lg font-black text-[10px] border border-amber-300 hover:bg-amber-200 transition"
+                            title={isAdmin ? "Nhấn để đánh dấu đã nộp" : "Chưa đóng tiền"}
+                          >
+                            ✕ Chưa nộp
+                          </button>
+                        )}
+                      </div>
                     )}
 
                     {item.status === 'uncertain' && (
@@ -840,6 +1044,39 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Guest Players Tracking */}
+            <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between text-xs bg-slate-50 p-2.5 rounded-xl">
+              <div>
+                <span className="font-black text-slate-900">👤 Khách vãng lai: </span>
+                <span className="text-slate-600 font-bold">{match.guestPlayers || 0} người</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-600">
+                  Đã đóng: <b className="text-emerald-700">{match.guestPaidCount || 0} / {match.guestPlayers || 0}</b>
+                </span>
+                {isAdmin && match.guestPlayers > 0 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={(match.guestPaidCount || 0) <= 0}
+                      onClick={() => updateGuestPaidMutation.mutate(Math.max(0, (match.guestPaidCount || 0) - 1))}
+                      className="p-1 rounded bg-slate-200 hover:bg-slate-300 disabled:opacity-40"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={(match.guestPaidCount || 0) >= (match.guestPlayers || 0)}
+                      onClick={() => updateGuestPaidMutation.mutate(Math.min(match.guestPlayers || 0, (match.guestPaidCount || 0) + 1))}
+                      className="p-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-40"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1066,6 +1303,30 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">🥤 Tiền dịch vụ / nước uống</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="5000"
+                    value={editForm.serviceCost}
+                    onChange={(e) => setEditForm({ ...editForm, serviceCost: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold font-mono text-slate-950 focus:outline-none focus:border-[#374df5]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">👤 Số thành viên vãng lai</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editForm.guestPlayers}
+                    onChange={(e) => setEditForm({ ...editForm, guestPlayers: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold font-mono text-slate-950 focus:outline-none focus:border-[#374df5]"
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">{t('matches.deal')}</label>
                   <select
                     value={editForm.deal}
@@ -1237,6 +1498,205 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                   <option value="completed">{t('matchcard.status_completed')}</option>
                   <option value="cancelled">{t('matchcard.status_cancelled')}</option>
                 </select>
+              </div>
+
+              {/* 💰 Match Fund & Expenses after match */}
+              <div className="border-t border-slate-200 pt-3 bg-blue-50/50 p-3.5 rounded-2xl border border-blue-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-blue-900 flex items-center gap-1.5">
+                    💰 Chi Phí Sân & Dịch Vụ Sau Trận Đấu
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500">
+                    Cập nhật để chia đều tiền quỹ
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      🏟️ Tiền sân (VNĐ):
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="10000"
+                      value={resultForm.pitchCost}
+                      onChange={(e) => setResultForm({ ...resultForm, pitchCost: Math.max(0, parseInt(e.target.value) || 0) })}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      🥤 Tiền dịch vụ / nước (VNĐ):
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="5000"
+                      value={resultForm.serviceCost}
+                      onChange={(e) => setResultForm({ ...resultForm, serviceCost: Math.max(0, parseInt(e.target.value) || 0) })}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-600"
+                    />
+                  </div>
+                </div>
+
+                {match.matchType === 'internal' ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          👤 Khách vãng lai {match.internalTeams?.teamA?.name || 'Team A'}:
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={resultForm.guestPlayersA}
+                          onChange={(e) => setResultForm({ ...resultForm, guestPlayersA: Math.max(0, parseInt(e.target.value) || 0) })}
+                          placeholder="0"
+                          className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          👤 Khách vãng lai {match.internalTeams?.teamB?.name || 'Team B'}:
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={resultForm.guestPlayersB}
+                          onChange={(e) => setResultForm({ ...resultForm, guestPlayersB: Math.max(0, parseInt(e.target.value) || 0) })}
+                          placeholder="0"
+                          className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        ⚖️ Kèo sân (Deal):
+                      </label>
+                      <input
+                        type="text"
+                        value={resultForm.deal}
+                        onChange={(e) => setResultForm({ ...resultForm, deal: e.target.value })}
+                        placeholder="5-5, 6-4, 7-3..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-600"
+                      />
+                    </div>
+
+                    {/* Live Internal Calculation preview */}
+                    {(() => {
+                      const totalCost = (Number(resultForm.pitchCost) || 0) + (Number(resultForm.serviceCost) || 0);
+                      const gA = Number(resultForm.guestPlayersA) || 0;
+                      const gB = Number(resultForm.guestPlayersB) || 0;
+                      const teamACount = (match.internalTeams?.teamA?.players || []).length + gA;
+                      const teamBCount = (match.internalTeams?.teamB?.players || []).length + gB;
+
+                      // Parse deal
+                      const cleanDeal = (resultForm.deal || '5-5').trim().toLowerCase();
+                      let winRatio = 0.5;
+                      let loseRatio = 0.5;
+                      if (cleanDeal.includes('thua đóng') || cleanDeal.includes('thua chịu') || cleanDeal === '10-0') {
+                        winRatio = 0;
+                        loseRatio = 1.0;
+                      } else {
+                        const m = cleanDeal.match(/^(\d+)[-–/:](\d+)$/);
+                        if (m) {
+                          const p1 = parseInt(m[1], 10);
+                          const p2 = parseInt(m[2], 10);
+                          if (p1 + p2 > 0) {
+                            winRatio = Math.min(p1, p2) / (p1 + p2);
+                            loseRatio = Math.max(p1, p2) / (p1 + p2);
+                          }
+                        }
+                      }
+
+                      const hScore = Number(resultForm.homeScore) || 0;
+                      const aScore = Number(resultForm.awayScore) || 0;
+
+                      let costA = Math.round(totalCost * 0.5);
+                      let costB = totalCost - costA;
+
+                      if (hScore > aScore) {
+                        costA = Math.round(totalCost * winRatio);
+                        costB = totalCost - costA;
+                      } else if (aScore > hScore) {
+                        costB = Math.round(totalCost * winRatio);
+                        costA = totalCost - costB;
+                      }
+
+                      const feeA = teamACount > 0 ? Math.round(costA / teamACount) : 0;
+                      const feeB = teamBCount > 0 ? Math.round(costB / teamBCount) : 0;
+
+                      return (
+                        <div className="bg-white p-3 rounded-xl border border-amber-300 text-xs space-y-1.5 shadow-2xs">
+                          <div className="flex justify-between font-bold text-slate-700">
+                            <span>Tổng chi (Sân + Dịch vụ):</span>
+                            <span className="font-black text-slate-900">{totalCost.toLocaleString('vi-VN')} đ</span>
+                          </div>
+                          <div className="text-[11px] font-black text-amber-900 flex items-center justify-between border-t border-slate-100 pt-1">
+                            <span>Kèo {resultForm.deal} • {hScore > aScore ? `${match.internalTeams?.teamA?.name || 'Team A'} Thắng` : aScore > hScore ? `${match.internalTeams?.teamB?.name || 'Team B'} Thắng` : 'Hòa 5-5'}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-[10px] pt-1">
+                            <div className="p-2 rounded-lg bg-blue-50 border border-blue-200">
+                              <p className="font-black text-blue-900">{match.internalTeams?.teamA?.name || 'Team A'}: {costA.toLocaleString('vi-VN')} đ</p>
+                              <p className="text-emerald-700 font-mono font-black text-[11px]">👉 {feeA.toLocaleString('vi-VN')} đ / người ({teamACount} ng)</p>
+                            </div>
+                            <div className="p-2 rounded-lg bg-orange-50 border border-orange-200">
+                              <p className="font-black text-orange-900">{match.internalTeams?.teamB?.name || 'Team B'}: {costB.toLocaleString('vi-VN')} đ</p>
+                              <p className="text-emerald-700 font-mono font-black text-[11px]">👉 {feeB.toLocaleString('vi-VN')} đ / người ({teamBCount} ng)</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        👤 Số thành viên vãng lai (không thuộc đội):
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={resultForm.guestPlayers}
+                        onChange={(e) => setResultForm({ ...resultForm, guestPlayers: Math.max(0, parseInt(e.target.value) || 0) })}
+                        placeholder="Có bao nhiêu nhập bấy nhiêu"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+
+                    {/* Live Calculation preview */}
+                    {(() => {
+                      const totalCost = (Number(resultForm.pitchCost) || 0) + (Number(resultForm.serviceCost) || 0);
+                      const teamCount = summary.joined;
+                      const guestCount = Number(resultForm.guestPlayers) || 0;
+                      const totalP = teamCount + guestCount;
+                      const perP = totalP > 0 ? Math.round(totalCost / totalP) : 0;
+
+                      return (
+                        <div className="bg-white p-3 rounded-xl border border-blue-200 text-xs space-y-1">
+                          <div className="flex justify-between text-slate-600 font-bold">
+                            <span>Tổng chi (Sân + Dịch vụ):</span>
+                            <span className="font-black text-slate-900">{totalCost.toLocaleString('vi-VN')} đ</span>
+                          </div>
+                          <div className="flex justify-between text-slate-600 font-bold">
+                            <span>Tổng người tham gia:</span>
+                            <span className="font-black text-slate-900">
+                              {totalP} người ({teamCount} trong đội + {guestCount} vãng lai)
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-blue-900 font-black pt-1 border-t border-slate-100">
+                            <span>Mỗi người cần đóng:</span>
+                            <span className="text-emerald-700 font-mono text-sm">{perP.toLocaleString('vi-VN')} đ</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
               </div>
 
               {/* Goal Scorers Box */}
@@ -1874,6 +2334,15 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
           isOpen={showInternalSplitModal}
           onClose={() => setShowInternalSplitModal(false)}
           isAdmin={isAdmin}
+        />
+      )}
+
+      {/* 💰 MODAL: SUBMIT FUND PAYMENT FOR THIS MATCH */}
+      {showPaymentModal && (
+        <SubmitFundModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          defaultMatchId={match._id}
         />
       )}
 

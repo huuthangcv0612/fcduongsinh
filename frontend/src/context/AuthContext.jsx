@@ -75,7 +75,8 @@ export const AuthProvider = ({ children }) => {
       roles: userRoles,
       loginWithGoogle,
       devBypassLogin,
-      logout
+      logout,
+      setUser
     }}>
       {children}
     </AuthContext.Provider>

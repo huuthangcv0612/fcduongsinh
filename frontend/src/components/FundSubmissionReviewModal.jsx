@@ -117,14 +117,27 @@ export default function FundSubmissionReviewModal({ submission, isOpen, onClose 
           {/* Left: Info */}
           <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div>
-              <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Các tháng đóng quỹ</span>
-              <div className="flex flex-wrap gap-1.5">
-                {activeSubmission.months?.map(m => (
-                  <span key={m} className="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-black font-mono">
-                    Tháng {m.split('-')[1]}/{m.split('-')[0]}
-                  </span>
-                ))}
-              </div>
+              <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                {activeSubmission.matchId ? 'Trận đấu đóng tiền' : 'Các tháng đóng quỹ'}
+              </span>
+              {activeSubmission.matchId ? (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1 text-xs font-bold text-slate-700">
+                  <div className="font-black text-blue-900 text-sm">
+                    ⚽ Trận ngày {activeSubmission.matchId.date} ({activeSubmission.matchId.opponent?.teamName || (activeSubmission.matchId.matchType === 'internal' ? 'Nội bộ' : 'Giao hữu')})
+                  </div>
+                  <div className="text-slate-600">
+                    🏟️ {activeSubmission.matchId.stadium} • {activeSubmission.matchId.time}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {activeSubmission.months?.map(m => (
+                    <span key={m} className="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-black font-mono">
+                      Tháng {m.split('-')[1]}/{m.split('-')[0]}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>

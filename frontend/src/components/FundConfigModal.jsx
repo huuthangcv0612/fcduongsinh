@@ -36,10 +36,10 @@ export default function FundConfigModal({ isOpen, onClose }) {
   const config = configRes?.data;
 
   const [formData, setFormData] = useState({
-    bankName: 'MB Bank',
-    bankCode: 'MB',
-    accountNumber: '0352526868',
-    accountName: 'TRAN DUC HOANG',
+    bankName: 'Techcombank',
+    bankCode: 'TCB',
+    accountNumber: '4645199999',
+    accountName: 'NGUYEN HUU THANG',
     monthlyFee: 200000,
     customQrUrl: '',
     transferPrefix: 'FCDUONGSINH',
@@ -51,8 +51,8 @@ export default function FundConfigModal({ isOpen, onClose }) {
   useEffect(() => {
     if (config) {
       setFormData({
-        bankName: config.bankName || 'MB Bank',
-        bankCode: config.bankCode || 'MB',
+        bankName: config.bankName || 'Techcombank',
+        bankCode: config.bankCode || 'TCB',
         accountNumber: config.accountNumber || '',
         accountName: config.accountName || '',
         monthlyFee: config.monthlyFee || 200000,
@@ -175,7 +175,7 @@ export default function FundConfigModal({ isOpen, onClose }) {
                   required
                   value={formData.accountNumber}
                   onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                  placeholder="VD: 0352526868"
+                  placeholder="VD: 4645199999"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 />
               </div>
@@ -189,42 +189,28 @@ export default function FundConfigModal({ isOpen, onClose }) {
                   required
                   value={formData.accountName}
                   onChange={(e) => setFormData({ ...formData, accountName: e.target.value.toUpperCase() })}
-                  placeholder="VD: TRAN DUC HOANG"
+                  placeholder="VD: NGUYEN HUU THANG"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black uppercase focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
                 />
               </div>
             </div>
 
-            {/* Monthly Fee & Transfer Prefix */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                  Số tiền đóng 1 tháng (VNĐ)
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="1000"
-                  value={formData.monthlyFee}
-                  onChange={(e) => setFormData({ ...formData, monthlyFee: Number(e.target.value) })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black font-mono-numbers focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                  Cú pháp chuyển khoản (Tiền tố)
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.transferPrefix}
-                  onChange={(e) => setFormData({ ...formData, transferPrefix: e.target.value.toUpperCase() })}
-                  placeholder="VD: FCDUONGSINH"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
-                />
-              </div>
+            {/* Transfer Prefix */}
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                Cú pháp chuyển khoản (Tiền tố)
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.transferPrefix}
+                onChange={(e) => setFormData({ ...formData, transferPrefix: e.target.value.toUpperCase() })}
+                placeholder="VD: FCDUONGSINH"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-900 font-black font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+              />
+              <span className="text-[11px] text-slate-500 font-bold block mt-1">
+                * Quỹ được tính tự động chia đều theo chi phí từng trận đấu (sân + dịch vụ) cho các thành viên tham gia.
+              </span>
             </div>
 
             {/* QR Image Upload & Preview */}
