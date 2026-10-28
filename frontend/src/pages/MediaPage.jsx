@@ -116,7 +116,7 @@ export default function MediaPage() {
       a.href = url;
       
       const ext = media.type === 'video' ? 'mp4' : 'jpg';
-      const filename = media.title ? `${media.title}.${ext}` : `fcnhatre-media-${media._id}.${ext}`;
+      const filename = media.title ? `${media.title}.${ext}` : `fcduongsinh-media-${media._id}.${ext}`;
       a.download = filename;
       
       document.body.appendChild(a);

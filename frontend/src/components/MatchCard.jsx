@@ -447,11 +447,11 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
                     A
                   </div>
                 ) : (
-                  <img src={teamLogo} alt="FC Nhà Trẻ" className="w-full h-full object-cover" />
+                  <img src={teamLogo} alt="FC Dưỡng Sinh" className="w-full h-full object-cover" />
                 )}
               </div>
               <span className="font-black text-sm text-slate-900 line-clamp-1 w-full px-1">
-                {match.matchType === 'internal' ? (match.internalTeams?.teamA?.name || 'Đội A') : 'FC Nhà Trẻ'}
+                {match.matchType === 'internal' ? (match.internalTeams?.teamA?.name || 'Đội A') : 'FC Dưỡng Sinh'}
               </span>
               <span className="text-[10px] font-bold text-slate-500">
                 {match.matchType === 'internal' ? `Áo ${match.internalTeams?.teamA?.kitColor || 'Xanh'}` : t('matchcard.home_team')}
@@ -512,7 +512,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
           {match.scorers && match.scorers.length > 0 && (
             <div className="mt-3 pt-2 border-t border-slate-200/80 text-xs">
               <div className="text-[11px] font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
-                ⚽ {t('matchcard.fc_nhatre_scorers')}
+                ⚽ {t('matchcard.fc_duongsinh_scorers')}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {match.scorers.map((sc, i) => (
@@ -1146,12 +1146,12 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
             <form onSubmit={handleSaveResult} className="space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain pr-1">
               {/* Ultra High-Contrast Score Input Box with Stepper Buttons */}
               <div className="bg-[#1f2ca3] text-white p-3.5 sm:p-4 rounded-2xl border border-[#2c3ec4] flex items-center justify-between sm:justify-around shadow-lg gap-2">
-                {/* Home Team (FC Nhà Trẻ / Team A) */}
+                {/* Home Team (FC Dưỡng Sinh / Team A) */}
                 <div className="flex flex-col items-center min-w-0">
                   <div className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1 truncate">
                     {match.matchType === 'internal'
                       ? `🔵 ${match.internalTeams?.teamA?.name || 'Đội A'}`
-                      : '🏠 FC Nhà Trẻ'}
+                      : '🏠 FC Dưỡng Sinh'}
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
@@ -1633,7 +1633,7 @@ function MatchCard({ match, onCheckIn, onClone, onDelete, onNotify, onNotifyPush
               </h3>
             </div>
             <p className="text-xs font-bold text-slate-500 mb-3 shrink-0">
-              Trận ngày {match.date || ''} • FC Nhà Trẻ ({match.score?.homeScore ?? 0}) - ({match.score?.awayScore ?? 0}) {match.opponent?.teamName || 'Đối thủ'}
+              Trận ngày {match.date || ''} • FC Dưỡng Sinh ({match.score?.homeScore ?? 0}) - ({match.score?.awayScore ?? 0}) {match.opponent?.teamName || 'Đối thủ'}
             </p>
 
             {/* If winner finalized */}

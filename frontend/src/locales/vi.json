@@ -68,7 +68,7 @@
     "location": "Hà Nội (VN)"
   },
   "app": {
-    "loading": "Đang tải dữ liệu FC Nhà Trẻ..."
+    "loading": "Đang tải dữ liệu FC Dưỡng Sinh..."
   },
   "dashboard": {
     "clone_success": "Sao chép trận đấu thành công",
@@ -78,7 +78,7 @@
     "notify_fail": "Gửi thông báo thất bại",
     "hello": "Xin chào",
     "player": "Cầu thủ",
-    "welcome_msg": "Chào mừng bạn đến với Hệ thống Quản lý FC Nhà Trẻ. Đừng quên điểm danh trận đấu sắp tới (Có mặt / 50-50 / Nghỉ) để ban huấn luyện chốt kèo sân!",
+    "welcome_msg": "Chào mừng bạn đến với Hệ thống Quản lý FC Dưỡng Sinh. Đừng quên điểm danh trận đấu sắp tới (Có mặt / 50-50 / Nghỉ) để ban huấn luyện chốt kèo sân!",
     "schedule_attendance": "Lịch Thi Đấu & Điểm Danh",
     "fund_table": "Bảng Quỹ Tháng",
     "match_center": "Match Center",
@@ -168,7 +168,7 @@
     "opponent": "Đối thủ",
     "opponent_fb": "Đối thủ (FB)",
     "awaiting_opponent": "Đang chờ đối",
-    "fc_nhatre_scorers": "Cầu thủ ghi bàn (FC Nhà Trẻ):",
+    "fc_duongsinh_scorers": "Cầu thủ ghi bàn (FC Dưỡng Sinh):",
     "update_score_btn": "Cập Nhật Tỉ Số & Cầu Thủ Ghi Bàn",
     "map": "(Bản đồ)",
     "color": "Màu: ",
@@ -202,7 +202,7 @@
     "status_live": "Đang Live (Đang thi đấu)",
     "status_completed": "Đã kết thúc",
     "status_cancelled": "Hủy trận",
-    "select_scorer_title": "Chọn cầu thủ ghi bàn (FC Nhà Trẻ):",
+    "select_scorer_title": "Chọn cầu thủ ghi bàn (FC Dưỡng Sinh):",
     "select_member_placeholder": "-- Chọn thành viên trong đội --",
     "custom_scorer_option": "➕ Nhập tên khác (Khách / Thử việc)...",
     "minute_placeholder": "Phút (15', 38')",
@@ -254,7 +254,7 @@
   "fund_prompt": {
     "badge": "Nhắc Nhở Quỹ Tháng",
     "title": "⚽ Thông Báo Đóng Quỹ Tháng {{month}}/{{year}}",
-    "subtitle": "Chào bạn, bạn chưa hoàn thành nghĩa vụ quỹ tháng này để duy trì hoạt động và tiền sân của FC Nhà Trẻ!",
+    "subtitle": "Chào bạn, bạn chưa hoàn thành nghĩa vụ quỹ tháng này để duy trì hoạt động và tiền sân của FC Dưỡng Sinh!",
     "amount_label": "Số tiền cần đóng:",
     "paid_label": "Đã đóng:",
     "remaining_label": "Còn thiếu:",
@@ -272,7 +272,7 @@
     "dismiss_tooltip": "Tắt thông báo điểm danh",
     "badge": "YÊU CẦU ĐIỂM DANH TRẬN SẮP ĐẾN",
     "title": "⚽ Bạn có tham gia trận tới không?",
-    "subtitle": "FC Nhà Trẻ bắt buộc thành viên điểm danh trước để chuẩn bị đội hình & chốt kèo sân!",
+    "subtitle": "FC Dưỡng Sinh bắt buộc thành viên điểm danh trước để chuẩn bị đội hình & chốt kèo sân!",
     "date": "Ngày:",
     "stadium": "Sân:",
     "deal": "Kèo:",
@@ -441,7 +441,7 @@
     "loading": "Đang tải bảng vàng...",
     "hall_of_fame": "BẢNG PHONG THẦN",
     "title": "Trung Tâm Thống Kê 🏆",
-    "subtitle": "Nơi vinh danh những cá nhân xuất sắc nhất của FC Nhà Trẻ qua từng trận đấu.",
+    "subtitle": "Nơi vinh danh những cá nhân xuất sắc nhất của FC Dưỡng Sinh qua từng trận đấu.",
     "no_data": "Chưa có dữ liệu cho hạng mục này.",
     "leading": "Đang dẫn đầu 🔥",
     "unit_match": "Trận",

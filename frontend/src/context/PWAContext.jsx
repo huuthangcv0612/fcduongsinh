@@ -44,10 +44,10 @@ function IOSGuideModal({ onClose, isChromeiOS }) {
           </button>
           <div className="flex items-center gap-3 mb-1">
             <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-md">
-              <img src="/icons/icon-96.png" alt="FC Nhà Trẻ" className="w-8 h-8 object-cover rounded-xl" onError={(e) => { e.target.style.display = 'none'; }} />
+              <img src="/icons/icon-96.png" alt="FC Dưỡng Sinh" className="w-8 h-8 object-cover rounded-xl" onError={(e) => { e.target.style.display = 'none'; }} />
             </div>
             <div>
-              <div className="font-black text-base">FC Nhà Trẻ</div>
+              <div className="font-black text-base">FC Dưỡng Sinh</div>
               <div className="text-xs text-white/80 font-bold">Cài lên màn hình chính</div>
             </div>
           </div>
@@ -59,7 +59,7 @@ function IOSGuideModal({ onClose, isChromeiOS }) {
             [
               { icon: '⬆️', title: 'Bước 1: Nhấn nút Chia sẻ', desc: 'Biểu tượng ở thanh dưới Safari' },
               { icon: '➕', title: 'Bước 2: Chọn "Thêm vào Màn hình chính"', desc: 'Cuộn xuống trong menu chia sẻ' },
-              { icon: '✅', title: 'Bước 3: Nhấn "Thêm"', desc: 'Icon FC Nhà Trẻ sẽ xuất hiện ngay!' },
+              { icon: '✅', title: 'Bước 3: Nhấn "Thêm"', desc: 'Icon FC Dưỡng Sinh sẽ xuất hiện ngay!' },
             ].map((s, i) => (
               <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
                 <span className="text-xl shrink-0">{s.icon}</span>
@@ -105,10 +105,10 @@ function DesktopInstallModal({ onClose, onNativeInstall, hasNativePrompt }) {
           </button>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg shrink-0">
-              <img src="/icons/icon-96.png" alt="FC Nhà Trẻ" className="w-12 h-12 object-cover rounded-xl" onError={(e) => { e.target.style.display = 'none'; }} />
+              <img src="/icons/icon-96.png" alt="FC Dưỡng Sinh" className="w-12 h-12 object-cover rounded-xl" onError={(e) => { e.target.style.display = 'none'; }} />
             </div>
             <div>
-              <h2 className="text-xl font-black">FC Nhà Trẻ</h2>
+              <h2 className="text-xl font-black">FC Dưỡng Sinh</h2>
               <p className="text-white/80 text-sm font-bold">Cài đặt ứng dụng — chọn thiết bị của bạn</p>
             </div>
           </div>
@@ -144,7 +144,7 @@ function DesktopInstallModal({ onClose, onNativeInstall, hasNativePrompt }) {
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#1f2ca3] to-[#2c3ec4] hover:from-[#2c3ec4] hover:to-[#374df5] text-white font-black text-base shadow-lg transition flex items-center justify-center gap-3"
               >
                 <Download className="w-5 h-5" />
-                Cài FC Nhà Trẻ ngay
+                Cài FC Dưỡng Sinh ngay
               </button>
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 font-bold text-center">
                 Hoặc mở trên điện thoại → chọn tab Android / iPhone để cài lên màn hình chính 📱
@@ -162,7 +162,7 @@ function DesktopInstallModal({ onClose, onNativeInstall, hasNativePrompt }) {
                 { step: '1', icon: '🌐', title: 'Mở Chrome trên Android', desc: 'Truy cập ' + appUrl },
                 { step: '2', icon: '⋮', title: 'Nhấn menu 3 chấm (⋮)', desc: 'Góc phải trên thanh địa chỉ Chrome' },
                 { step: '3', icon: '📲', title: 'Chọn "Thêm vào màn hình chính"', desc: 'Hoặc "Cài đặt ứng dụng" nếu có' },
-                { step: '4', icon: '✅', title: 'Nhấn "Thêm" để xác nhận', desc: 'Icon FC Nhà Trẻ sẽ xuất hiện trên Home Screen' },
+                { step: '4', icon: '✅', title: 'Nhấn "Thêm" để xác nhận', desc: 'Icon FC Dưỡng Sinh sẽ xuất hiện trên Home Screen' },
               ].map((s) => (
                 <div key={s.step} className="flex items-center gap-3 p-3 bg-green-50 rounded-2xl border border-green-200">
                   <div className="w-8 h-8 bg-green-600 rounded-xl flex items-center justify-center text-white font-black text-sm shrink-0">{s.step}</div>
@@ -185,7 +185,7 @@ function DesktopInstallModal({ onClose, onNativeInstall, hasNativePrompt }) {
                 { step: '1', icon: '🌐', title: 'Mở Safari trên iPhone/iPad', desc: 'Bắt buộc dùng Safari (không dùng Chrome)' },
                 { step: '2', icon: '⬆️', title: 'Nhấn nút Chia sẻ', desc: 'Biểu tượng vuông có mũi tên lên ở dưới màn hình' },
                 { step: '3', icon: '➕', title: 'Chọn "Thêm vào Màn hình chính"', desc: 'Cuộn xuống trong menu chia sẻ để tìm' },
-                { step: '4', icon: '✅', title: 'Nhấn "Thêm"', desc: 'Icon FC Nhà Trẻ xuất hiện trên màn hình chính!' },
+                { step: '4', icon: '✅', title: 'Nhấn "Thêm"', desc: 'Icon FC Dưỡng Sinh xuất hiện trên màn hình chính!' },
               ].map((s) => (
                 <div key={s.step} className="flex items-center gap-3 p-3 bg-blue-50 rounded-2xl border border-blue-200">
                   <div className="w-8 h-8 bg-[#1f2ca3] rounded-xl flex items-center justify-center text-white font-black text-sm shrink-0">{s.step}</div>
@@ -243,7 +243,7 @@ export function PWAInstallButton({ className = '' }) {
         id="pwa-install-btn"
         onClick={handleInstall}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-white border border-amber-300/50 shadow-[0_0_15px_rgba(245,158,11,0.5)] text-xs font-black transition transform hover:-translate-y-0.5 ${className}`}
-        title="Cài FC Nhà Trẻ như ứng dụng native"
+        title="Cài FC Dưỡng Sinh như ứng dụng native"
       >
         <Download className="w-3.5 h-3.5 shrink-0" />
         <span className="inline">Tải app</span>
@@ -258,7 +258,7 @@ export function PWAInstallButton({ className = '' }) {
         id="pwa-install-btn"
         onClick={() => setShowDesktopModal(true)}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-black transition ${className}`}
-        title="Tải ứng dụng FC Nhà Trẻ"
+        title="Tải ứng dụng FC Dưỡng Sinh"
       >
         <Download className="w-3.5 h-3.5 shrink-0" />
         <span>Tải app</span>

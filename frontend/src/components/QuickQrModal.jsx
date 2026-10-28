@@ -25,7 +25,7 @@ export default function QuickQrModal({ isOpen, onClose }) {
   const bankCode = config.bankCode || 'MB';
   const accountNumber = config.accountNumber || '0352526868';
   const accountName = config.accountName || 'TRAN DUC HOANG';
-  const transferPrefix = config.transferPrefix || 'FCNHATRE';
+  const transferPrefix = config.transferPrefix || 'FCDUONGSINH';
   const customQrUrl = config.customQrUrl || '';
 
   const now = new Date();
@@ -45,7 +45,7 @@ export default function QuickQrModal({ isOpen, onClose }) {
     if (!qrUrl) return;
     const link = document.createElement('a');
     link.href = qrUrl;
-    link.download = `FCNhaTre_QR_${bankCode}_${accountNumber}.png`;
+    link.download = `FCDuongSinh_QR_${bankCode}_${accountNumber}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

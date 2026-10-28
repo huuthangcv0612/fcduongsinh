@@ -53,7 +53,7 @@ function createSoccerBallMesh(radius = 1.0) {
   });
 
   const pentMat = new THREE.MeshStandardMaterial({
-    color: 0x1e2b99, // FC Nha Tre Royal Navy Blue
+    color: 0x1e2b99, // FC Duong Sinh Royal Navy Blue
     roughness: 0.28,
     metalness: 0.15,
     envMapIntensity: 1.4
@@ -455,7 +455,7 @@ export default function Loading3D({
             ref={mountRef}
             className="cursor-pointer transition-transform active:scale-95 duration-200"
             style={{ width: dims.width, height: dims.height }}
-            title="FC Nhà Trẻ"
+            title="FC Dưỡng Sinh"
           />
         </div>
 
@@ -463,7 +463,7 @@ export default function Loading3D({
         <div className="text-center mt-2 space-y-1.5 max-w-xs sm:max-w-sm">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>FC NHÀ TRẺ</span>
+            <span>FC DƯỠNG SINH</span>
           </div>
 
           <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">

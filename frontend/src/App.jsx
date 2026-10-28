@@ -127,12 +127,12 @@ export default function App() {
           <div className="w-full max-w-4xl space-y-8">
             <div className="text-center space-y-1">
               <h1 className="text-2xl font-black text-white tracking-wide">3Dviz Pro Max Loading Preview</h1>
-              <p className="text-sm text-slate-400">Kiểm thử hiệu ứng 3D Loading Soccer Ball của FC Nhà Trẻ</p>
+              <p className="text-sm text-slate-400">Kiểm thử hiệu ứng 3D Loading Soccer Ball của FC Dưỡng Sinh</p>
             </div>
             
             {/* Fullscreen style preview */}
             <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-2xl backdrop-blur-md">
-              <Loading3D variant="fullscreen" text="Đang đồng bộ dữ liệu FC Nhà Trẻ..." subtext="Chiến thuật 7 người • Đội hình ra sân" />
+              <Loading3D variant="fullscreen" text="Đang đồng bộ dữ liệu FC Dưỡng Sinh..." subtext="Chiến thuật 7 người • Đội hình ra sân" />
             </div>
 
             {/* Section & Card previews */}

@@ -29,7 +29,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
   const bankCode = config.bankCode || 'MB';
   const accountNumber = config.accountNumber || '0352526868';
   const accountName = config.accountName || 'TRAN DUC HOANG';
-  const transferPrefix = config.transferPrefix || 'FCNHATRE';
+  const transferPrefix = config.transferPrefix || 'FCDUONGSINH';
   const customQrUrl = config.customQrUrl || '';
 
   // Generate available months (previous month, current month, and next 4 months)
@@ -232,7 +232,7 @@ export default function SubmitFundModal({ isOpen, onClose }) {
     if (!qrUrl) return;
     const link = document.createElement('a');
     link.href = qrUrl;
-    link.download = `FCNhaTre_QR_${transferSyntax.replace(/\s+/g, '_')}.png`;
+    link.download = `FCDuongSinh_QR_${transferSyntax.replace(/\s+/g, '_')}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

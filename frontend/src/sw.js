@@ -1,5 +1,5 @@
 // ============================================================
-// FC Nhà Trẻ - Service Worker
+// FC Dưỡng Sinh - Service Worker
 // Strategy: Workbox precache (build-injected) + custom Push handlers
 // ============================================================
 
@@ -38,7 +38,7 @@ self.addEventListener('push', function(event) {
     }
   }
 
-  const title = data.title || 'FC Nhà Trẻ';
+  const title = data.title || 'FC Dưỡng Sinh';
   const options = {
     body: data.body || 'Bạn có một thông báo mới.',
     requireInteraction: true,

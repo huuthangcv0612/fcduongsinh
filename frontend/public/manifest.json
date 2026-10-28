@@ -1,7 +1,7 @@
 {
-  "name": "FC Nhà Trẻ",
-  "short_name": "FC Nhà Trẻ",
-  "description": "Hệ thống Quản Lý Đội Bóng, Điểm Danh Trận Đấu & Tìm Đối AI cho FC Nhà Trẻ",
+  "name": "FC Dưỡng Sinh",
+  "short_name": "FC Dưỡng Sinh",
+  "description": "Hệ thống Quản Lý Đội Bóng, Điểm Danh Trận Đấu & Tìm Đối AI cho FC Dưỡng Sinh",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -68,7 +68,7 @@
     "location": "Hanoi (VN)"
   },
   "app": {
-    "loading": "Loading FC Nhà Trẻ data..."
+    "loading": "Loading FC Dưỡng Sinh data..."
   },
   "dashboard": {
     "clone_success": "Match cloned successfully",
@@ -78,7 +78,7 @@
     "notify_fail": "Failed to send notification",
     "hello": "Hello",
     "player": "Player",
-    "welcome_msg": "Welcome to FC Nhà Trẻ Management System. Don't forget to check-in for upcoming matches (Joined / 50-50 / Absent) so the coaching staff can arrange the pitch!",
+    "welcome_msg": "Welcome to FC Dưỡng Sinh Management System. Don't forget to check-in for upcoming matches (Joined / 50-50 / Absent) so the coaching staff can arrange the pitch!",
     "schedule_attendance": "Schedule & Check-in",
     "fund_table": "Monthly Fund",
     "match_center": "Match Center",
@@ -168,7 +168,7 @@
     "opponent": "Opponent",
     "opponent_fb": "Opponent (FB)",
     "awaiting_opponent": "Awaiting Opponent",
-    "fc_nhatre_scorers": "Goal Scorers (FC Nhà Trẻ):",
+    "fc_duongsinh_scorers": "Goal Scorers (FC Dưỡng Sinh):",
     "update_score_btn": "Update Score & Scorers",
     "map": "(Map)",
     "color": "Color: ",
@@ -202,7 +202,7 @@
     "status_live": "Live in-game",
     "status_completed": "Completed",
     "status_cancelled": "Cancelled",
-    "select_scorer_title": "Select Goal Scorer (FC Nhà Trẻ):",
+    "select_scorer_title": "Select Goal Scorer (FC Dưỡng Sinh):",
     "select_member_placeholder": "-- Select team member --",
     "custom_scorer_option": "➕ Enter other name (Guest / Trial)...",
     "minute_placeholder": "Min (15', 38')",
@@ -272,7 +272,7 @@
     "dismiss_tooltip": "Dismiss check-in notification",
     "badge": "MANDATORY MATCH CHECK-IN",
     "title": "⚽ Are you attending the upcoming match?",
-    "subtitle": "FC Nhà Trẻ requires all members to check-in in advance to prepare lineups and pitch bookings!",
+    "subtitle": "FC Dưỡng Sinh requires all members to check-in in advance to prepare lineups and pitch bookings!",
     "date": "Date:",
     "stadium": "Venue:",
     "deal": "Deal:",
@@ -441,7 +441,7 @@
     "loading": "Loading leaderboard...",
     "hall_of_fame": "HALL OF FAME",
     "title": "Stats Center 🏆",
-    "subtitle": "Honoring the best individuals of FC Nhà Trẻ across all matches.",
+    "subtitle": "Honoring the best individuals of FC Dưỡng Sinh across all matches.",
     "no_data": "No data available for this category yet.",
     "leading": "Leading 🔥",
     "unit_match": "Matches",

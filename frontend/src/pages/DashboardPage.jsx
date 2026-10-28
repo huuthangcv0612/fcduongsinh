@@ -143,7 +143,7 @@ export default function DashboardPage() {
     .filter(item => item?.type === 'image' && typeof item.url === 'string')
     .map(item => ({
       url: item.url,
-      title: item.title || 'FC Nhà Trẻ'
+      title: item.title || 'FC Dưỡng Sinh'
     }));
 
   useEffect(() => {
@@ -184,7 +184,7 @@ export default function DashboardPage() {
   }, [carouselReady, carouselImages.length]);
 
   const activeHeroImage = carouselImages[heroImageIndex]?.url || coverImage;
-  const activeHeroTitle = carouselImages[heroImageIndex]?.title || 'FC Nhà Trẻ';
+  const activeHeroTitle = carouselImages[heroImageIndex]?.title || 'FC Dưỡng Sinh';
 
   const upcomingMatches = React.useMemo(() => {
     return matches
@@ -218,7 +218,7 @@ export default function DashboardPage() {
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] font-black tracking-wider uppercase border border-white/25 text-white">
                 <Zap className="w-3.5 h-3.5 text-amber-300" />
-                <span>FC NHÀ TRẺ MATCH CENTER</span>
+                <span>FC DƯỠNG SINH MATCH CENTER</span>
               </div>
 
               {nextUpcomingMatch && (

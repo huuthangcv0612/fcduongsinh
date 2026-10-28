@@ -176,7 +176,7 @@ export default function TacticalPitch({
         Khung thành đối thủ
       </div>
       <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-bold text-white/50 tracking-wider uppercase px-2 py-0.5 bg-black/20 rounded-full">
-        Khung thành FC Nha Trẻ
+        Khung thành FC Dưỡng Sinh
       </div>
 
       {/* ⚽ 7 Player Slots */}

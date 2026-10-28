@@ -124,8 +124,8 @@ export default function ForceMvpVoteModal() {
 
           <div className="flex items-center justify-between gap-3 pt-1 border-t border-white/10">
             <div className="flex items-center gap-2 flex-1">
-              <img src={teamLogo} alt="FC Nhà Trẻ" className="w-7 h-7 rounded-lg bg-white p-0.5 object-cover" />
-              <span className="font-black text-xs sm:text-sm truncate">FC Nhà Trẻ</span>
+              <img src={teamLogo} alt="FC Dưỡng Sinh" className="w-7 h-7 rounded-lg bg-white p-0.5 object-cover" />
+              <span className="font-black text-xs sm:text-sm truncate">FC Dưỡng Sinh</span>
             </div>
 
             <div className="flex items-center gap-2 bg-amber-400 text-slate-950 px-3 py-1 rounded-xl font-mono font-black text-base sm:text-lg shadow-sm">

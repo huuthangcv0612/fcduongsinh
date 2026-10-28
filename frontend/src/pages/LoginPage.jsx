@@ -83,10 +83,10 @@ export default function LoginPage() {
     <div className="min-h-[100dvh] flex flex-col md:flex-row bg-slate-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Cover Image Section (Desktop Only) */}
       <div className="hidden md:flex md:w-1/2 lg:w-3/5 bg-slate-900 relative overflow-hidden">
-        <img src={coverImage} alt="FC Nhà Trẻ Cover" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-700" />
+        <img src={coverImage} alt="FC Dưỡng Sinh Cover" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-700" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1f2ca3] via-[#1f2ca3]/40 to-transparent mix-blend-multiply" />
         <div className="absolute bottom-12 left-12 right-12 z-10 text-white drop-shadow-lg">
-          <h2 className="text-4xl lg:text-5xl font-black mb-4 tracking-tight">FC Nhà Trẻ</h2>
+          <h2 className="text-4xl lg:text-5xl font-black mb-4 tracking-tight">FC Dưỡng Sinh</h2>
           <p className="text-lg font-bold text-white/90 max-w-md leading-relaxed">Hệ Thống Quản Lý Đội Bóng. Quản lý tài chính, điểm danh trận đấu và kết nối giao lưu sân 7 chuyên nghiệp.</p>
         </div>
       </div>
@@ -101,11 +101,11 @@ export default function LoginPage() {
 
           {/* Logo Header */}
           <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-[#2c3ec4]/30 mb-4 transform hover:scale-105 transition overflow-hidden border-[3px] border-white">
-            <img src={teamLogo} alt="FC Nhà Trẻ Logo" className="w-full h-full object-cover" />
+            <img src={teamLogo} alt="FC Dưỡng Sinh Logo" className="w-full h-full object-cover" />
           </div>
 
           <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
-            FC NHÀ TRẺ
+            FC DƯỠNG SINH
           </h1>
           <p className="text-slate-600 text-xs font-bold mb-8">
             Hệ Thống Quản Lý Đội Bóng, Điểm Danh & Tìm Đối Tác

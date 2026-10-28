@@ -47,11 +47,11 @@ export default function Navbar() {
             {/* Brand Logo */}
             <div className="flex items-center gap-3">
               <Link to="/" className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-md transform hover:scale-105 transition overflow-hidden p-0.5">
-                <img src={teamLogo} alt="FC Nhà Trẻ" className="w-full h-full object-cover rounded-xl" />
+                <img src={teamLogo} alt="FC Dưỡng Sinh" className="w-full h-full object-cover rounded-xl" />
               </Link>
               <div>
                 <Link to="/" className="font-black text-lg text-white tracking-tight leading-none flex items-center gap-2">
-                  FC NHÀ TRẺ
+                  FC DƯỠNG SINH
                 </Link>
               </div>
             </div>

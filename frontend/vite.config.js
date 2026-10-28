@@ -17,9 +17,9 @@ export default defineConfig({
       },
       includeAssets: ['logo.png'],
       manifest: {
-        name: 'FC Nhà Trẻ',
-        short_name: 'FC Nhà Trẻ',
-        description: 'Hệ thống quản lý đội bóng, điểm danh & tìm đối FC Nhà Trẻ',
+        name: 'FC Dưỡng Sinh',
+        short_name: 'FC Dưỡng Sinh',
+        description: 'Hệ thống quản lý đội bóng, điểm danh & tìm đối FC Dưỡng Sinh',
         theme_color: '#1f2ca3',
         background_color: '#f8fafc',
         display: 'standalone',
